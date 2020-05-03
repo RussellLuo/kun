@@ -52,9 +52,9 @@ type Response struct {
 }
 
 type Operation struct {
-	Pattern   string
 	Name      string
 	Method    string
+	Pattern   string
 	Request   Request
 	Responses []Response
 }
@@ -129,7 +129,7 @@ func (o *Operation) buildParam(text, name, typ string) *Param {
 	if p.In == "" {
 		p.In = InBody
 	}
-	if p.Name == "" {
+	if p.Name == "" && name != "" {
 		p.Name = strings.ToLower(string(name[0])) + name[1:]
 	}
 

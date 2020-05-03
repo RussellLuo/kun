@@ -135,36 +135,7 @@ func NewChi(opts Options) *ChiGenerator {
 	return &ChiGenerator{opts: opts}
 }
 
-func (c *ChiGenerator) FillType(ops []*oapi.Operation, ifObj *reflector.Interface) {
-	methodParams := make(map[string]map[string]string)
-	for _, m := range ifObj.Methods {
-		paramTypes := make(map[string]string)
-		for _, p := range m.Params {
-			paramTypes[p.Name] = p.Type
-		}
-		methodParams[m.Name] = paramTypes
-	}
-
-	// Fill in the `Type` field for each request parameter.
-	for _, op := range ops {
-		methodParam, ok := methodParams[op.Name]
-		if !ok {
-			panic(fmt.Errorf("no method %s defined in the interface %s", op.Name, ifObj.Name))
-		}
-
-		for _, p := range op.Request.Params {
-			p.Type, ok = methodParam[p.Name]
-			if !ok {
-				panic(fmt.Errorf("no param %s defined in the method %s.%s", op.Name, ifObj.Name, op.Name))
-			}
-		}
-	}
-
-}
-
 func (c *ChiGenerator) Generate(result *reflector.Result, spec *oapi.Specification) ([]byte, error) {
-	c.FillType(spec.Operations, result.Interface)
-
 	data := struct {
 		Result *reflector.Result
 		Spec   *oapi.Specification

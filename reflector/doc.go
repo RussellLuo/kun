@@ -3,61 +3,56 @@ package reflector
 import (
 	"fmt"
 	"go/ast"
-	"go/doc"
 	"go/parser"
 	"go/token"
 	"path/filepath"
 )
 
-type MethodDoc struct {
-	Name     string
-	Comments []string
-}
-
-func GetInterfaceDoc(filename, objName string) (docs []MethodDoc) {
-	ifType, err := getInterfaceType(filename, objName)
-	if err != nil {
-		panic(err)
-	}
-
-	for _, field := range ifType.Methods.List {
-		d := MethodDoc{
-			Name: field.Names[0].Name,
-		}
-		for _, c := range field.Doc.List {
-			d.Comments = append(d.Comments, c.Text)
-		}
-
-		docs = append(docs, d)
-	}
-
-	return
-}
-
-func getInterfaceType(filename, objName string) (*ast.InterfaceType, error) {
-	filename, _ = filepath.Abs(filename)
-
-	f, err := parser.ParseFile(token.NewFileSet(), filename, nil, parser.ParseComments)
+func GetInterfaceMethodDoc(filename, name string) (map[string][]string, error) {
+	ifType, err := getAstInterfaceType(filename, name)
 	if err != nil {
 		return nil, err
 	}
 
-	docPkg := doc.New(&ast.Package{
-		Files: map[string]*ast.File{filename: f},
-	}, "", doc.AllDecls)
+	doc := make(map[string][]string)
 
-	for _, t := range docPkg.Types {
-		for _, s := range t.Decl.Specs {
-			ts := s.(*ast.TypeSpec)
-			if ts.Name.Name == objName {
+	for _, method := range ifType.Methods.List {
+		methodName := method.Names[0].Name
+
+		if method.Doc == nil {
+			return nil, fmt.Errorf("method %q has no comment", methodName)
+		}
+
+		var comments []string
+		for _, c := range method.Doc.List {
+			comments = append(comments, c.Text)
+		}
+		doc[methodName] = comments
+	}
+
+	return doc, nil
+}
+
+func getAstInterfaceType(filename, name string) (*ast.InterfaceType, error) {
+	filename, _ = filepath.Abs(filename)
+
+	f, err := parser.ParseFile(token.NewFileSet(), filename, nil, parser.ParseComments|parser.DeclarationErrors)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, d := range f.Decls {
+		for _, s := range d.(*ast.GenDecl).Specs {
+			ts, ok := s.(*ast.TypeSpec)
+			if ok && ts.Name.Name == name {
 				ifType, ok := ts.Type.(*ast.InterfaceType)
 				if !ok {
-					return nil, fmt.Errorf("%s(ts.Type) is not an interface", objName)
+					return nil, fmt.Errorf("%q is not an interface", name)
 				}
 				return ifType, nil
 			}
 		}
 	}
 
-	return nil, fmt.Errorf("could not find interface %s", objName)
+	return nil, fmt.Errorf("could not find interface %q", name)
 }

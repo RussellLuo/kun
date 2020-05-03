@@ -53,8 +53,12 @@ func (g *Generator) Generate(srcFilename, interfaceName, dstPkgName string) (con
 		return content, err
 	}
 
-	docs := reflector.GetInterfaceDoc(srcFilename, interfaceName)
-	spec, err := oapi.FromDocs(docs)
+	doc, err := reflector.GetInterfaceMethodDoc(srcFilename, interfaceName)
+	if err != nil {
+		return content, err
+	}
+
+	spec, err := oapi.FromDoc(result, doc)
 	if err != nil {
 		return content, err
 	}
