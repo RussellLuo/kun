@@ -49,6 +49,8 @@ func NewRouter(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}) chi.Route
 }
 
 func errorEncoder(_ context.Context, err error, w http.ResponseWriter) {
+	// err2code (signature: func(error) int) must be provided in this package,
+	// to transform a business error to an HTTP code!
 	w.WriteHeader(err2code(err))
 	json.NewEncoder(w).Encode(errorWrapper{Error: err.Error()})
 }
@@ -59,8 +61,10 @@ type errorWrapper struct {
 
 {{- range .Spec.Operations}}
 
+{{- $nonCtxParams := nonCtxParams .Request.Params}}
+
 func decode{{.Name}}Request(_ context.Context, r *http.Request) (interface{}, error) {
-	{{$nonBodyParams := nonBodyParams .Request.Params -}}
+	{{$nonBodyParams := nonBodyParams $nonCtxParams -}}
 	{{range $nonBodyParams -}}
 
 	{{- if eq .Type "string" -}}
@@ -75,7 +79,7 @@ func decode{{.Name}}Request(_ context.Context, r *http.Request) (interface{}, er
 
 	{{end -}}
 
-	{{- $bodyParams := bodyParams .Request.Params}}
+	{{- $bodyParams := bodyParams $nonCtxParams}}
 	{{- if $bodyParams -}}
 	var body struct {
 		{{- range $bodyParams}}
@@ -88,14 +92,18 @@ func decode{{.Name}}Request(_ context.Context, r *http.Request) (interface{}, er
 	{{- end}}
 
 	return {{addAmpersand .Name}}Request{
-		{{- range $nonBodyParams}}
+		{{- range $nonCtxParams}}
+
+		{{- if eq .In "body"}}
+		{{title .Name}}: body.{{title .Name}},
+		{{- else}}
 		{{title .Name}}: {{castIfInt .Name .Type}},
 		{{- end}}
-		{{- range $bodyParams}}
-		{{title .Name}}: body.{{title .Name}},
+
 		{{- end}}
 	}, nil
 }
+
 {{- end}}
 
 func encodeGenericResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
@@ -187,6 +195,14 @@ func (c *ChiGenerator) Generate(result *reflector.Result, spec *oapi.Specificati
 			"bodyParams": func(in []*oapi.Param) (out []*oapi.Param) {
 				for _, p := range in {
 					if p.In == oapi.InBody {
+						out = append(out, p)
+					}
+				}
+				return
+			},
+			"nonCtxParams": func(params []*oapi.Param) (out []*oapi.Param) {
+				for _, p := range params {
+					if p.Type != "context.Context" {
 						out = append(out, p)
 					}
 				}
