@@ -1,11 +1,16 @@
 # kok
 
-The generating toolkit of Go kit.
+The generating toolkit of [Go kit][1].
+
+
+## Examples
+
+See [examples/profilesvc](examples/profilesvc).
 
 
 ## Documentation
 
-For usage and examples see the [Godoc][1].
+Checkout the [Godoc][2].
 
 
 ## License
@@ -13,4 +18,5 @@ For usage and examples see the [Godoc][1].
 [MIT](LICENSE)
 
 
-[1]: https://godoc.org/github.com/RussellLuo/kok
+[1]: https://github.com/go-kit/kit
+[2]: https://godoc.org/github.com/RussellLuo/kok

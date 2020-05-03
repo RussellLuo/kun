@@ -1,20 +1,21 @@
 # profilesvc
 
-Let's take [profilesvc](https://github.com/go-kit/kit/tree/266ff8dc37c693d0649707e519c93c1f85868bdc/examples/profilesvc) as an example, see how we can generate endpoint/http code based on the interface [Service](https://github.com/go-kit/kit/blob/266ff8dc37c693d0649707e519c93c1f85868bdc/examples/profilesvc/service.go#L9-L20).
+Let's take [profilesvc](https://github.com/go-kit/kit/tree/266ff8dc37c693d0649707e519c93c1f85868bdc/examples/profilesvc) as an example, see how we can generate the endpoint/http code based on the interface [Service](https://github.com/go-kit/kit/blob/266ff8dc37c693d0649707e519c93c1f85868bdc/examples/profilesvc/service.go#L9-L20).
 
 
-## Adjust the Service interface
+## Prerequisites
 
-1. Add a meaningful name to all input/output parameters, for human-readable field names in the corresponding request/response struct.
-2. Add kok-specific comments (i.e. comments start with "// @kok") in a OpenAPI-inspired format, to describe the HTTP property.
+1. Adjust the [Service](https://github.com/RussellLuo/kok/blob/master/examples/profilesvc/service.go#L11-L58) interface
+
+    - Add a meaningful name to all input/output parameters, to get more human-readable field names in the corresponding request/response structs.
+    - Add kok-specific comments (i.e. comments start with "// @kok") in a [OAS](http://spec.openapis.org/oas/v3.0.3)-inspired format, to describe the properties of the exposed HTTP APIs.
+
+2. Implement `err2code()`
+
+    - Provide a function named `err2code` in [err2code.go](err2code.go), which has the exactly same logic as [codeFrom](https://github.com/go-kit/kit/blob/266ff8dc37c693d0649707e519c93c1f85868bdc/examples/profilesvc/transport.go#L392-L401).
 
 
-## Implement `err2code()`
-
-Provide a function named `err2code` in [err2code.go](err2code.go), which is the same as [codeFrom](https://github.com/go-kit/kit/blob/266ff8dc37c693d0649707e519c93c1f85868bdc/examples/profilesvc/transport.go#L392-L401).
-
-
-## Generate code
+## Generate the code
 
 1. Use the `kok` command
 
