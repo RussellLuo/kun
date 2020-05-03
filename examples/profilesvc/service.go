@@ -32,7 +32,7 @@ type Service interface {
 	// @kok(method): "DELETE"
 	// @kok(pattern): "/profiles/{id}"
 	// @kok(param): "name:id,in:path"
-	DeleteProfile(ctx context.Context, id string) error
+	DeleteProfile(ctx context.Context, id string) (err error)
 
 	// @kok(method): "GET"
 	// @kok(pattern): "/profiles/{id}/addresses"
@@ -48,7 +48,7 @@ type Service interface {
 	// @kok(method): "POST"
 	// @kok(pattern): "/profiles/{profileID}/addresses"
 	// @kok(param): "name:profileID,in:path"
-	PostAddress(ctx context.Context, profileID string, a Address) (err error)
+	PostAddress(ctx context.Context, profileID string, address Address) (err error)
 
 	// @kok(method): "DELETE"
 	// @kok(pattern): "/profiles/{profileID}/addresses/{addressID}"

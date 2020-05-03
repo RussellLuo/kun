@@ -182,7 +182,7 @@ func decodePostAddressRequest(_ context.Context, r *http.Request) (interface{}, 
 	profileID := chi.URLParam(r, "profileID")
 
 	var body struct {
-		A Address `json:"a"`
+		Address Address `json:"address"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		return nil, err
@@ -190,7 +190,7 @@ func decodePostAddressRequest(_ context.Context, r *http.Request) (interface{}, 
 
 	return &PostAddressRequest{
 		ProfileID: profileID,
-		A:         body.A,
+		Address:   body.Address,
 	}, nil
 }
 

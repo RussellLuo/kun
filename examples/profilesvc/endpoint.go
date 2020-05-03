@@ -41,22 +41,22 @@ type DeleteProfileRequest struct {
 }
 
 type DeleteProfileResponse struct {
-	Out1 error `json:"-"`
+	Err error `json:"-"`
 }
 
 // Failed implements endpoint.Failer.
-func (r *DeleteProfileResponse) Failed() error { return r.Out1 }
+func (r *DeleteProfileResponse) Failed() error { return r.Err }
 
 // MakeEndpointOfDeleteProfile creates the endpoint for s.DeleteProfile.
 func MakeEndpointOfDeleteProfile(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(*DeleteProfileRequest)
-		out1 := s.DeleteProfile(
+		err := s.DeleteProfile(
 			ctx,
 			req.Id,
 		)
 		return &DeleteProfileResponse{
-			Out1: out1,
+			Err: err,
 		}, nil
 	}
 }
@@ -173,7 +173,7 @@ func MakeEndpointOfPatchProfile(s Service) endpoint.Endpoint {
 
 type PostAddressRequest struct {
 	ProfileID string  `json:"profile_id"`
-	A         Address `json:"a"`
+	Address   Address `json:"address"`
 }
 
 type PostAddressResponse struct {
@@ -190,7 +190,7 @@ func MakeEndpointOfPostAddress(s Service) endpoint.Endpoint {
 		err := s.PostAddress(
 			ctx,
 			req.ProfileID,
-			req.A,
+			req.Address,
 		)
 		return &PostAddressResponse{
 			Err: err,
