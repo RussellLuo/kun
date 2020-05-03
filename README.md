@@ -3,6 +3,24 @@
 The generating toolkit of [Go kit][1].
 
 
+## Installation
+
+```bash
+$ go get -u github.com/RussellLuo/kok
+```
+
+Usage:
+
+```bash
+$ kok -h
+kok [flags] source-file interface-name
+  -out-dir string
+    	output directory (default ".")
+  -pkg string
+    	package name (default will infer)
+```
+
+
 ## Examples
 
 See [examples/profilesvc](examples/profilesvc).
