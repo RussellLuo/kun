@@ -172,13 +172,13 @@ func GetPkgInfo(srcDir, pkgName string) (*types.Package, string, string) {
 		panic(fmt.Errorf("couldn't load source package: %s", err))
 	}
 
-	if pkgName == "" {
-		pkgName = srcPkg.Name
-	}
-
 	pkgPath, err := findPkgPath(pkgName, srcPkg)
 	if err != nil {
 		panic(fmt.Errorf("couldn't load package: %s", err))
+	}
+
+	if pkgName == "" {
+		pkgName = srcPkg.Name
 	}
 
 	return srcPkg.Types, pkgPath, pkgName
