@@ -69,7 +69,6 @@ func (mock *ServiceMock) GetAddresses(ctx context.Context, id string) (addresses
 }
 
 func (mock *ServiceMock) GetAddress(ctx context.Context, profileID string, addressID string) (address Address, err error) {
-	return Address{}, nil
 	if mock.GetAddressFunc == nil {
 		panic("ServiceMock.GetAddressFunc: not implemented")
 	}
@@ -77,7 +76,6 @@ func (mock *ServiceMock) GetAddress(ctx context.Context, profileID string, addre
 
 }
 func (mock *ServiceMock) PostAddress(ctx context.Context, profileID string, address Address) (err error) {
-	return nil
 	if mock.PostAddressFunc == nil {
 		panic("ServiceMock.PostAddressFunc: not implemented")
 	}
@@ -85,7 +83,6 @@ func (mock *ServiceMock) PostAddress(ctx context.Context, profileID string, addr
 
 }
 func (mock *ServiceMock) DeleteAddress(ctx context.Context, profileID string, addressID string) (err error) {
-	return nil
 	if mock.DeleteAddressFunc == nil {
 		panic("ServiceMock.DeleteAddressFunc: not implemented")
 	}
@@ -251,7 +248,7 @@ func TestHTTP_GetProfile(t *testing.T) {
 					return Profile{}, nil
 				},
 			}))
-			if !reflect.DeepEqual(gotID, c.wantID) {
+			if gotID != c.wantID {
 				t.Fatalf("ID: got (%v), want (%v)", gotID, c.wantID)
 			}
 		})
@@ -350,7 +347,7 @@ func TestHTTP_PutProfile(t *testing.T) {
 					return nil
 				},
 			}))
-			if !reflect.DeepEqual(gotID, c.wantID) {
+			if gotID != c.wantID {
 				t.Fatalf("ID: got (%v), want (%v)", gotID, c.wantID)
 			}
 			if !reflect.DeepEqual(gotProfile, c.wantProfile) {
