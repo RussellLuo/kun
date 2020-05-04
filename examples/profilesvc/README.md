@@ -45,7 +45,7 @@ $ go run cmd/main.go
 Create a Profile:
 
 ```bash
-$ curl -X POST http://localhost:8080/profiles -H "Content-Type: application/json" -d '{"profile": {"id":"1234","name":"Go Kit"}}'
+$ curl -X POST http://localhost:8080/profiles -H "Content-Type: application/json" -d '{"profile": {"id":"1234","name":"kok"}}'
 {}
 ```
 
@@ -53,5 +53,5 @@ Get the profile you just created:
 
 ```bash
 $ curl http://localhost:8080/profiles/1234
-{"profile":{"id":"1234","name":"Go Kit"}}
+{"profile":{"id":"1234","name":"kok"}}
 ```
