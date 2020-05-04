@@ -1,7 +1,6 @@
 package http
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -184,7 +183,7 @@ func (c *ChiGenerator) Generate(result *reflector.Result, spec *oapi.Specificati
 				case oapi.InQuery:
 					return fmt.Sprintf(`r.URL.Query().Get("%s")`, param.Name)
 				default:
-					panic(errors.New(fmt.Sprintf("param.In `%s` not supported", param.In)))
+					panic(fmt.Errorf("param.In `%s` not supported", param.In))
 				}
 			},
 			"nonBodyParams": func(in []*oapi.Param) (out []*oapi.Param) {
