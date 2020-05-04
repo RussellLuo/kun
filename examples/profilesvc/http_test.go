@@ -205,7 +205,7 @@ func TestHTTP_PostProfile(t *testing.T) {
 			outErr: ErrAlreadyExists,
 			wantResponse: response{
 				statusCode:  http.StatusBadRequest,
-				contentType: "",
+				contentType: "application/json; charset=utf-8",
 				body:        `{"error":"already exists"}` + "\n",
 			},
 		},
@@ -266,7 +266,6 @@ func TestHTTP_GetProfile(t *testing.T) {
 			request: request{
 				method: "GET",
 				path:   "/profiles/1234",
-				body:   `{}`,
 			},
 			outProfile: Profile{
 				ID:   "1234",
@@ -284,13 +283,12 @@ func TestHTTP_GetProfile(t *testing.T) {
 			request: request{
 				method: "GET",
 				path:   "/profiles/1234",
-				body:   `{}`,
 			},
 			outProfile: Profile{},
 			outErr:     ErrNotFound,
 			wantResponse: response{
 				statusCode:  http.StatusNotFound,
-				contentType: "",
+				contentType: "application/json; charset=utf-8",
 				body:        `{"error":"not found"}` + "\n",
 			},
 		},
@@ -386,7 +384,7 @@ func TestHTTP_PutProfile(t *testing.T) {
 			outErr: ErrInconsistentIDs,
 			wantResponse: response{
 				statusCode:  http.StatusBadRequest,
-				contentType: "",
+				contentType: "application/json; charset=utf-8",
 				body:        `{"error":"inconsistent IDs"}` + "\n",
 			},
 		},

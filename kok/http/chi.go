@@ -51,8 +51,10 @@ func NewHTTPHandler(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}) chi.
 }
 
 func errorEncoder(_ context.Context, err error, w http.ResponseWriter) {
-	// err2code (signature: func(error) int) must be provided in this package,
-	// to transform a business error to an HTTP code!
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+	// err2code (signature: func(error) int) must be provided in the same
+	// package, to transform any business error to an HTTP code!
 	w.WriteHeader(err2code(err))
 	json.NewEncoder(w).Encode(errorWrapper{Error: err.Error()})
 }
@@ -108,10 +110,9 @@ func decode{{.Name}}Request(_ context.Context, r *http.Request) (interface{}, er
 
 {{- end}}
 
-func encodeGenericResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+func encodeGenericResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
 	if f, ok := response.(endpoint.Failer); ok && f.Failed() != nil {
-		errorEncoder(ctx, f.Failed(), w)
-		return nil
+		return f.Failed()
 	}
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	return json.NewEncoder(w).Encode(response)
