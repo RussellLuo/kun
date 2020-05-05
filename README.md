@@ -6,7 +6,7 @@ The generating toolkit of [Go kit][1].
 ## Installation
 
 ```bash
-$ go get -u github.com/RussellLuo/kok
+$ go get -u github.com/RussellLuo/kok/cmd/kok
 ```
 
 Usage:
