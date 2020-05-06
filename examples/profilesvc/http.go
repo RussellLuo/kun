@@ -13,7 +13,7 @@ import (
 	kithttp "github.com/go-kit/kit/transport/http"
 )
 
-func NewHTTPHandler(svc Service) chi.Router {
+func NewHTTPHandler(svc Service) http.Handler {
 	r := chi.NewRouter()
 
 	options := []kithttp.ServerOption{

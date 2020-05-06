@@ -29,7 +29,7 @@ import (
 )
 
 
-func NewHTTPHandler(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}) chi.Router {
+func NewHTTPHandler(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}) http.Handler {
 	r := chi.NewRouter()
 
 	options := []kithttp.ServerOption{
