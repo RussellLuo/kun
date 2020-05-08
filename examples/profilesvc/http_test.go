@@ -97,9 +97,8 @@ type (
 	}
 
 	response struct {
-		statusCode  int
-		contentType string
-		body        string
+		statusCode int
+		body       string
 	}
 )
 
@@ -129,8 +128,9 @@ func checkResponse(w *httptest.ResponseRecorder, want response) string {
 	}
 
 	gotContentType := resp.Header.Get("Content-Type")
-	if gotContentType != want.contentType {
-		return fmt.Sprintf("ContentType: got (%q), want (%q)", gotContentType, want.contentType)
+	wantContentType := "application/json; charset=utf-8"
+	if gotContentType != wantContentType {
+		return fmt.Sprintf("ContentType: got (%q), want (%q)", gotContentType, wantContentType)
 	}
 
 	gotBody := string(body)
@@ -142,10 +142,17 @@ func checkResponse(w *httptest.ResponseRecorder, want response) string {
 }
 
 func TestHTTP_PostProfile(t *testing.T) {
+	type in struct {
+		profile Profile
+	}
+	type out struct {
+		err error
+	}
+
 	requestCases := []struct {
-		name        string
-		request     request
-		wantProfile Profile
+		name    string
+		request request
+		wantIn  in
 	}{
 		{
 			name: "request",
@@ -154,23 +161,27 @@ func TestHTTP_PostProfile(t *testing.T) {
 				path:   "/profiles",
 				body:   `{"profile": {"id": "1234", "name": "kok"}}`,
 			},
-			wantProfile: Profile{
-				ID:   "1234",
-				Name: "kok",
+			wantIn: in{
+				profile: Profile{
+					ID:   "1234",
+					Name: "kok",
+				},
 			},
 		},
 	}
 	for _, c := range requestCases {
 		t.Run(c.name, func(t *testing.T) {
-			var gotProfile Profile
+			var gotIn in
 			makeRequest(c.request, NewHTTPHandler(&ServiceMock{
 				PostProfileFunc: func(ctx context.Context, profile Profile) (err error) {
-					gotProfile = profile
+					gotIn = in{
+						profile: profile,
+					}
 					return nil
 				},
 			}))
-			if !reflect.DeepEqual(gotProfile, c.wantProfile) {
-				t.Fatalf("Profile: got (%v), want (%v)", gotProfile, c.wantProfile)
+			if !reflect.DeepEqual(gotIn, c.wantIn) {
+				t.Fatalf("In: got (%v), want (%v)", gotIn, c.wantIn)
 			}
 		})
 	}
@@ -178,7 +189,7 @@ func TestHTTP_PostProfile(t *testing.T) {
 	responseCases := []struct {
 		name         string
 		request      request
-		outErr       error
+		out          out
 		wantResponse response
 	}{
 		{
@@ -188,11 +199,12 @@ func TestHTTP_PostProfile(t *testing.T) {
 				path:   "/profiles",
 				body:   `{}`,
 			},
-			outErr: nil,
+			out: out{
+				err: nil,
+			},
 			wantResponse: response{
-				statusCode:  http.StatusOK,
-				contentType: "application/json; charset=utf-8",
-				body:        `{}` + "\n",
+				statusCode: http.StatusOK,
+				body:       `{}` + "\n",
 			},
 		},
 		{
@@ -202,11 +214,12 @@ func TestHTTP_PostProfile(t *testing.T) {
 				path:   "/profiles",
 				body:   `{}`,
 			},
-			outErr: ErrAlreadyExists,
+			out: out{
+				err: ErrAlreadyExists,
+			},
 			wantResponse: response{
-				statusCode:  http.StatusBadRequest,
-				contentType: "application/json; charset=utf-8",
-				body:        `{"error":"already exists"}` + "\n",
+				statusCode: http.StatusBadRequest,
+				body:       `{"error":"already exists"}` + "\n",
 			},
 		},
 	}
@@ -214,7 +227,7 @@ func TestHTTP_PostProfile(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			w := makeRequest(c.request, NewHTTPHandler(&ServiceMock{
 				PostProfileFunc: func(ctx context.Context, profile Profile) (err error) {
-					return c.outErr
+					return c.out.err
 				},
 			}))
 			if errStr := checkResponse(w, c.wantResponse); errStr != "" {
@@ -225,10 +238,18 @@ func TestHTTP_PostProfile(t *testing.T) {
 }
 
 func TestHTTP_GetProfile(t *testing.T) {
+	type in struct {
+		id string
+	}
+	type out struct {
+		profile Profile
+		err     error
+	}
+
 	requestCases := []struct {
 		name    string
 		request request
-		wantID  string
+		wantIn  in
 	}{
 		{
 			name: "request",
@@ -236,20 +257,24 @@ func TestHTTP_GetProfile(t *testing.T) {
 				method: "GET",
 				path:   "/profiles/1234",
 			},
-			wantID: "1234",
+			wantIn: in{
+				id: "1234",
+			},
 		},
 	}
 	for _, c := range requestCases {
 		t.Run(c.name, func(t *testing.T) {
-			var gotID string
+			var gotIn in
 			makeRequest(c.request, NewHTTPHandler(&ServiceMock{
 				GetProfileFunc: func(ctx context.Context, id string) (profile Profile, err error) {
-					gotID = id
+					gotIn = in{
+						id: id,
+					}
 					return Profile{}, nil
 				},
 			}))
-			if gotID != c.wantID {
-				t.Fatalf("ID: got (%v), want (%v)", gotID, c.wantID)
+			if !reflect.DeepEqual(gotIn, c.wantIn) {
+				t.Fatalf("In: got (%v), want (%v)", gotIn, c.wantIn)
 			}
 		})
 	}
@@ -257,8 +282,7 @@ func TestHTTP_GetProfile(t *testing.T) {
 	responseCases := []struct {
 		name         string
 		request      request
-		outProfile   Profile
-		outErr       error
+		out          out
 		wantResponse response
 	}{
 		{
@@ -267,15 +291,16 @@ func TestHTTP_GetProfile(t *testing.T) {
 				method: "GET",
 				path:   "/profiles/1234",
 			},
-			outProfile: Profile{
-				ID:   "1234",
-				Name: "kok",
+			out: out{
+				profile: Profile{
+					ID:   "1234",
+					Name: "kok",
+				},
+				err: nil,
 			},
-			outErr: nil,
 			wantResponse: response{
-				statusCode:  http.StatusOK,
-				contentType: "application/json; charset=utf-8",
-				body:        `{"profile":{"id":"1234","name":"kok"}}` + "\n",
+				statusCode: http.StatusOK,
+				body:       `{"profile":{"id":"1234","name":"kok"}}` + "\n",
 			},
 		},
 		{
@@ -284,12 +309,13 @@ func TestHTTP_GetProfile(t *testing.T) {
 				method: "GET",
 				path:   "/profiles/1234",
 			},
-			outProfile: Profile{},
-			outErr:     ErrNotFound,
+			out: out{
+				profile: Profile{},
+				err:     ErrNotFound,
+			},
 			wantResponse: response{
-				statusCode:  http.StatusNotFound,
-				contentType: "application/json; charset=utf-8",
-				body:        `{"error":"not found"}` + "\n",
+				statusCode: http.StatusNotFound,
+				body:       `{"error":"not found"}` + "\n",
 			},
 		},
 	}
@@ -297,7 +323,7 @@ func TestHTTP_GetProfile(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			w := makeRequest(c.request, NewHTTPHandler(&ServiceMock{
 				GetProfileFunc: func(ctx context.Context, id string) (profile Profile, err error) {
-					return c.outProfile, c.outErr
+					return c.out.profile, c.out.err
 				},
 			}))
 			if errStr := checkResponse(w, c.wantResponse); errStr != "" {
@@ -308,27 +334,36 @@ func TestHTTP_GetProfile(t *testing.T) {
 }
 
 func TestHTTP_PutProfile(t *testing.T) {
+	type in struct {
+		id      string
+		profile Profile
+	}
+	type out struct {
+		err error
+	}
+
 	requestCases := []struct {
-		name        string
-		request     request
-		wantID      string
-		wantProfile Profile
+		name    string
+		request request
+		wantIn  in
 	}{
 		{
 			name: "request",
 			request: request{
 				method: "PUT",
 				path:   "/profiles/1234",
-				body:   `{"profile": {"id": "5678", "name": "kok", "addresses": [{"id":"0","location":"here"}]}}`,
+				body:   `{"profile": {"id": "5678", "name": "kok", "addresses": [{"id": "0", "location": "here"}]}}`,
 			},
-			wantID: "1234",
-			wantProfile: Profile{
-				ID:   "5678",
-				Name: "kok",
-				Addresses: []Address{
-					{
-						ID:       "0",
-						Location: "here",
+			wantIn: in{
+				id: "1234",
+				profile: Profile{
+					ID:   "5678",
+					Name: "kok",
+					Addresses: []Address{
+						{
+							ID:       "0",
+							Location: "here",
+						},
 					},
 				},
 			},
@@ -336,20 +371,18 @@ func TestHTTP_PutProfile(t *testing.T) {
 	}
 	for _, c := range requestCases {
 		t.Run(c.name, func(t *testing.T) {
-			var gotID string
-			var gotProfile Profile
+			var gotIn in
 			makeRequest(c.request, NewHTTPHandler(&ServiceMock{
 				PutProfileFunc: func(ctx context.Context, id string, profile Profile) (err error) {
-					gotID = id
-					gotProfile = profile
+					gotIn = in{
+						id:      id,
+						profile: profile,
+					}
 					return nil
 				},
 			}))
-			if gotID != c.wantID {
-				t.Fatalf("ID: got (%v), want (%v)", gotID, c.wantID)
-			}
-			if !reflect.DeepEqual(gotProfile, c.wantProfile) {
-				t.Fatalf("Profile: got (%v), want (%v)", gotProfile, c.wantProfile)
+			if !reflect.DeepEqual(gotIn, c.wantIn) {
+				t.Fatalf("In: got (%v), want (%v)", gotIn, c.wantIn)
 			}
 		})
 	}
@@ -357,7 +390,7 @@ func TestHTTP_PutProfile(t *testing.T) {
 	responseCases := []struct {
 		name         string
 		request      request
-		outErr       error
+		out          out
 		wantResponse response
 	}{
 		{
@@ -367,11 +400,12 @@ func TestHTTP_PutProfile(t *testing.T) {
 				path:   "/profiles/1234",
 				body:   `{}`,
 			},
-			outErr: nil,
+			out: out{
+				err: nil,
+			},
 			wantResponse: response{
-				statusCode:  http.StatusOK,
-				contentType: "application/json; charset=utf-8",
-				body:        `{}` + "\n",
+				statusCode: http.StatusOK,
+				body:       `{}` + "\n",
 			},
 		},
 		{
@@ -381,11 +415,12 @@ func TestHTTP_PutProfile(t *testing.T) {
 				path:   "/profiles/1234",
 				body:   `{}`,
 			},
-			outErr: ErrInconsistentIDs,
+			out: out{
+				err: ErrInconsistentIDs,
+			},
 			wantResponse: response{
-				statusCode:  http.StatusBadRequest,
-				contentType: "application/json; charset=utf-8",
-				body:        `{"error":"inconsistent IDs"}` + "\n",
+				statusCode: http.StatusBadRequest,
+				body:       `{"error":"inconsistent IDs"}` + "\n",
 			},
 		},
 	}
@@ -393,7 +428,7 @@ func TestHTTP_PutProfile(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			w := makeRequest(c.request, NewHTTPHandler(&ServiceMock{
 				PutProfileFunc: func(ctx context.Context, id string, profile Profile) (err error) {
-					return c.outErr
+					return c.out.err
 				},
 			}))
 			if errStr := checkResponse(w, c.wantResponse); errStr != "" {

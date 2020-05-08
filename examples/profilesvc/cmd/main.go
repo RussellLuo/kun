@@ -12,13 +12,12 @@ import (
 	"github.com/RussellLuo/kok/examples/profilesvc"
 )
 
-var (
-	httpAddr = flag.String("http.addr", ":8080", "HTTP listen address")
-)
-
 func main() {
-	srv := profilesvc.NewInmemService()
-	r := profilesvc.NewHTTPHandler(srv)
+	httpAddr := flag.String("http.addr", ":8080", "HTTP listen address")
+	flag.Parse()
+
+	svc := profilesvc.NewInmemService()
+	r := profilesvc.NewHTTPHandler(svc)
 
 	errs := make(chan error, 2)
 	go func() {
