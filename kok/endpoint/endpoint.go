@@ -74,6 +74,7 @@ type Options struct {
 	SchemaPtr         bool
 	SchemaTag         string
 	TagKeyToSnakeCase bool
+	Formatted         bool
 }
 
 type Generator struct {
@@ -84,7 +85,7 @@ func New(opts Options) *Generator {
 	return &Generator{opts: opts}
 }
 
-func (e *Generator) Generate(result *reflector.Result) ([]byte, error) {
+func (g *Generator) Generate(result *reflector.Result) ([]byte, error) {
 	return gen.Generate(template, result, gen.Options{
 		Funcs: map[string]interface{}{
 			"title": strings.Title,
@@ -112,32 +113,32 @@ func (e *Generator) Generate(result *reflector.Result) ([]byte, error) {
 				return strings.Join(names, sep)
 			},
 			"addAsterisks": func(name string) string {
-				if e.opts.SchemaPtr {
+				if g.opts.SchemaPtr {
 					return "*" + name
 				}
 				return name
 			},
 			"addAmpersand": func(name string) string {
-				if e.opts.SchemaPtr {
+				if g.opts.SchemaPtr {
 					return "&" + name
 				}
 				return name
 			},
 			"addTag": func(name, typ string) string {
-				if e.opts.SchemaTag == "" {
+				if g.opts.SchemaTag == "" {
 					return ""
 				}
 
 				if typ == "error" {
 					name = "-"
-				} else if e.opts.TagKeyToSnakeCase {
+				} else if g.opts.TagKeyToSnakeCase {
 					name = ToSnakeCase(name)
 				}
 
-				return fmt.Sprintf("`%s:\"%s\"`", e.opts.SchemaTag, name)
+				return fmt.Sprintf("`%s:\"%s\"`", g.opts.SchemaTag, name)
 			},
 		},
-		Formatters: []gen.Formatter{gen.Gofmt, gen.Goimports},
+		Formatted: g.opts.Formatted,
 	})
 }
 

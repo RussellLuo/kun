@@ -16,6 +16,7 @@ type Options struct {
 	SchemaPtr         bool
 	SchemaTag         string
 	TagKeyToSnakeCase bool
+	Formatted         bool
 }
 
 type Content struct {
@@ -25,7 +26,6 @@ type Content struct {
 }
 
 type Generator struct {
-	opts     Options
 	endpoint *endpoint.Generator
 	chi      *http.ChiGenerator
 	httptest *httptest.Generator
@@ -33,17 +33,19 @@ type Generator struct {
 
 func New(opts Options) *Generator {
 	return &Generator{
-		opts: opts,
 		endpoint: endpoint.New(endpoint.Options{
 			SchemaPtr:         opts.SchemaPtr,
 			SchemaTag:         opts.SchemaTag,
 			TagKeyToSnakeCase: opts.TagKeyToSnakeCase,
+			Formatted:         opts.Formatted,
 		}),
 		chi: http.NewChi(http.Options{
 			SchemaPtr:         opts.SchemaPtr,
 			SchemaTag:         opts.SchemaTag,
 			TagKeyToSnakeCase: opts.TagKeyToSnakeCase,
+			Formatted:         opts.Formatted,
 		}),
+		httptest: httptest.New(opts.Formatted),
 	}
 }
 

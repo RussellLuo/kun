@@ -5,10 +5,12 @@ import (
 	"text/template"
 )
 
+var formatters = []Formatter{Gofmt, Goimports}
+
 type Options struct {
-	Name       string
-	Funcs      template.FuncMap
-	Formatters []Formatter
+	Name      string
+	Funcs     template.FuncMap
+	Formatted bool
 }
 
 func Generate(text string, data interface{}, opts Options) ([]byte, error) {
@@ -23,9 +25,12 @@ func Generate(text string, data interface{}, opts Options) ([]byte, error) {
 	}
 
 	b := buf.Bytes()
-	for _, fmt := range opts.Formatters {
-		if b, err = fmt(b); err != nil {
-			return nil, err
+
+	if opts.Formatted {
+		for _, fmt := range formatters {
+			if b, err = fmt(b); err != nil {
+				return nil, err
+			}
 		}
 	}
 

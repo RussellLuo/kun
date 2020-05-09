@@ -136,6 +136,7 @@ type Options struct {
 	SchemaPtr         bool
 	SchemaTag         string
 	TagKeyToSnakeCase bool
+	Formatted         bool
 }
 
 type ChiGenerator struct {
@@ -146,7 +147,7 @@ func NewChi(opts Options) *ChiGenerator {
 	return &ChiGenerator{opts: opts}
 }
 
-func (c *ChiGenerator) Generate(result *reflector.Result, spec *oapi.Specification) ([]byte, error) {
+func (g *ChiGenerator) Generate(result *reflector.Result, spec *oapi.Specification) ([]byte, error) {
 	data := struct {
 		Result *reflector.Result
 		Spec   *oapi.Specification
@@ -159,20 +160,20 @@ func (c *ChiGenerator) Generate(result *reflector.Result, spec *oapi.Specificati
 		Funcs: map[string]interface{}{
 			"title": strings.Title,
 			"addTag": func(name, typ string) string {
-				if c.opts.SchemaTag == "" {
+				if g.opts.SchemaTag == "" {
 					return ""
 				}
 
 				if typ == "error" {
 					name = "-"
-				} else if c.opts.TagKeyToSnakeCase {
+				} else if g.opts.TagKeyToSnakeCase {
 					name = endpoint.ToSnakeCase(name)
 				}
 
-				return fmt.Sprintf("`%s:\"%s\"`", c.opts.SchemaTag, name)
+				return fmt.Sprintf("`%s:\"%s\"`", g.opts.SchemaTag, name)
 			},
 			"addAmpersand": func(name string) string {
-				if c.opts.SchemaPtr {
+				if g.opts.SchemaPtr {
 					return "&" + name
 				}
 				return name
@@ -231,6 +232,6 @@ func (c *ChiGenerator) Generate(result *reflector.Result, spec *oapi.Specificati
 				}
 			},
 		},
-		Formatters: []gen.Formatter{gen.Gofmt, gen.Goimports},
+		Formatted: g.opts.Formatted,
 	})
 }

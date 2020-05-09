@@ -182,10 +182,14 @@ func TestHTTP_{{.Name}}(t *testing.T) {
 `
 )
 
-type Generator struct{}
+type Generator struct {
+	formatted bool
+}
 
-func New() *Generator {
-	return &Generator{}
+func New(formatted bool) *Generator {
+	return &Generator{
+		formatted: formatted,
+	}
 }
 
 func (g *Generator) Generate(result *reflector.Result, testFilename string) ([]byte, error) {
@@ -241,6 +245,6 @@ func (g *Generator) Generate(result *reflector.Result, testFilename string) ([]b
 				return
 			},
 		},
-		Formatters: []gen.Formatter{gen.Gofmt, gen.Goimports},
+		Formatted: g.formatted,
 	})
 }
