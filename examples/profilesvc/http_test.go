@@ -186,10 +186,13 @@ func TestHTTP_PostProfile(t *testing.T) {
 			request: request{
 				method: "POST",
 				path:   "/profiles",
-				body:   `{}`,
+				body:   `{"profile": {"id": "1234", "name": "kok"}}`,
 			},
 			wantIn: in{
-				profile: Profile{},
+				profile: Profile{
+					ID:   "1234",
+					Name: "kok",
+				},
 			},
 			out: out{
 				err: ErrAlreadyExists,
@@ -257,6 +260,7 @@ func TestHTTP_GetProfile(t *testing.T) {
 					ID:   "1234",
 					Name: "kok",
 				},
+				err: nil,
 			},
 			wantResponse: response{
 				statusCode: http.StatusOK,
@@ -267,10 +271,10 @@ func TestHTTP_GetProfile(t *testing.T) {
 			name: "err",
 			request: request{
 				method: "GET",
-				path:   "/profiles/1234",
+				path:   "/profiles/5678",
 			},
 			wantIn: in{
-				id: "1234",
+				id: "5678",
 			},
 			out: out{
 				profile: Profile{},
@@ -330,12 +334,12 @@ func TestHTTP_PutProfile(t *testing.T) {
 			request: request{
 				method: "PUT",
 				path:   "/profiles/1234",
-				body:   `{"profile": {"id": "5678", "name": "kok", "addresses": [{"id": "0", "location": "here"}]}}`,
+				body:   `{"profile": {"id": "1234", "name": "kok", "addresses": [{"id": "0", "location": "here"}]}}`,
 			},
 			wantIn: in{
 				id: "1234",
 				profile: Profile{
-					ID:   "5678",
+					ID:   "1234",
 					Name: "kok",
 					Addresses: []Address{
 						{
@@ -358,11 +362,20 @@ func TestHTTP_PutProfile(t *testing.T) {
 			request: request{
 				method: "PUT",
 				path:   "/profiles/1234",
-				body:   `{}`,
+				body:   `{"profile": {"id": "5678", "name": "kok", "addresses": [{"id": "0", "location": "here"}]}}`,
 			},
 			wantIn: in{
-				id:      "1234",
-				profile: Profile{},
+				id: "1234",
+				profile: Profile{
+					ID:   "5678",
+					Name: "kok",
+					Addresses: []Address{
+						{
+							ID:       "0",
+							Location: "here",
+						},
+					},
+				},
 			},
 			out: out{
 				err: ErrInconsistentIDs,
@@ -382,6 +395,520 @@ func TestHTTP_PutProfile(t *testing.T) {
 					gotIn = in{
 						id:      id,
 						profile: profile,
+					}
+					return c.out.err
+				},
+			}))
+
+			if !reflect.DeepEqual(gotIn, c.wantIn) {
+				t.Fatalf("In: got (%v), want (%v)", gotIn, c.wantIn)
+			}
+
+			if errStr := c.wantResponse.Equal(w); errStr != "" {
+				t.Fatal(errStr)
+			}
+		})
+	}
+}
+
+func TestHTTP_PatchProfile(t *testing.T) {
+	// in contains all the input parameters (except ctx) of PatchProfile.
+	type in struct {
+		id      string
+		profile Profile
+	}
+
+	// out contains all the output parameters of PatchProfile.
+	type out struct {
+		err error
+	}
+
+	cases := []struct {
+		name         string
+		request      request
+		wantIn       in
+		out          out
+		wantResponse response
+	}{
+		{
+			name: "ok",
+			request: request{
+				method: "PATCH",
+				path:   "/profiles/1234",
+				body:   `{"profile": {"id": "1234", "name": "kok", "addresses": [{"id": "?", "location": "where"}]}}`,
+			},
+			wantIn: in{
+				id: "1234",
+				profile: Profile{
+					ID:   "1234",
+					Name: "kok",
+					Addresses: []Address{
+						{
+							ID:       "?",
+							Location: "where",
+						},
+					},
+				},
+			},
+			out: out{
+				err: nil,
+			},
+			wantResponse: response{
+				statusCode: http.StatusOK,
+				body:       `{}` + "\n",
+			},
+		},
+		{
+			name: "err",
+			request: request{
+				method: "PATCH",
+				path:   "/profiles/1234",
+				body:   `{"profile": {"id": "5678", "name": "wow"}}`,
+			},
+			wantIn: in{
+				id: "1234",
+				profile: Profile{
+					ID:   "5678",
+					Name: "wow",
+				},
+			},
+			out: out{
+				err: ErrInconsistentIDs,
+			},
+			wantResponse: response{
+				statusCode: http.StatusBadRequest,
+				body:       `{"error":"inconsistent IDs"}` + "\n",
+			},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var gotIn in
+			w := c.request.ServedBy(NewHTTPHandler(&ServiceMock{
+				PatchProfileFunc: func(ctx context.Context, id string, profile Profile) (err error) {
+					gotIn = in{
+						id:      id,
+						profile: profile,
+					}
+					return c.out.err
+				},
+			}))
+
+			if !reflect.DeepEqual(gotIn, c.wantIn) {
+				t.Fatalf("In: got (%v), want (%v)", gotIn, c.wantIn)
+			}
+
+			if errStr := c.wantResponse.Equal(w); errStr != "" {
+				t.Fatal(errStr)
+			}
+		})
+	}
+}
+
+func TestHTTP_DeleteProfile(t *testing.T) {
+	// in contains all the input parameters (except ctx) of DeleteProfile.
+	type in struct {
+		id string
+	}
+
+	// out contains all the output parameters of DeleteProfile.
+	type out struct {
+		err error
+	}
+
+	cases := []struct {
+		name         string
+		request      request
+		wantIn       in
+		out          out
+		wantResponse response
+	}{
+		{
+			name: "ok",
+			request: request{
+				method: "DELETE",
+				path:   "/profiles/1234",
+			},
+			wantIn: in{
+				id: "1234",
+			},
+			out: out{
+				err: nil,
+			},
+			wantResponse: response{
+				statusCode: http.StatusOK,
+				body:       `{}` + "\n",
+			},
+		},
+		{
+			name: "err",
+			request: request{
+				method: "DELETE",
+				path:   "/profiles/5678",
+			},
+			wantIn: in{
+				id: "5678",
+			},
+			out: out{
+				err: ErrNotFound,
+			},
+			wantResponse: response{
+				statusCode: http.StatusNotFound,
+				body:       `{"error":"not found"}` + "\n",
+			},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var gotIn in
+			w := c.request.ServedBy(NewHTTPHandler(&ServiceMock{
+				DeleteProfileFunc: func(ctx context.Context, id string) (err error) {
+					gotIn = in{
+						id: id,
+					}
+					return c.out.err
+				},
+			}))
+
+			if !reflect.DeepEqual(gotIn, c.wantIn) {
+				t.Fatalf("In: got (%v), want (%v)", gotIn, c.wantIn)
+			}
+
+			if errStr := c.wantResponse.Equal(w); errStr != "" {
+				t.Fatal(errStr)
+			}
+		})
+	}
+}
+
+func TestHTTP_GetAddresses(t *testing.T) {
+	// in contains all the input parameters (except ctx) of GetAddresses.
+	type in struct {
+		id string
+	}
+
+	// out contains all the output parameters of GetAddresses.
+	type out struct {
+		addresses []Address
+		err       error
+	}
+
+	cases := []struct {
+		name         string
+		request      request
+		wantIn       in
+		out          out
+		wantResponse response
+	}{
+		{
+			name: "ok",
+			request: request{
+				method: "GET",
+				path:   "/profiles/1234/addresses",
+			},
+			wantIn: in{
+				id: "1234",
+			},
+			out: out{
+				addresses: []Address{
+					{
+						ID:       "0",
+						Location: "here",
+					},
+				},
+				err: nil,
+			},
+			wantResponse: response{
+				statusCode: http.StatusOK,
+				body:       `{"addresses":[{"id":"0","location":"here"}]}` + "\n",
+			},
+		},
+		{
+			name: "empty",
+			request: request{
+				method: "GET",
+				path:   "/profiles/5678/addresses",
+			},
+			wantIn: in{
+				id: "5678",
+			},
+			out: out{
+				addresses: []Address{},
+				err:       nil,
+			},
+			wantResponse: response{
+				statusCode: http.StatusOK,
+				body:       `{"addresses":[]}` + "\n",
+			},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var gotIn in
+			w := c.request.ServedBy(NewHTTPHandler(&ServiceMock{
+				GetAddressesFunc: func(ctx context.Context, id string) (addresses []Address, err error) {
+					gotIn = in{
+						id: id,
+					}
+					return c.out.addresses, c.out.err
+				},
+			}))
+
+			if !reflect.DeepEqual(gotIn, c.wantIn) {
+				t.Fatalf("In: got (%v), want (%v)", gotIn, c.wantIn)
+			}
+
+			if errStr := c.wantResponse.Equal(w); errStr != "" {
+				t.Fatal(errStr)
+			}
+		})
+	}
+}
+
+func TestHTTP_GetAddress(t *testing.T) {
+	// in contains all the input parameters (except ctx) of GetAddress.
+	type in struct {
+		profileID string
+		addressID string
+	}
+
+	// out contains all the output parameters of GetAddress.
+	type out struct {
+		address Address
+		err     error
+	}
+
+	cases := []struct {
+		name         string
+		request      request
+		wantIn       in
+		out          out
+		wantResponse response
+	}{
+		{
+			name: "ok",
+			request: request{
+				method: "GET",
+				path:   "/profiles/1234/addresses/0",
+			},
+			wantIn: in{
+				profileID: "1234",
+				addressID: "0",
+			},
+			out: out{
+				address: Address{
+					ID:       "0",
+					Location: "here",
+				},
+				err: nil,
+			},
+			wantResponse: response{
+				statusCode: http.StatusOK,
+				body:       `{"address":{"id":"0","location":"here"}}` + "\n",
+			},
+		},
+		{
+			name: "err",
+			request: request{
+				method: "GET",
+				path:   "/profiles/1234/addresses/9",
+			},
+			wantIn: in{
+				profileID: "1234",
+				addressID: "9",
+			},
+			out: out{
+				address: Address{},
+				err:     ErrNotFound,
+			},
+			wantResponse: response{
+				statusCode: http.StatusNotFound,
+				body:       `{"error":"not found"}` + "\n",
+			},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var gotIn in
+			w := c.request.ServedBy(NewHTTPHandler(&ServiceMock{
+				GetAddressFunc: func(ctx context.Context, profileID string, addressID string) (address Address, err error) {
+					gotIn = in{
+						profileID: profileID,
+						addressID: addressID,
+					}
+					return c.out.address, c.out.err
+				},
+			}))
+
+			if !reflect.DeepEqual(gotIn, c.wantIn) {
+				t.Fatalf("In: got (%v), want (%v)", gotIn, c.wantIn)
+			}
+
+			if errStr := c.wantResponse.Equal(w); errStr != "" {
+				t.Fatal(errStr)
+			}
+		})
+	}
+}
+
+func TestHTTP_PostAddress(t *testing.T) {
+	// in contains all the input parameters (except ctx) of PostAddress.
+	type in struct {
+		profileID string
+		address   Address
+	}
+
+	// out contains all the output parameters of PostAddress.
+	type out struct {
+		err error
+	}
+
+	cases := []struct {
+		name         string
+		request      request
+		wantIn       in
+		out          out
+		wantResponse response
+	}{
+		{
+			name: "ok",
+			request: request{
+				method: "POST",
+				path:   "/profiles/1234/addresses",
+				body:   `{"address": {"id": "0", "location": "here"}}`,
+			},
+			wantIn: in{
+				profileID: "1234",
+				address: Address{
+					ID:       "0",
+					Location: "here",
+				},
+			},
+			out: out{
+				err: nil,
+			},
+			wantResponse: response{
+				statusCode: http.StatusOK,
+				body:       `{}` + "\n",
+			},
+		},
+		{
+			name: "err",
+			request: request{
+				method: "POST",
+				path:   "/profiles/1234/addresses",
+				body:   `{"address": {"id": "0", "location": "here"}}`,
+			},
+			wantIn: in{
+				profileID: "1234",
+				address: Address{
+					ID:       "0",
+					Location: "here",
+				},
+			},
+			out: out{
+				err: ErrAlreadyExists,
+			},
+			wantResponse: response{
+				statusCode: http.StatusBadRequest,
+				body:       `{"error":"already exists"}` + "\n",
+			},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var gotIn in
+			w := c.request.ServedBy(NewHTTPHandler(&ServiceMock{
+				PostAddressFunc: func(ctx context.Context, profileID string, address Address) (err error) {
+					gotIn = in{
+						profileID: profileID,
+						address:   address,
+					}
+					return c.out.err
+				},
+			}))
+
+			if !reflect.DeepEqual(gotIn, c.wantIn) {
+				t.Fatalf("In: got (%v), want (%v)", gotIn, c.wantIn)
+			}
+
+			if errStr := c.wantResponse.Equal(w); errStr != "" {
+				t.Fatal(errStr)
+			}
+		})
+	}
+}
+
+func TestHTTP_DeleteAddress(t *testing.T) {
+	// in contains all the input parameters (except ctx) of DeleteAddress.
+	type in struct {
+		profileID string
+		addressID string
+	}
+
+	// out contains all the output parameters of DeleteAddress.
+	type out struct {
+		err error
+	}
+
+	cases := []struct {
+		name         string
+		request      request
+		wantIn       in
+		out          out
+		wantResponse response
+	}{
+		{
+			name: "ok",
+			request: request{
+				method: "DELETE",
+				path:   "/profiles/1234/addresses/0",
+			},
+			wantIn: in{
+				profileID: "1234",
+				addressID: "0",
+			},
+			out: out{
+				err: nil,
+			},
+			wantResponse: response{
+				statusCode: http.StatusOK,
+				body:       `{}` + "\n",
+			},
+		},
+		{
+			name: "err",
+			request: request{
+				method: "DELETE",
+				path:   "/profiles/1234/addresses/9",
+			},
+			wantIn: in{
+				profileID: "1234",
+				addressID: "9",
+			},
+			out: out{
+				err: ErrNotFound,
+			},
+			wantResponse: response{
+				statusCode: http.StatusNotFound,
+				body:       `{"error":"not found"}` + "\n",
+			},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var gotIn in
+			w := c.request.ServedBy(NewHTTPHandler(&ServiceMock{
+				DeleteAddressFunc: func(ctx context.Context, profileID string, addressID string) (err error) {
+					gotIn = in{
+						profileID: profileID,
+						addressID: addressID,
 					}
 					return c.out.err
 				},
