@@ -12,15 +12,17 @@ import (
 )
 
 type userFlags struct {
-	outDir  string
-	pkgName string
-	args    []string
+	outDir       string
+	pkgName      string
+	testFileName string
+	args         []string
 }
 
 func main() {
 	var flags userFlags
 	flag.StringVar(&flags.outDir, "out-dir", ".", "output directory")
 	flag.StringVar(&flags.pkgName, "pkg", "", "package name (default will infer)")
+	flag.StringVar(&flags.testFileName, "test", "./http.test.yaml", "the YAML file that provides test-cases for HTTP")
 
 	flag.Usage = func() {
 		fmt.Println(`kok [flags] source-file interface-name`)
@@ -53,7 +55,7 @@ func run(flags userFlags) error {
 		SchemaPtr:         true,
 		SchemaTag:         "json",
 		TagKeyToSnakeCase: true,
-	}).Generate(srcFilename, interfaceName, flags.pkgName)
+	}).Generate(srcFilename, interfaceName, flags.pkgName, flags.testFileName)
 	if err != nil {
 		return err
 	}
@@ -64,9 +66,20 @@ func run(flags userFlags) error {
 		}
 	}
 
-	if err := ioutil.WriteFile(filepath.Join(flags.outDir, "endpoint.go"), content.Endpoint, 0644); err != nil {
-		return err
+	files := map[string][]byte{
+		"endpoint.go":  content.Endpoint,
+		"http.go":      content.HTTP,
+		"http_test.go": content.HTTPTest,
+	}
+	for name, data := range files {
+		if len(data) == 0 {
+			continue
+		}
+
+		if err := ioutil.WriteFile(filepath.Join(flags.outDir, name), data, 0644); err != nil {
+			return err
+		}
 	}
 
-	return ioutil.WriteFile(filepath.Join(flags.outDir, "http.go"), content.HTTP, 0644)
+	return nil
 }

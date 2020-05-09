@@ -1,0 +1,94 @@
+- name: 'PostProfile'
+  cases:
+    - name: 'ok'
+      request:
+        method: 'POST'
+        path: '/profiles'
+        body: '{"profile": {"id": "1234", "name": "kok"}}'
+      wantIn: |
+        profile: Profile{
+          ID: "1234",
+          Name: "kok",
+        },
+      out: |
+        err: nil,
+      wantResponse:
+        statusCode: 'http.StatusOK'
+        body: '{}'
+    - name: 'err'
+      request:
+        method: 'POST'
+        path: '/profiles'
+        body: '{}'
+      wantIn: |
+        profile: Profile{},
+      out: |
+        err: ErrAlreadyExists,
+      wantResponse:
+        statusCode: 'http.StatusBadRequest'
+        body: '{"error":"already exists"}'
+- name: 'GetProfile'
+  cases:
+    - name: 'ok'
+      request:
+        method: 'GET'
+        path: '/profiles/1234'
+      wantIn: |
+        id: "1234",
+      out: |
+        profile: Profile{
+          ID: "1234",
+          Name: "kok",
+        },
+      wantResponse:
+        statusCode: 'http.StatusOK'
+        body: '{"profile":{"id":"1234","name":"kok"}}'
+    - name: 'err'
+      request:
+        method: 'GET'
+        path: '/profiles/1234'
+      wantIn: |
+        id: "1234",
+      out: |
+        profile: Profile{},
+        err: ErrNotFound,
+      wantResponse:
+        statusCode: 'http.StatusNotFound'
+        body: '{"error":"not found"}'
+- name: 'PutProfile'
+  cases:
+    - name: 'ok'
+      request:
+        method: 'PUT'
+        path: '/profiles/1234'
+        body: '{"profile": {"id": "5678", "name": "kok", "addresses": [{"id": "0", "location": "here"}]}}'
+      wantIn: |
+        id: "1234",
+        profile: Profile{
+          ID:   "5678",
+          Name: "kok",
+          Addresses: []Address{
+            {
+              ID:       "0",
+              Location: "here",
+            },
+          },
+        },
+      out: |
+        err: nil,
+      wantResponse:
+        statusCode: 'http.StatusOK'
+        body: '{}'
+    - name: 'err'
+      request:
+        method: 'PUT'
+        path: '/profiles/1234'
+        body: '{}'
+      wantIn: |
+        id: "1234",
+        profile: Profile{},
+      out: |
+        err: ErrInconsistentIDs,
+      wantResponse:
+        statusCode: 'http.StatusBadRequest'
+        body: '{"error":"inconsistent IDs"}'

@@ -1,10 +1,13 @@
 package kok
 
 import (
+	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/RussellLuo/kok/kok/endpoint"
 	"github.com/RussellLuo/kok/kok/http"
+	"github.com/RussellLuo/kok/kok/httptest"
 	"github.com/RussellLuo/kok/oapi"
 	"github.com/RussellLuo/kok/reflector"
 )
@@ -18,12 +21,14 @@ type Options struct {
 type Content struct {
 	Endpoint []byte
 	HTTP     []byte
+	HTTPTest []byte
 }
 
 type Generator struct {
 	opts     Options
 	endpoint *endpoint.Generator
 	chi      *http.ChiGenerator
+	httptest *httptest.Generator
 }
 
 func New(opts Options) *Generator {
@@ -42,17 +47,19 @@ func New(opts Options) *Generator {
 	}
 }
 
-func (g *Generator) Generate(srcFilename, interfaceName, dstPkgName string) (content Content, err error) {
+func (g *Generator) Generate(srcFilename, interfaceName, dstPkgName, testFilename string) (content Content, err error) {
 	result, err := reflector.ReflectInterface(filepath.Dir(srcFilename), dstPkgName, interfaceName)
 	if err != nil {
 		return content, err
 	}
 
+	// Generate the endpoint code.
 	content.Endpoint, err = g.endpoint.Generate(result)
 	if err != nil {
 		return content, err
 	}
 
+	// Generate the HTTP code.
 	doc, err := reflector.GetInterfaceMethodDoc(srcFilename, interfaceName)
 	if err != nil {
 		return content, err
@@ -65,6 +72,16 @@ func (g *Generator) Generate(srcFilename, interfaceName, dstPkgName string) (con
 
 	content.HTTP, err = g.chi.Generate(result, spec)
 	if err != nil {
+		return content, err
+	}
+
+	// Generate the HTTP tests code.
+	content.HTTPTest, err = g.httptest.Generate(result, testFilename)
+	if err != nil {
+		if os.IsNotExist(err) {
+			fmt.Printf("WARNING: Skip generating the HTTP tests due to an error (%v)\n", err)
+			return content, nil
+		}
 		return content, err
 	}
 
