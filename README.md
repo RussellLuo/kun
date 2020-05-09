@@ -14,10 +14,14 @@ Usage:
 ```bash
 $ kok -h
 kok [flags] source-file interface-name
-  -out-dir string
+  -fmt
+    	whether to make code formatted (default true)
+  -out string
     	output directory (default ".")
   -pkg string
     	package name (default will infer)
+  -test string
+    	the YAML file that provides test-cases for HTTP (default "./http.test.yaml")
 ```
 
 
