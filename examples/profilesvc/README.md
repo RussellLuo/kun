@@ -14,6 +14,10 @@ Let's take [profilesvc](https://github.com/go-kit/kit/tree/266ff8dc37c693d064970
 
     - Provide a function named `err2code` in [err2code.go](err2code.go), which has the exactly same logic as [codeFrom](https://github.com/go-kit/kit/blob/266ff8dc37c693d0649707e519c93c1f85868bdc/examples/profilesvc/transport.go#L392-L401), to transform any business error to an HTTP code.
 
+3. Define HTTP test-cases in YAML (Optional)
+
+    - See [http.test.yaml](http.test.yaml).
+
 
 ## Generate the code
 
@@ -32,6 +36,12 @@ Let's take [profilesvc](https://github.com/go-kit/kit/tree/266ff8dc37c693d064970
     ```bash
     $ go generate
     ```
+
+Code generated:
+
+- [endpoint.go](endpoint.go)
+- [http.go](http.go)
+- [http_test.go](http_test.go)
 
 ## Test the service
 
@@ -64,4 +74,10 @@ Date: Fri, 08 May 2020 02:22:25 GMT
 Content-Length: 39
 
 {"profile":{"id":"1234","name":"kok"}}
+```
+
+Run tests:
+
+```bash
+$ go test -v -race
 ```
