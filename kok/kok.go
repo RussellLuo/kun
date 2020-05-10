@@ -6,10 +6,10 @@ import (
 	"path/filepath"
 
 	"github.com/RussellLuo/kok/kok/endpoint"
-	"github.com/RussellLuo/kok/kok/http"
-	"github.com/RussellLuo/kok/kok/httptest"
-	"github.com/RussellLuo/kok/oapi"
-	"github.com/RussellLuo/kok/reflector"
+	"github.com/RussellLuo/kok/kok/http/chi"
+	"github.com/RussellLuo/kok/kok/http/httptest"
+	"github.com/RussellLuo/kok/pkg/openapi"
+	"github.com/RussellLuo/kok/pkg/reflector"
 )
 
 type Options struct {
@@ -27,7 +27,7 @@ type Content struct {
 
 type Generator struct {
 	endpoint *endpoint.Generator
-	chi      *http.ChiGenerator
+	chi      *chi.Generator
 	httptest *httptest.Generator
 }
 
@@ -39,7 +39,7 @@ func New(opts Options) *Generator {
 			TagKeyToSnakeCase: opts.TagKeyToSnakeCase,
 			Formatted:         opts.Formatted,
 		}),
-		chi: http.NewChi(http.Options{
+		chi: chi.New(chi.Options{
 			SchemaPtr:         opts.SchemaPtr,
 			SchemaTag:         opts.SchemaTag,
 			TagKeyToSnakeCase: opts.TagKeyToSnakeCase,
@@ -67,7 +67,7 @@ func (g *Generator) Generate(srcFilename, interfaceName, dstPkgName, testFilenam
 		return content, err
 	}
 
-	spec, err := oapi.FromDoc(result, doc)
+	spec, err := openapi.FromDoc(result, doc)
 	if err != nil {
 		return content, err
 	}

@@ -1,13 +1,13 @@
-package http
+package chi
 
 import (
 	"fmt"
 	"strings"
 
 	"github.com/RussellLuo/kok/kok/endpoint"
-	"github.com/RussellLuo/kok/kok/gen"
-	"github.com/RussellLuo/kok/oapi"
-	"github.com/RussellLuo/kok/reflector"
+	"github.com/RussellLuo/kok/pkg/gen"
+	"github.com/RussellLuo/kok/pkg/openapi"
+	"github.com/RussellLuo/kok/pkg/reflector"
 )
 
 var (
@@ -139,18 +139,18 @@ type Options struct {
 	Formatted         bool
 }
 
-type ChiGenerator struct {
+type Generator struct {
 	opts Options
 }
 
-func NewChi(opts Options) *ChiGenerator {
-	return &ChiGenerator{opts: opts}
+func New(opts Options) *Generator {
+	return &Generator{opts: opts}
 }
 
-func (g *ChiGenerator) Generate(result *reflector.Result, spec *oapi.Specification) ([]byte, error) {
+func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specification) ([]byte, error) {
 	data := struct {
 		Result *reflector.Result
-		Spec   *oapi.Specification
+		Spec   *openapi.Specification
 	}{
 		Result: result,
 		Spec:   spec,
@@ -178,33 +178,33 @@ func (g *ChiGenerator) Generate(result *reflector.Result, spec *oapi.Specificati
 				}
 				return name
 			},
-			"extractParam": func(param *oapi.Param) string {
+			"extractParam": func(param *openapi.Param) string {
 				switch param.In {
-				case oapi.InPath:
+				case openapi.InPath:
 					return fmt.Sprintf(`chi.URLParam(r, "%s")`, param.Name)
-				case oapi.InQuery:
+				case openapi.InQuery:
 					return fmt.Sprintf(`r.URL.Query().Get("%s")`, param.Name)
 				default:
 					panic(fmt.Errorf("param.In `%s` not supported", param.In))
 				}
 			},
-			"nonBodyParams": func(in []*oapi.Param) (out []*oapi.Param) {
+			"nonBodyParams": func(in []*openapi.Param) (out []*openapi.Param) {
 				for _, p := range in {
-					if p.In != oapi.InBody {
+					if p.In != openapi.InBody {
 						out = append(out, p)
 					}
 				}
 				return
 			},
-			"bodyParams": func(in []*oapi.Param) (out []*oapi.Param) {
+			"bodyParams": func(in []*openapi.Param) (out []*openapi.Param) {
 				for _, p := range in {
-					if p.In == oapi.InBody {
+					if p.In == openapi.InBody {
 						out = append(out, p)
 					}
 				}
 				return
 			},
-			"nonCtxParams": func(params []*oapi.Param) (out []*oapi.Param) {
+			"nonCtxParams": func(params []*openapi.Param) (out []*openapi.Param) {
 				for _, p := range params {
 					if p.Type != "context.Context" {
 						out = append(out, p)

@@ -1,11 +1,11 @@
-package oapi
+package openapi
 
 import (
 	"fmt"
 	"regexp"
 	"strings"
 
-	"github.com/RussellLuo/kok/reflector"
+	"github.com/RussellLuo/kok/pkg/reflector"
 )
 
 var (

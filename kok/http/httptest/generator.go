@@ -3,8 +3,8 @@ package httptest
 import (
 	"strings"
 
-	"github.com/RussellLuo/kok/kok/gen"
-	"github.com/RussellLuo/kok/reflector"
+	"github.com/RussellLuo/kok/pkg/gen"
+	"github.com/RussellLuo/kok/pkg/reflector"
 )
 
 var (
