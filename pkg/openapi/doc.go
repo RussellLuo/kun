@@ -60,10 +60,12 @@ func manipulateByComments(op *Operation, params map[string]*Param, comments []st
 
 		key, value := result[1], result[2]
 		switch key {
-		case "pattern":
-			op.Pattern = value
-		case "method":
-			op.Method = value
+		case "op":
+			fields := strings.Fields(value)
+			if len(fields) != 2 {
+				return fmt.Errorf(`%q does not match the expected format: "<METHOD> <PATH>"`, value)
+			}
+			op.Method, op.Pattern = fields[0], fields[1]
 		case "param":
 			p := op.buildParam(value, "", "") // no default name and type
 			param, ok := params[p.Name]

@@ -10,48 +10,39 @@ import (
 
 // Service is a simple CRUD interface for user profiles.
 type Service interface {
-	// @kok(method): "POST"
-	// @kok(pattern): "/profiles"
+	// @kok(op): "POST /profiles"
 	PostProfile(ctx context.Context, profile Profile) (err error)
 
-	// @kok(method): "GET"
-	// @kok(pattern): "/profiles/{id}"
+	// @kok(op): "GET /profiles/{id}"
 	// @kok(param): "name:id,in:path"
 	GetProfile(ctx context.Context, id string) (profile Profile, err error)
 
-	// @kok(method): "PUT"
-	// @kok(pattern): "/profiles/{id}"
+	// @kok(op): "PUT /profiles/{id}"
 	// @kok(param): "name:id,in:path"
 	PutProfile(ctx context.Context, id string, profile Profile) (err error)
 
-	// @kok(method): "PATCH"
-	// @kok(pattern): "/profiles/{id}"
+	// @kok(op): "PATCH /profiles/{id}"
 	// @kok(param): "name:id,in:path"
 	PatchProfile(ctx context.Context, id string, profile Profile) (err error)
 
-	// @kok(method): "DELETE"
-	// @kok(pattern): "/profiles/{id}"
+	// @kok(op): "DELETE /profiles/{id}"
 	// @kok(param): "name:id,in:path"
 	DeleteProfile(ctx context.Context, id string) (err error)
 
-	// @kok(method): "GET"
-	// @kok(pattern): "/profiles/{id}/addresses"
+	// @kok(op): "GET /profiles/{id}/addresses"
 	// @kok(param): "name:id,in:path"
 	GetAddresses(ctx context.Context, id string) (addresses []Address, err error)
 
-	// @kok(method): "GET"
-	// @kok(pattern): "/profiles/{profileID}/addresses/{addressID}"
+	// @kok(op): "GET /profiles/{profileID}/addresses/{addressID}"
 	// @kok(param): "name:profileID,in:path"
 	// @kok(param): "name:addressID,in:path"
 	GetAddress(ctx context.Context, profileID string, addressID string) (address Address, err error)
 
-	// @kok(method): "POST"
-	// @kok(pattern): "/profiles/{profileID}/addresses"
+	// @kok(op): "POST /profiles/{profileID}/addresses"
 	// @kok(param): "name:profileID,in:path"
 	PostAddress(ctx context.Context, profileID string, address Address) (err error)
 
-	// @kok(method): "DELETE"
-	// @kok(pattern): "/profiles/{profileID}/addresses/{addressID}"
+	// @kok(op): "DELETE /profiles/{profileID}/addresses/{addressID}"
 	// @kok(param): "name:profileID,in:path"
 	// @kok(param): "name:addressID,in:path"
 	DeleteAddress(ctx context.Context, profileID string, addressID string) (err error)
