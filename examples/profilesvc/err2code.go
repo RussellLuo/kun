@@ -1,16 +1,16 @@
 package profilesvc
 
 import (
+	"errors"
 	"net/http"
 )
 
 func err2code(err error) int {
-	switch err {
-	case ErrNotFound:
+	if errors.Is(err, ErrNotFound) {
 		return http.StatusNotFound
-	case ErrAlreadyExists, ErrInconsistentIDs:
+	} else if errors.Is(err, ErrAlreadyExists) || errors.Is(err, ErrInconsistentIDs) {
 		return http.StatusBadRequest
-	default:
+	} else {
 		return http.StatusInternalServerError
 	}
 }
