@@ -12,11 +12,13 @@ type Tracer interface {
 	trace.Trace
 }
 
+type NewFunc func(family, title string) Tracer
+
 // nilTracer is a fake tracer that traces nothing.
 type nilTracer struct{}
 
-// NewNilTracer creates a fake tracer.
-func NewNilTracer() Tracer {
+// NewNil creates a fake tracer.
+func NewNil(family, title string) Tracer {
 	return nilTracer{}
 }
 
@@ -44,29 +46,29 @@ func FromContext(ctx context.Context) Tracer {
 	if tr, ok := trace.FromContext(ctx); ok {
 		return tr
 	}
-	return NewNilTracer()
+	return NewNil("", "")
 }
 
 // Authorizer determines whether a specific request is permitted to load the
 // /debug/requests or /debug/events pages.
-type Authorizer func(req *http.Request) (any, sensitive bool)
+type Authorizer func(r *http.Request) (any, sensitive bool)
 
 var (
 	AllowLocal = trace.AuthRequest
-	AllowAny   = func(req *http.Request) (any, sensitive bool) { return true, true }
+	AllowAny   = func(r *http.Request) (any, sensitive bool) { return true, true }
 )
 
-// Traces responds with traces from the program.
-// The package initialization registers it in http.DefaultServeMux
-// at /debug/requests.
+// Traces returns an HTTP handler, which will respond with traces from the program.
 //
-// It performs authorization by running auth.
-func Traces(w http.ResponseWriter, req *http.Request, auth Authorizer) {
-	any, sensitive := auth(req)
-	if !any {
-		http.Error(w, "not allowed", http.StatusUnauthorized)
-		return
+// The handler performs authorization by running auth.
+func Traces(auth Authorizer) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		any, sensitive := auth(r)
+		if !any {
+			http.Error(w, "not allowed", http.StatusUnauthorized)
+			return
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		trace.Render(w, r, sensitive)
 	}
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	trace.Render(w, req, sensitive)
 }
