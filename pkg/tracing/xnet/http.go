@@ -8,8 +8,9 @@ import (
 )
 
 // HTTPToContext returns an http RequestFunc that associates ctx with a Tracer.
-func HTTPToContext(tracer Tracer) kithttp.RequestFunc {
+func HTTPToContext(newTracer NewFunc, family, title string) kithttp.RequestFunc {
 	return func(ctx context.Context, req *http.Request) context.Context {
+		tracer := newTracer(family, title)
 		return NewContext(ctx, tracer)
 	}
 }

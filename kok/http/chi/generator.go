@@ -52,7 +52,7 @@ func NewHTTPHandler(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}
 			encodeGenericResponse,
 
 			{{- if $enableTracing}}
-			append(options, kithttp.ServerBefore(xnet.HTTPToContext(newTracer("{{$pkgName}}", "{{.Name}}"))))...,
+			append(options, kithttp.ServerBefore(xnet.HTTPToContext(newTracer, "{{$pkgName}}", "{{.Name}}")))...,
 			{{- else}}
 			options...,
 			{{- end}}
