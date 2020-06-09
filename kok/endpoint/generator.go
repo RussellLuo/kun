@@ -78,10 +78,10 @@ type Options struct {
 }
 
 type Generator struct {
-	opts Options
+	opts *Options
 }
 
-func New(opts Options) *Generator {
+func New(opts *Options) *Generator {
 	return &Generator{opts: opts}
 }
 

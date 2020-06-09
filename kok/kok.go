@@ -34,7 +34,7 @@ type Generator struct {
 
 func New(opts Options) *Generator {
 	return &Generator{
-		endpoint: endpoint.New(endpoint.Options{
+		endpoint: endpoint.New(&endpoint.Options{
 			SchemaPtr:         opts.SchemaPtr,
 			SchemaTag:         opts.SchemaTag,
 			TagKeyToSnakeCase: opts.TagKeyToSnakeCase,
@@ -47,7 +47,10 @@ func New(opts Options) *Generator {
 			Formatted:         opts.Formatted,
 			EnableTracing:     opts.EnableTracing,
 		}),
-		httptest: httptest.New(opts.Formatted),
+		httptest: httptest.New(&httptest.Options{
+			Formatted:     opts.Formatted,
+			EnableTracing: opts.EnableTracing,
+		}),
 	}
 }
 
