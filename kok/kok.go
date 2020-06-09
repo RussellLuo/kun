@@ -17,6 +17,7 @@ type Options struct {
 	SchemaTag         string
 	TagKeyToSnakeCase bool
 	Formatted         bool
+	EnableTracing     bool
 }
 
 type Content struct {
@@ -39,11 +40,12 @@ func New(opts Options) *Generator {
 			TagKeyToSnakeCase: opts.TagKeyToSnakeCase,
 			Formatted:         opts.Formatted,
 		}),
-		chi: chi.New(chi.Options{
+		chi: chi.New(&chi.Options{
 			SchemaPtr:         opts.SchemaPtr,
 			SchemaTag:         opts.SchemaTag,
 			TagKeyToSnakeCase: opts.TagKeyToSnakeCase,
 			Formatted:         opts.Formatted,
+			EnableTracing:     opts.EnableTracing,
 		}),
 		httptest: httptest.New(opts.Formatted),
 	}

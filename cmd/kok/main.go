@@ -12,11 +12,13 @@ import (
 )
 
 type userFlags struct {
-	outDir       string
-	pkgName      string
-	formatted    bool
-	testFileName string
-	args         []string
+	outDir        string
+	pkgName       string
+	testFileName  string
+	formatted     bool
+	enableTracing bool
+
+	args []string
 }
 
 func main() {
@@ -25,6 +27,7 @@ func main() {
 	flag.StringVar(&flags.pkgName, "pkg", "", "package name (default will infer)")
 	flag.StringVar(&flags.testFileName, "test", "./http.test.yaml", "the YAML file that provides test-cases for HTTP")
 	flag.BoolVar(&flags.formatted, "fmt", true, "whether to make code formatted")
+	flag.BoolVar(&flags.enableTracing, "trace", false, "whether to enable tracing")
 
 	flag.Usage = func() {
 		fmt.Println(`kok [flags] source-file interface-name`)
@@ -58,6 +61,7 @@ func run(flags userFlags) error {
 		SchemaTag:         "json",
 		TagKeyToSnakeCase: true,
 		Formatted:         flags.formatted,
+		EnableTracing:     flags.enableTracing,
 	}).Generate(srcFilename, interfaceName, flags.pkgName, flags.testFileName)
 	if err != nil {
 		return err

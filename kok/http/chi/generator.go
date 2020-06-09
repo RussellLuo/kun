@@ -21,19 +21,25 @@ import (
 	"net/http"
 	"strconv"
 	"github.com/go-chi/chi"
+	{{- if .Opts.EnableTracing}}
+	"github.com/RussellLuo/kok/pkg/tracing/xnet"
+	{{- end}}
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-kit/kit/endpoint"
-	{{- range .Result.Imports }}
+	{{- range .Result.Imports}}
 	"{{.}}"
-	{{- end }}
+	{{- end}}
 )
 
 
-func NewHTTPHandler(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}) http.Handler {
+func NewHTTPHandler(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}{{if .Opts.EnableTracing}}, tracer xnet.Tracer{{end}}) http.Handler {
 	r := chi.NewRouter()
 
 	options := []kithttp.ServerOption{
 		kithttp.ServerErrorEncoder(errorEncoder),
+		{{- if .Opts.EnableTracing}}
+		kithttp.ServerBefore(xnet.HTTPToContext(tracer)),
+		{{- end }}
 	}
 	{{range .Spec.Operations}}
 	r.Method(
@@ -137,13 +143,14 @@ type Options struct {
 	SchemaTag         string
 	TagKeyToSnakeCase bool
 	Formatted         bool
+	EnableTracing     bool
 }
 
 type Generator struct {
-	opts Options
+	opts *Options
 }
 
-func New(opts Options) *Generator {
+func New(opts *Options) *Generator {
 	return &Generator{opts: opts}
 }
 
@@ -151,9 +158,11 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 	data := struct {
 		Result *reflector.Result
 		Spec   *openapi.Specification
+		Opts   *Options
 	}{
 		Result: result,
 		Spec:   spec,
+		Opts:   g.opts,
 	}
 
 	return gen.Generate(template, data, gen.Options{
