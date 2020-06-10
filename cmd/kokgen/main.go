@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/RussellLuo/kok/kok"
+	"github.com/RussellLuo/kok/gen"
 )
 
 type userFlags struct {
@@ -56,7 +56,7 @@ func run(flags userFlags) error {
 		return err
 	}
 
-	content, err := kok.New(kok.Options{
+	content, err := gen.New(gen.Options{
 		SchemaPtr:         true,
 		SchemaTag:         "json",
 		TagKeyToSnakeCase: true,

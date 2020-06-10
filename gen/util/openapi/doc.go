@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/RussellLuo/kok/pkg/reflector"
+	"github.com/RussellLuo/kok/gen/util/reflector"
 )
 
 var (

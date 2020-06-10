@@ -5,8 +5,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/RussellLuo/kok/pkg/gen"
-	"github.com/RussellLuo/kok/pkg/reflector"
+	"github.com/RussellLuo/kok/gen/util/generator"
+	"github.com/RussellLuo/kok/gen/util/reflector"
 )
 
 var (
@@ -86,7 +86,7 @@ func New(opts *Options) *Generator {
 }
 
 func (g *Generator) Generate(result *reflector.Result) ([]byte, error) {
-	return gen.Generate(template, result, gen.Options{
+	return generator.Generate(template, result, generator.Options{
 		Funcs: map[string]interface{}{
 			"title": strings.Title,
 			"nonCtxParams": func(params []*reflector.Param) (out []*reflector.Param) {

@@ -1,15 +1,15 @@
-package kok
+package gen
 
 import (
 	"fmt"
 	"os"
 	"path/filepath"
 
-	"github.com/RussellLuo/kok/kok/endpoint"
-	"github.com/RussellLuo/kok/kok/http/chi"
-	"github.com/RussellLuo/kok/kok/http/httptest"
-	"github.com/RussellLuo/kok/pkg/openapi"
-	"github.com/RussellLuo/kok/pkg/reflector"
+	"github.com/RussellLuo/kok/gen/endpoint"
+	"github.com/RussellLuo/kok/gen/http/chi"
+	"github.com/RussellLuo/kok/gen/http/httptest"
+	"github.com/RussellLuo/kok/gen/util/openapi"
+	"github.com/RussellLuo/kok/gen/util/reflector"
 )
 
 type Options struct {

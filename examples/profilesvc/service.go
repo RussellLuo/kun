@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-//go:generate kok ./service.go Service
+//go:generate kokgen ./service.go Service
 
 // Service is a simple CRUD interface for user profiles.
 type Service interface {

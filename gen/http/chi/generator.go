@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/RussellLuo/kok/kok/endpoint"
-	"github.com/RussellLuo/kok/pkg/gen"
-	"github.com/RussellLuo/kok/pkg/openapi"
-	"github.com/RussellLuo/kok/pkg/reflector"
+	"github.com/RussellLuo/kok/gen/endpoint"
+	"github.com/RussellLuo/kok/gen/util/generator"
+	"github.com/RussellLuo/kok/gen/util/openapi"
+	"github.com/RussellLuo/kok/gen/util/reflector"
 )
 
 var (
@@ -25,7 +25,7 @@ import (
 	"strconv"
 	"github.com/go-chi/chi"
 	{{- if $enableTracing}}
-	"github.com/RussellLuo/kok/pkg/tracing/xnet"
+	"github.com/RussellLuo/kok/pkg/trace/xnet"
 	{{- end}}
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-kit/kit/endpoint"
@@ -179,7 +179,7 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 		Opts:   g.opts,
 	}
 
-	return gen.Generate(template, data, gen.Options{
+	return generator.Generate(template, data, generator.Options{
 		Funcs: map[string]interface{}{
 			"title": strings.Title,
 			"addTag": func(name, typ string) string {

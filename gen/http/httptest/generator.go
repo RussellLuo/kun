@@ -3,8 +3,8 @@ package httptest
 import (
 	"strings"
 
-	"github.com/RussellLuo/kok/pkg/gen"
-	"github.com/RussellLuo/kok/pkg/reflector"
+	"github.com/RussellLuo/kok/gen/util/generator"
+	"github.com/RussellLuo/kok/gen/util/reflector"
 )
 
 var (
@@ -228,7 +228,7 @@ func (g *Generator) Generate(result *reflector.Result, testFilename string) ([]b
 		methodMap[method.Name] = method
 	}
 
-	return gen.Generate(template, data, gen.Options{
+	return generator.Generate(template, data, generator.Options{
 		Funcs: map[string]interface{}{
 			"joinParams": func(params []*reflector.Param, format, sep string) string {
 				var results []string
