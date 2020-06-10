@@ -48,8 +48,7 @@ func New(opts Options) *Generator {
 			EnableTracing:     opts.EnableTracing,
 		}),
 		httptest: httptest.New(&httptest.Options{
-			Formatted:     opts.Formatted,
-			EnableTracing: opts.EnableTracing,
+			Formatted: opts.Formatted,
 		}),
 	}
 }
