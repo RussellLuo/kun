@@ -21,17 +21,17 @@ Let's take [profilesvc](https://github.com/go-kit/kit/tree/266ff8dc37c693d064970
 
 ## Generate the code
 
-1. Use the `kok` command
+1. Use the `kokgen` command
 
     Just run:
 
     ```bash
-    $ kok ./service.go Service
+    $ kokgen ./service.go Service
     ```
 
 2. Use `go:generate`
 
-    Add `//go:generate kok ./service.go Service` before the Service interface, then run:
+    Add `//go:generate kokgen ./service.go Service` before the Service interface, then run:
 
     ```bash
     $ go generate
