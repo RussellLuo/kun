@@ -26,7 +26,7 @@ import (
 	"testing"
 
 	{{- if $enableTracing}}
-	"github.com/RussellLuo/kok/pkg/tracing/xnet"
+	"github.com/RussellLuo/kok/pkg/trace/xnet"
 	{{- end}}
 
 	{{- range .Result.Imports}}
