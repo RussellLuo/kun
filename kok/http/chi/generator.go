@@ -36,9 +36,16 @@ import (
 )
 
 
-func NewHTTPHandler(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}
-                    {{- if $enableTracing}}, newTracer xnet.NewFunc{{end}}) http.Handler {
+func NewHTTPHandler(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}) http.Handler {
 	r := chi.NewRouter()
+
+	{{if $enableTracing -}}
+	contextor := xnet.NewContextor()
+	r.Method(
+		"PUT", "/trace",
+		xnet.HTTPHandler(contextor),
+	)
+	{{- end}}
 
 	options := []kithttp.ServerOption{
 		kithttp.ServerErrorEncoder(errorEncoder),
@@ -52,7 +59,7 @@ func NewHTTPHandler(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}
 			encodeGenericResponse,
 
 			{{- if $enableTracing}}
-			append(options, kithttp.ServerBefore(xnet.HTTPToContext(newTracer, "{{$pkgName}}", "{{.Name}}")))...,
+			append(options, kithttp.ServerBefore(contextor.HTTPToContext("{{$pkgName}}", "{{.Name}}")))...,
 			{{- else}}
 			options...,
 			{{- end}}
