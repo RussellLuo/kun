@@ -10,11 +10,11 @@ Let's take [profilesvc](https://github.com/go-kit/kit/tree/266ff8dc37c693d064970
     - Add a meaningful name to each input/output parameter, to get more human-readable field names in the corresponding request/response structs.
     - Add kok-specific comments (i.e. comments start with "// @kok") in a [OAS](http://spec.openapis.org/oas/v3.0.3)-inspired format, to describe the properties of the exposed HTTP APIs.
 
-2. Implement `err2code()`
+2. Implement `errorToResponse()`
 
-    - Provide a function named `err2code` in [err2code.go](err2code.go), which has the exactly same logic as [codeFrom](https://github.com/go-kit/kit/blob/266ff8dc37c693d0649707e519c93c1f85868bdc/examples/profilesvc/transport.go#L392-L401), to transform any business error to an HTTP code.
+    - Provide a function named `errorToResponse` in [error.go](error.go), to transform any business error to an HTTP code.
 
-3. Define HTTP test-cases in YAML (Optional)
+3. Define HTTP test-cases in YAML (**Optional**)
 
     - See [http.test.yaml](http.test.yaml).
 

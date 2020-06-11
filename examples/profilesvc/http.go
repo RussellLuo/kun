@@ -106,16 +106,13 @@ func NewHTTPHandler(svc Service) http.Handler {
 }
 
 func errorEncoder(_ context.Context, err error, w http.ResponseWriter) {
+	// errorToResponse `func(error) (int, interface{})` must be provided in the
+	// current package, to transform any business error to an HTTP response!
+	statusCode, body := errorToResponse(err)
+
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-
-	// err2code (signature: func(error) int) must be provided in the same
-	// package, to transform any business error to an HTTP code!
-	w.WriteHeader(err2code(err))
-	json.NewEncoder(w).Encode(errorWrapper{Error: err.Error()})
-}
-
-type errorWrapper struct {
-	Error string `json:"error"`
+	w.WriteHeader(statusCode)
+	json.NewEncoder(w).Encode(body)
 }
 
 func decodeDeleteAddressRequest(_ context.Context, r *http.Request) (interface{}, error) {
