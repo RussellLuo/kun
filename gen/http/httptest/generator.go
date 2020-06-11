@@ -26,6 +26,10 @@ import (
 	{{- range .Result.Imports}}
 	"{{.}}"
 	{{- end }}
+
+	{{- range .TestSpec.Imports}}
+	"{{.}}"
+	{{- end }}
 )
 
 {{- $srcPkgPrefix := .Result.SrcPkgPrefix}}
@@ -101,7 +105,7 @@ func (want response) Equal(w *httptest.ResponseRecorder) string {
 	return ""
 }
 
-{{- range .Tests}}
+{{- range .TestSpec.Tests}}
 
 {{$params := methodParams .Name}}
 {{$returns := methodReturns .Name}}
@@ -196,17 +200,17 @@ func New(opts *Options) *Generator {
 }
 
 func (g *Generator) Generate(result *reflector.Result, testFilename string) ([]byte, error) {
-	tests, err := getTests(testFilename)
+	testSpec, err := getTestSpec(testFilename)
 	if err != nil {
 		return nil, err
 	}
 
 	data := struct {
-		Result *reflector.Result
-		Tests  []test
+		Result   *reflector.Result
+		TestSpec *TestSpec
 	}{
-		Result: result,
-		Tests:  tests,
+		Result:   result,
+		TestSpec: testSpec,
 	}
 
 	methodMap := make(map[string]*reflector.Method)

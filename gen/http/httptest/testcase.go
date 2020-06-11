@@ -30,16 +30,22 @@ type test struct {
 	Cases []testCase `yaml:"cases"`
 }
 
-func getTests(testFilename string) (tests []test, err error) {
+type TestSpec struct {
+	Imports []string `yaml:"imports"`
+	Tests   []test   `yaml:"tests"`
+}
+
+func getTestSpec(testFilename string) (*TestSpec, error) {
 	b, err := ioutil.ReadFile(testFilename)
 	if err != nil {
 		return nil, err
 	}
 
-	err = yaml.Unmarshal([]byte(b), &tests)
+	testSpec := &TestSpec{}
+	err = yaml.Unmarshal([]byte(b), testSpec)
 	if err != nil {
 		return nil, err
 	}
 
-	return tests, nil
+	return testSpec, nil
 }
