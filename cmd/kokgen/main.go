@@ -30,7 +30,7 @@ func main() {
 	flag.BoolVar(&flags.enableTracing, "trace", false, "whether to enable tracing")
 
 	flag.Usage = func() {
-		fmt.Println(`kok [flags] source-file interface-name`)
+		fmt.Println(`kokgen [flags] source-file interface-name`)
 		flag.PrintDefaults()
 	}
 

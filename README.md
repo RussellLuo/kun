@@ -13,7 +13,7 @@ Usage:
 
 ```bash
 $ kokgen -h
-kok [flags] source-file interface-name
+kokgen [flags] source-file interface-name
   -fmt
     	whether to make code formatted (default true)
   -out string
