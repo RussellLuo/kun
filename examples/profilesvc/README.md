@@ -12,7 +12,7 @@ Let's take [profilesvc](https://github.com/go-kit/kit/tree/266ff8dc37c693d064970
 
 2. Implement `errorToResponse()`
 
-    - Provide a function named `errorToResponse` in [error.go](error.go), to transform any business error to an HTTP code.
+    - Provide a function named `errorToResponse` in [error.go](error.go), to transform any business error to an HTTP response.
 
 3. Define HTTP test-cases in YAML (**Optional**)
 

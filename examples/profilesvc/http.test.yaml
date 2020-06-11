@@ -1,4 +1,3 @@
-imports:
 tests:
   - name: 'PostProfile'
     cases:
