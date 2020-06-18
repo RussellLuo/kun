@@ -27,7 +27,7 @@ func HTTPStatusCode(err error) int {
 	} else if errors.Is(err, ErrResourceExhausted) {
 		return http.StatusTooManyRequests
 	} else if errors.Is(err, ErrCancelled) {
-		return 499 // has no HTTP mapping
+		return 499 // has no corresponding constant
 	} else if errors.Is(err, ErrDataLoss) {
 		return http.StatusInternalServerError
 	} else if errors.Is(err, ErrUnknown) {
