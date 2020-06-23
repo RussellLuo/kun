@@ -79,6 +79,8 @@ func manipulateByComments(op *Operation, params map[string]*Param, comments []st
 			if p.Required {
 				param.Required = p.Required
 			}
+		case "errorEncoder":
+			op.Options.ErrorEncoder = value
 		default:
 			return fmt.Errorf(`unrecognized kok key "%s" in comment: %s`, key, comment)
 		}

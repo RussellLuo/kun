@@ -16,9 +16,13 @@ import (
 func NewHTTPHandler(svc Service) http.Handler {
 	r := chi.NewRouter()
 
-	options := []kithttp.ServerOption{
-		kithttp.ServerErrorEncoder(errorEncoder),
-	}
+	var options []kithttp.ServerOption
+
+	// NOTE:
+	// If no method-specific comment `// @kok(errorEncoder)` is specified,
+	// a default error encoder named `errorToResponse`, whose signature is
+	// `func(error) (int, interface{})`, must be provided in the
+	// current package, to transform any business error to an HTTP response!
 
 	r.Method(
 		"DELETE", "/profiles/{profileID}/addresses/{addressID}",
@@ -26,7 +30,9 @@ func NewHTTPHandler(svc Service) http.Handler {
 			MakeEndpointOfDeleteAddress(svc),
 			decodeDeleteAddressRequest,
 			encodeGenericResponse,
-			options...,
+			append(options,
+				kithttp.ServerErrorEncoder(makeErrorEncoder(errorToResponse)),
+			)...,
 		),
 	)
 	r.Method(
@@ -35,7 +41,9 @@ func NewHTTPHandler(svc Service) http.Handler {
 			MakeEndpointOfDeleteProfile(svc),
 			decodeDeleteProfileRequest,
 			encodeGenericResponse,
-			options...,
+			append(options,
+				kithttp.ServerErrorEncoder(makeErrorEncoder(errorToResponse)),
+			)...,
 		),
 	)
 	r.Method(
@@ -44,7 +52,9 @@ func NewHTTPHandler(svc Service) http.Handler {
 			MakeEndpointOfGetAddress(svc),
 			decodeGetAddressRequest,
 			encodeGenericResponse,
-			options...,
+			append(options,
+				kithttp.ServerErrorEncoder(makeErrorEncoder(errorToResponse)),
+			)...,
 		),
 	)
 	r.Method(
@@ -53,7 +63,9 @@ func NewHTTPHandler(svc Service) http.Handler {
 			MakeEndpointOfGetAddresses(svc),
 			decodeGetAddressesRequest,
 			encodeGenericResponse,
-			options...,
+			append(options,
+				kithttp.ServerErrorEncoder(makeErrorEncoder(errorToResponse)),
+			)...,
 		),
 	)
 	r.Method(
@@ -62,7 +74,9 @@ func NewHTTPHandler(svc Service) http.Handler {
 			MakeEndpointOfGetProfile(svc),
 			decodeGetProfileRequest,
 			encodeGenericResponse,
-			options...,
+			append(options,
+				kithttp.ServerErrorEncoder(makeErrorEncoder(errorToResponse)),
+			)...,
 		),
 	)
 	r.Method(
@@ -71,7 +85,9 @@ func NewHTTPHandler(svc Service) http.Handler {
 			MakeEndpointOfPatchProfile(svc),
 			decodePatchProfileRequest,
 			encodeGenericResponse,
-			options...,
+			append(options,
+				kithttp.ServerErrorEncoder(makeErrorEncoder(errorToResponse)),
+			)...,
 		),
 	)
 	r.Method(
@@ -80,7 +96,9 @@ func NewHTTPHandler(svc Service) http.Handler {
 			MakeEndpointOfPostAddress(svc),
 			decodePostAddressRequest,
 			encodeGenericResponse,
-			options...,
+			append(options,
+				kithttp.ServerErrorEncoder(makeErrorEncoder(errorToResponse)),
+			)...,
 		),
 	)
 	r.Method(
@@ -89,7 +107,9 @@ func NewHTTPHandler(svc Service) http.Handler {
 			MakeEndpointOfPostProfile(svc),
 			decodePostProfileRequest,
 			encodeGenericResponse,
-			options...,
+			append(options,
+				kithttp.ServerErrorEncoder(makeErrorEncoder(errorToResponse)),
+			)...,
 		),
 	)
 	r.Method(
@@ -98,21 +118,23 @@ func NewHTTPHandler(svc Service) http.Handler {
 			MakeEndpointOfPutProfile(svc),
 			decodePutProfileRequest,
 			encodeGenericResponse,
-			options...,
+			append(options,
+				kithttp.ServerErrorEncoder(makeErrorEncoder(errorToResponse)),
+			)...,
 		),
 	)
 
 	return r
 }
 
-func errorEncoder(_ context.Context, err error, w http.ResponseWriter) {
-	// errorToResponse `func(error) (int, interface{})` must be provided in the
-	// current package, to transform any business error to an HTTP response!
-	statusCode, body := errorToResponse(err)
+func makeErrorEncoder(encode func(error) (int, interface{})) func(_ context.Context, err error, w http.ResponseWriter) {
+	return func(_ context.Context, err error, w http.ResponseWriter) {
+		statusCode, body := encode(err)
 
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(statusCode)
-	json.NewEncoder(w).Encode(body)
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(statusCode)
+		json.NewEncoder(w).Encode(body)
+	}
 }
 
 func decodeDeleteAddressRequest(_ context.Context, r *http.Request) (interface{}, error) {

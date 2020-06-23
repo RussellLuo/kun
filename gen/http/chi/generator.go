@@ -47,9 +47,13 @@ func NewHTTPHandler(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}) http
 	)
 	{{- end}}
 
-	options := []kithttp.ServerOption{
-		kithttp.ServerErrorEncoder(errorEncoder),
-	}
+	var options []kithttp.ServerOption
+
+	// NOTE:
+	// If no method-specific comment ` + "`" + `// @kok(errorEncoder)` + "`" + ` is specified,
+	// a default error encoder named ` + "`" + `errorToResponse` + "`" + `, whose signature is
+	// ` + "`" + `func(error) (int, interface{})` + "`" + `, must be provided in the
+	// current package, to transform any business error to an HTTP response!
 	{{range .Spec.Operations}}
 	r.Method(
 		"{{.Method}}", "{{.Pattern}}",
@@ -57,12 +61,12 @@ func NewHTTPHandler(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}) http
 			MakeEndpointOf{{.Name}}(svc),
 			decode{{.Name}}Request,
 			encodeGenericResponse,
-
-			{{- if $enableTracing}}
-			append(options, kithttp.ServerBefore(contextor.HTTPToContext("{{$pkgName}}", "{{.Name}}")))...,
-			{{- else}}
-			options...,
-			{{- end}}
+			append(options,
+				kithttp.ServerErrorEncoder(makeErrorEncoder({{if .Options.ErrorEncoder}}{{.Options.ErrorEncoder}}{{else}}errorToResponse{{end}})),
+				{{- if $enableTracing}}
+				kithttp.ServerBefore(contextor.HTTPToContext("{{$pkgName}}", "{{.Name}}"))),
+				{{- end}}
+			)...,
 		),
 	)
 	{{- end}}
@@ -70,14 +74,14 @@ func NewHTTPHandler(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}) http
 	return r
 }
 
-func errorEncoder(_ context.Context, err error, w http.ResponseWriter) {
-	// errorToResponse ` + "`" + `func(error) (int, interface{})` + "`" + ` must be provided in the
-	// current package, to transform any business error to an HTTP response!
-	statusCode, body := errorToResponse(err)
+func makeErrorEncoder(encode func(error) (int, interface{})) func(_ context.Context, err error, w http.ResponseWriter) {
+	return func(_ context.Context, err error, w http.ResponseWriter) {
+		statusCode, body := encode(err)
 
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(statusCode)
-	json.NewEncoder(w).Encode(body)
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(statusCode)
+		json.NewEncoder(w).Encode(body)
+	}
 }
 
 {{- range .Spec.Operations}}

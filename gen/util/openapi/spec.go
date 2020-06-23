@@ -51,12 +51,17 @@ type Response struct {
 	Schema     interface{}
 }
 
+type Options struct {
+	ErrorEncoder string
+}
+
 type Operation struct {
 	Name      string
 	Method    string
 	Pattern   string
 	Request   Request
 	Responses []Response
+	Options   Options
 }
 
 func GET() *Operation {
