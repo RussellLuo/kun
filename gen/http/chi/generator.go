@@ -94,6 +94,8 @@ func decode{{.Name}}Request(_ context.Context, r *http.Request) (interface{}, er
 
 	{{- if eq .Type "string" -}}
 	{{.Name}} := {{extractParam .}}
+	{{- else if eq .Type "bool" -}}
+	{{.Name}} := {{extractParam .}} == "true"
 	{{- else -}}
 	{{.Name}}Value := {{extractParam .}}
 	{{.Name}}, err := {{parseExpr .Name .Type}}
