@@ -6,9 +6,12 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+type header map[string]string
+
 type request struct {
 	Method string `yaml:"method"`
 	Path   string `yaml:"path"`
+	Header header `yaml:"header"`
 	Body   string `yaml:"body"`
 }
 

@@ -58,6 +58,7 @@ func (mock *{{$mockInterfaceName}}) {{.Name}}({{joinParams .Params "$Name $Type"
 type request struct {
 	method string
 	path   string
+	header map[string]string
 	body   string
 }
 
@@ -69,6 +70,10 @@ func (r request) ServedBy(handler http.Handler) *httptest.ResponseRecorder {
 		req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	} else {
 		req = httptest.NewRequest(r.method, r.path, nil)
+	}
+
+	for key, value := range r.header {
+		req.Header.Set(key, value)
 	}
 
 	w := httptest.NewRecorder()
@@ -140,6 +145,13 @@ func TestHTTP_{{.Name}}(t *testing.T) {
 			request: request{
 				method: "{{.Request.Method}}",
 				path:   "{{.Request.Path}}",
+				{{- if .Request.Header}}
+				header: map[string]string{
+					{{- range $key, $value := .Request.Header}}
+					"{{$key}}": "{{$value}}",
+					{{- end}}
+				},
+				{{- end}}
 				{{- if .Request.Body}}
 				body:   ` + "`{{.Request.Body}}`" + `,
 				{{- end}}
