@@ -28,9 +28,9 @@ func FromDoc(result *reflector.Result, doc map[string][]string) (*Specification,
 		for _, mp := range m.Params {
 			p := &Param{
 				In:   InBody, // param is in body by default
-				Name: mp.Name,
 				Type: mp.Type,
 			}
+			p.SetName(mp.Name)
 			op.addParam(p)
 
 			// Build the mapping for later manipulation.
@@ -73,12 +73,10 @@ func manipulateByComments(op *Operation, params map[string]*Param, comments []st
 				return fmt.Errorf("no param `%s` declared in the method %s", p.Name, op.Name)
 			}
 
-			if p.In != "" {
-				param.In = p.In
-			}
-			if p.Required {
-				param.Required = p.Required
-			}
+			// Update param according to the values hold by p.
+			param.In = p.In
+			param.Alias = p.Alias
+			param.Required = p.Required
 		case "errorEncoder":
 			op.Options.ErrorEncoder = value
 		default:

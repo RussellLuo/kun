@@ -205,9 +205,11 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 			"extractParam": func(param *openapi.Param) string {
 				switch param.In {
 				case openapi.InPath:
-					return fmt.Sprintf(`chi.URLParam(r, "%s")`, param.Name)
+					return fmt.Sprintf(`chi.URLParam(r, "%s")`, param.Alias)
 				case openapi.InQuery:
-					return fmt.Sprintf(`r.URL.Query().Get("%s")`, param.Name)
+					return fmt.Sprintf(`r.URL.Query().Get("%s")`, param.Alias)
+				case openapi.InHeader:
+					return fmt.Sprintf(`r.Header.Get("%s")`, param.Alias)
 				default:
 					panic(fmt.Errorf("param.In `%s` not supported", param.In))
 				}

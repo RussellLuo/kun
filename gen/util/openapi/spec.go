@@ -36,8 +36,18 @@ func (s *Specification) Path(pattern string, operations ...*Operation) *Specific
 type Param struct {
 	In       string
 	Name     string
+	Alias    string
 	Type     string
 	Required bool
+}
+
+func (p *Param) SetName(name string) {
+	p.Name = name
+
+	// Set alias if it's not set.
+	if p.Alias == "" {
+		p.Alias = name
+	}
 }
 
 type Request struct {
@@ -125,7 +135,9 @@ func (o *Operation) buildParam(text, name, typ string) *Param {
 		case "required":
 			p.Required = value == "true"
 		case "name":
-			p.Name = value
+			p.SetName(value)
+		case "alias":
+			p.Alias = value
 		default:
 			panic(fmt.Errorf("invalid tag part: %s", part))
 		}
@@ -135,7 +147,7 @@ func (o *Operation) buildParam(text, name, typ string) *Param {
 		p.In = InBody
 	}
 	if p.Name == "" && name != "" {
-		p.Name = strings.ToLower(string(name[0])) + name[1:]
+		p.SetName(strings.ToLower(string(name[0])) + name[1:])
 	}
 
 	return p
