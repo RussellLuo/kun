@@ -95,6 +95,7 @@ func (mock *ServiceMock) PutProfile(ctx context.Context, id string, profile Prof
 type request struct {
 	method string
 	path   string
+	header map[string]string
 	body   string
 }
 
@@ -106,6 +107,10 @@ func (r request) ServedBy(handler http.Handler) *httptest.ResponseRecorder {
 		req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	} else {
 		req = httptest.NewRequest(r.method, r.path, nil)
+	}
+
+	for key, value := range r.header {
+		req.Header.Set(key, value)
 	}
 
 	w := httptest.NewRecorder()

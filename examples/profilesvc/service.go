@@ -33,17 +33,17 @@ type Service interface {
 	// @kok(param): "name:id,in:path"
 	GetAddresses(ctx context.Context, id string) (addresses []Address, err error)
 
-	// @kok(op): "GET /profiles/{profileID}/addresses/{addressID}"
-	// @kok(param): "name:profileID,in:path"
+	// @kok(op): "GET /profiles/{id}/addresses/{addressID}"
+	// @kok(param): "name:profileID,in:path,alias:id"
 	// @kok(param): "name:addressID,in:path"
 	GetAddress(ctx context.Context, profileID string, addressID string) (address Address, err error)
 
-	// @kok(op): "POST /profiles/{profileID}/addresses"
-	// @kok(param): "name:profileID,in:path"
+	// @kok(op): "POST /profiles/{id}/addresses"
+	// @kok(param): "name:profileID,in:path,alias:id"
 	PostAddress(ctx context.Context, profileID string, address Address) (err error)
 
-	// @kok(op): "DELETE /profiles/{profileID}/addresses/{addressID}"
-	// @kok(param): "name:profileID,in:path"
+	// @kok(op): "DELETE /profiles/{id}/addresses/{addressID}"
+	// @kok(param): "name:profileID,in:path,alias:id"
 	// @kok(param): "name:addressID,in:path"
 	DeleteAddress(ctx context.Context, profileID string, addressID string) (err error)
 }

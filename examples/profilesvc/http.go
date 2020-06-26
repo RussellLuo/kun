@@ -25,7 +25,7 @@ func NewHTTPHandler(svc Service) http.Handler {
 	// current package, to transform any business error to an HTTP response!
 
 	r.Method(
-		"DELETE", "/profiles/{profileID}/addresses/{addressID}",
+		"DELETE", "/profiles/{id}/addresses/{addressID}",
 		kithttp.NewServer(
 			MakeEndpointOfDeleteAddress(svc),
 			decodeDeleteAddressRequest,
@@ -47,7 +47,7 @@ func NewHTTPHandler(svc Service) http.Handler {
 		),
 	)
 	r.Method(
-		"GET", "/profiles/{profileID}/addresses/{addressID}",
+		"GET", "/profiles/{id}/addresses/{addressID}",
 		kithttp.NewServer(
 			MakeEndpointOfGetAddress(svc),
 			decodeGetAddressRequest,
@@ -91,7 +91,7 @@ func NewHTTPHandler(svc Service) http.Handler {
 		),
 	)
 	r.Method(
-		"POST", "/profiles/{profileID}/addresses",
+		"POST", "/profiles/{id}/addresses",
 		kithttp.NewServer(
 			MakeEndpointOfPostAddress(svc),
 			decodePostAddressRequest,
@@ -138,7 +138,7 @@ func makeErrorEncoder(encode func(error) (int, interface{})) func(_ context.Cont
 }
 
 func decodeDeleteAddressRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	profileID := chi.URLParam(r, "profileID")
+	profileID := chi.URLParam(r, "id")
 
 	addressID := chi.URLParam(r, "addressID")
 
@@ -157,7 +157,7 @@ func decodeDeleteProfileRequest(_ context.Context, r *http.Request) (interface{}
 }
 
 func decodeGetAddressRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	profileID := chi.URLParam(r, "profileID")
+	profileID := chi.URLParam(r, "id")
 
 	addressID := chi.URLParam(r, "addressID")
 
@@ -200,7 +200,7 @@ func decodePatchProfileRequest(_ context.Context, r *http.Request) (interface{},
 }
 
 func decodePostAddressRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	profileID := chi.URLParam(r, "profileID")
+	profileID := chi.URLParam(r, "id")
 
 	var body struct {
 		Address Address `json:"address"`
