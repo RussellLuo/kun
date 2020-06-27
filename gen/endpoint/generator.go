@@ -2,10 +2,10 @@ package endpoint
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/RussellLuo/kok/gen/util/generator"
+	"github.com/RussellLuo/kok/gen/util/misc"
 	"github.com/RussellLuo/kok/gen/util/reflector"
 )
 
@@ -132,7 +132,7 @@ func (g *Generator) Generate(result *reflector.Result) ([]byte, error) {
 				if typ == "error" {
 					name = "-"
 				} else if g.opts.TagKeyToSnakeCase {
-					name = ToSnakeCase(name)
+					name = misc.ToSnakeCase(name)
 				}
 
 				return fmt.Sprintf("`%s:\"%s\"`", g.opts.SchemaTag, name)
@@ -140,15 +140,4 @@ func (g *Generator) Generate(result *reflector.Result) ([]byte, error) {
 		},
 		Formatted: g.opts.Formatted,
 	})
-}
-
-var (
-	// matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
-	matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
-)
-
-func ToSnakeCase(s string) string {
-	// snake := matchFirstCap.ReplaceAllString(s, "${1}_${2}")
-	snake := matchAllCap.ReplaceAllString(s, "${1}_${2}")
-	return strings.ToLower(snake)
 }

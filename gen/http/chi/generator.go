@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/RussellLuo/kok/gen/endpoint"
 	"github.com/RussellLuo/kok/gen/util/generator"
+	"github.com/RussellLuo/kok/gen/util/misc"
 	"github.com/RussellLuo/kok/gen/util/openapi"
 	"github.com/RussellLuo/kok/gen/util/reflector"
 )
@@ -106,7 +106,17 @@ func decode{{.Name}}Request(_ context.Context, r *http.Request) (interface{}, er
 
 	{{end -}}
 
-	{{- $bodyParams := bodyParams $nonCtxParams}}
+	{{range nonBodyParentParams $nonCtxParams}}
+
+	{{- .Name}} := {{.Type}}{
+		{{- range .Sub}}
+		{{.Name}}: {{lowerFirst .Name}},
+		{{- end}}
+	}
+
+	{{end -}}
+
+	{{$bodyParams := bodyParams $nonCtxParams}}
 	{{- if $bodyParams -}}
 	var body struct {
 		{{- range $bodyParams}}
@@ -184,7 +194,8 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 
 	return generator.Generate(template, data, generator.Options{
 		Funcs: map[string]interface{}{
-			"title": strings.Title,
+			"title":      strings.Title,
+			"lowerFirst": misc.LowerFirst,
 			"addTag": func(name, typ string) string {
 				if g.opts.SchemaTag == "" {
 					return ""
@@ -193,7 +204,7 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 				if typ == "error" {
 					name = "-"
 				} else if g.opts.TagKeyToSnakeCase {
-					name = endpoint.ToSnakeCase(name)
+					name = misc.ToSnakeCase(name)
 				}
 
 				return fmt.Sprintf("`%s:\"%s\"`", g.opts.SchemaTag, name)
@@ -219,6 +230,22 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 			"nonBodyParams": func(in []*openapi.Param) (out []*openapi.Param) {
 				for _, p := range in {
 					if p.In != openapi.InBody {
+						if len(p.Sub) == 0 {
+							out = append(out, p)
+						} else {
+							for _, s := range p.Sub {
+								cs := *s // copy by value
+								cs.Name = misc.LowerFirst(s.Name)
+								out = append(out, &cs)
+							}
+						}
+					}
+				}
+				return
+			},
+			"nonBodyParentParams": func(in []*openapi.Param) (out []*openapi.Param) {
+				for _, p := range in {
+					if len(p.Sub) != 0 {
 						out = append(out, p)
 					}
 				}

@@ -68,15 +68,19 @@ func manipulateByComments(op *Operation, params map[string]*Param, comments []st
 			op.Method, op.Pattern = fields[0], fields[1]
 		case "param":
 			p := op.buildParam(value, "", "") // no default name and type
-			param, ok := params[p.Name]
+
+			name, subName := splitParamName(p.Name)
+			param, ok := params[name]
 			if !ok {
-				return fmt.Errorf("no param `%s` declared in the method %s", p.Name, op.Name)
+				return fmt.Errorf("no param `%s` declared in the method %s", name, op.Name)
 			}
 
-			// Update param according to the values hold by p.
-			param.In = p.In
-			param.Alias = p.Alias
-			param.Required = p.Required
+			if subName == "" {
+				param.Set(p)
+			} else {
+				p.SetName(subName)
+				param.Add(p)
+			}
 		case "errorEncoder":
 			op.Options.ErrorEncoder = value
 		default:

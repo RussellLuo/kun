@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+
+	"github.com/RussellLuo/kok/gen/util/misc"
 )
 
 const (
@@ -34,11 +36,13 @@ func (s *Specification) Path(pattern string, operations ...*Operation) *Specific
 }
 
 type Param struct {
-	In       string
 	Name     string
+	In       string
 	Alias    string
 	Type     string
 	Required bool
+
+	Sub []*Param
 }
 
 func (p *Param) SetName(name string) {
@@ -48,6 +52,35 @@ func (p *Param) SetName(name string) {
 	if p.Alias == "" {
 		p.Alias = name
 	}
+}
+
+// Set sets properties according to the values hold by o.
+func (p *Param) Set(o *Param) {
+	if len(p.Sub) != 0 {
+		panic(fmt.Errorf("parent param %q can not be used alone", p.Name))
+	}
+
+	if !isPrimitiveType(p.Type) && o.In != InBody {
+		panic(fmt.Errorf("non-primitive param %q must be in `body`", p.Name))
+	}
+
+	p.In = o.In
+	p.Alias = o.Alias
+	p.Required = o.Required
+}
+
+// Add adds o as a sub parameter of the current parameter.
+func (p *Param) Add(o *Param) {
+	if isPrimitiveType(p.Type) {
+		panic(fmt.Errorf("primitive param %q can not has sub parameters", p.Name))
+	}
+
+	p.Sub = append(p.Sub, o)
+
+	// Clear the properties that are meaningless for the parent parameter.
+	p.In = ""
+	p.Alias = ""
+	p.Required = false
 }
 
 type Request struct {
@@ -127,6 +160,8 @@ func (o *Operation) buildParam(text, name, typ string) *Param {
 		key, value := split[0], split[1]
 
 		switch key {
+		case "type":
+			p.Type = value
 		case "in":
 			p.In = value
 			if value == InPath {
@@ -147,7 +182,11 @@ func (o *Operation) buildParam(text, name, typ string) *Param {
 		p.In = InBody
 	}
 	if p.Name == "" && name != "" {
-		p.SetName(strings.ToLower(string(name[0])) + name[1:])
+		p.SetName(misc.LowerFirst(name))
+	}
+
+	if strings.Contains(p.Name, ".") && p.In == InBody {
+		panic(fmt.Errorf("sub param %q must be in `path`, `query` or `header`", p.Name))
 	}
 
 	return p
