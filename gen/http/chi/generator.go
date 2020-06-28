@@ -126,7 +126,9 @@ func decode{{.Name}}Request(_ context.Context, r *http.Request) (interface{}, er
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		return nil, err
 	}
-	{{- end}}
+	{{end -}}
+
+	{{- if $nonCtxParams}}
 
 	return {{addAmpersand .Name}}Request{
 		{{- range $nonCtxParams}}
@@ -139,6 +141,9 @@ func decode{{.Name}}Request(_ context.Context, r *http.Request) (interface{}, er
 
 		{{- end}}
 	}, nil
+	{{- else -}}
+	return nil, nil
+	{{- end}}
 }
 
 {{- end}}
