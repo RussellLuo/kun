@@ -81,6 +81,8 @@ func manipulateByComments(op *Operation, params map[string]*Param, comments []st
 				p.SetName(subName)
 				param.Add(p)
 			}
+		case "success":
+			op.SuccessResponse = buildResponse(value)
 		case "errorEncoder":
 			op.Options.ErrorEncoder = value
 		default:

@@ -2,6 +2,8 @@ package openapi
 
 import (
 	"fmt"
+	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -30,4 +32,40 @@ func isPrimitiveType(typ string) bool {
 	default:
 		return false
 	}
+}
+
+func buildResponse(text string) (resp *Response) {
+	resp = new(Response)
+
+	for _, part := range strings.Split(text, ",") {
+		if !strings.Contains(part, ":") {
+			panic(fmt.Errorf("invalid tag part: %s", part))
+		}
+
+		split := strings.SplitN(part, ":", 2)
+		key, value := split[0], split[1]
+
+		switch key {
+		case "statusCode":
+			var err error
+			resp.StatusCode, err = strconv.Atoi(value)
+			if err != nil {
+				panic(fmt.Errorf("%q cannot be converted to an integer: %v", value, err))
+			}
+		case "encoder":
+			resp.Options.Encoder = value
+		default:
+			panic(fmt.Errorf("invalid tag part: %s", part))
+		}
+	}
+
+	if resp.StatusCode == 0 {
+		resp.StatusCode = http.StatusOK
+	}
+
+	if resp.MediaType == "" {
+		resp.MediaType = MediaTypeJSON
+	}
+
+	return
 }

@@ -60,7 +60,13 @@ func NewHTTPHandler(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}) http
 		kithttp.NewServer(
 			MakeEndpointOf{{.Name}}(svc),
 			decode{{.Name}}Request,
-			encodeGenericResponse,
+			makeResponseEncoder(
+			{{- if .SuccessResponse.Options.Encoder -}}
+			{{.SuccessResponse.Options.Encoder}},
+			{{- else -}}
+			encodeJSONWithCode({{.SuccessResponse.StatusCode}}),
+			{{- end -}}
+			),
 			append(options,
 				kithttp.ServerErrorEncoder(makeErrorEncoder({{if .Options.ErrorEncoder}}{{.Options.ErrorEncoder}}{{else}}errorToResponse{{end}})),
 				{{- if $enableTracing}}
@@ -74,7 +80,7 @@ func NewHTTPHandler(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}) http
 	return r
 }
 
-func makeErrorEncoder(encode func(error) (int, interface{})) func(_ context.Context, err error, w http.ResponseWriter) {
+func makeErrorEncoder(encode func(error) (int, interface{})) kithttp.ErrorEncoder {
 	return func(_ context.Context, err error, w http.ResponseWriter) {
 		statusCode, body := encode(err)
 
@@ -148,12 +154,21 @@ func decode{{.Name}}Request(_ context.Context, r *http.Request) (interface{}, er
 
 {{- end}}
 
-func encodeGenericResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
-	if f, ok := response.(endpoint.Failer); ok && f.Failed() != nil {
-		return f.Failed()
+func makeResponseEncoder(encodeSuccess kithttp.EncodeResponseFunc) kithttp.EncodeResponseFunc {
+	return func(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+		if f, ok := response.(endpoint.Failer); ok && f.Failed() != nil {
+			return f.Failed()
+		}
+		return encodeSuccess(ctx, w, response)
 	}
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	return json.NewEncoder(w).Encode(response)
+}
+
+func encodeJSONWithCode(statusCode int) kithttp.EncodeResponseFunc {
+	return func(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(statusCode)
+		return json.NewEncoder(w).Encode(response)
+	}
 }
 `
 )

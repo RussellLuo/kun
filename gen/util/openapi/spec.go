@@ -3,6 +3,7 @@ package openapi
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"reflect"
 	"strings"
 
@@ -16,7 +17,9 @@ const (
 	InCookie = "cookie"
 	InBody   = "body"
 
-	MediaTypeJSON = "application/json"
+	MediaTypeJSON      = "application/json; charset=utf-8"
+	MediaTypeImagePNG  = "image/png"
+	MediaTypeImageJPEG = "image/jpeg"
 )
 
 type Specification struct {
@@ -92,6 +95,9 @@ type Response struct {
 	StatusCode int
 	MediaType  string
 	Schema     interface{}
+	Options    struct {
+		Encoder string
+	}
 }
 
 type Options struct {
@@ -99,12 +105,13 @@ type Options struct {
 }
 
 type Operation struct {
-	Name      string
-	Method    string
-	Pattern   string
-	Request   Request
-	Responses []Response
-	Options   Options
+	Name             string
+	Method           string
+	Pattern          string
+	Request          Request
+	SuccessResponse  *Response
+	FailureResponses []*Response
+	Options          Options
 }
 
 func GET() *Operation {
@@ -204,15 +211,27 @@ func (o *Operation) addParam(p *Param) *Operation {
 }
 
 func (o *Operation) Resp(statusCode int, mediaType string, schema interface{}) *Operation {
-	if mediaType != MediaTypeJSON {
+	if mediaType != MediaTypeJSON && !strings.HasPrefix(mediaType, "image/") {
 		panic(errors.New(mediaType + " not supported"))
 	}
 
-	o.Responses = append(o.Responses, Response{
-		StatusCode: statusCode,
-		MediaType:  mediaType,
-		Schema:     schema,
-	})
+	if statusCode >= http.StatusContinue && statusCode < http.StatusBadRequest {
+		if o.SuccessResponse != nil {
+			panic(errors.New("already has a success response"))
+		}
+
+		o.SuccessResponse = &Response{
+			StatusCode: statusCode,
+			MediaType:  mediaType,
+			Schema:     schema,
+		}
+	} else {
+		o.FailureResponses = append(o.FailureResponses, &Response{
+			StatusCode: statusCode,
+			MediaType:  mediaType,
+			Schema:     schema,
+		})
+	}
 	return o
 }
 
