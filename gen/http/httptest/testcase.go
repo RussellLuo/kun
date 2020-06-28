@@ -16,8 +16,9 @@ type request struct {
 }
 
 type response struct {
-	StatusCode string `yaml:"statusCode"`
-	Body       string `yaml:"body"`
+	StatusCode  string `yaml:"statusCode"`
+	ContentType string `yaml:"contentType"`
+	Body        string `yaml:"body"`
 }
 
 type testCase struct {

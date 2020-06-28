@@ -83,27 +83,31 @@ func (r request) ServedBy(handler http.Handler) *httptest.ResponseRecorder {
 }
 
 type response struct {
-	statusCode int
-	body       string
+	statusCode  int
+	contentType string
+	body        []byte
 }
 
 func (want response) Equal(w *httptest.ResponseRecorder) string {
 	resp := w.Result()
-	body, _ := ioutil.ReadAll(resp.Body)
+	gotBody, _ := ioutil.ReadAll(resp.Body)
 
 	gotStatusCode := resp.StatusCode
 	if gotStatusCode != want.statusCode {
 		return fmt.Sprintf("StatusCode: got (%d), want (%d)", gotStatusCode, want.statusCode)
 	}
 
+	wantContentType := want.contentType
+	if wantContentType == "" {
+		wantContentType = "application/json; charset=utf-8"
+	}
+
 	gotContentType := resp.Header.Get("Content-Type")
-	wantContentType := "application/json; charset=utf-8"
 	if gotContentType != wantContentType {
 		return fmt.Sprintf("ContentType: got (%q), want (%q)", gotContentType, wantContentType)
 	}
 
-	gotBody := string(body)
-	if gotBody != want.body {
+	if reflect.DeepEqual(gotBody, want.body) {
 		return fmt.Sprintf("Body: got (%q), want (%q)", gotBody, want.body)
 	}
 
@@ -164,7 +168,12 @@ func TestHTTP_{{.Name}}(t *testing.T) {
 			},
 			wantResponse: response{
 				statusCode: {{.WantResponse.StatusCode}},
-				body:   ` + "`{{.WantResponse.Body}}`" + ` + "\n",
+				{{- if .WantResponse.ContentType}}
+				contentType: "{{.WantResponse.ContentType}}",
+				{{- end}}
+				{{- if .WantResponse.Body}}
+				body:   []byte({{.WantResponse.Body}}),
+				{{- end}}
 			},
 		},
 		{{- end}}
