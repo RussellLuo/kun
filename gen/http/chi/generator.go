@@ -64,7 +64,7 @@ func NewHTTPHandler(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}) http
 			{{- if .SuccessResponse.Options.Encoder -}}
 			{{.SuccessResponse.Options.Encoder}},
 			{{- else -}}
-			encodeJSONWithCode({{.SuccessResponse.StatusCode}}),
+			encodeJSON({{.SuccessResponse.StatusCode}}),
 			{{- end -}}
 			),
 			append(options,
@@ -163,7 +163,7 @@ func makeResponseEncoder(encodeSuccess kithttp.EncodeResponseFunc) kithttp.Encod
 	}
 }
 
-func encodeJSONWithCode(statusCode int) kithttp.EncodeResponseFunc {
+func encodeJSON(statusCode int) kithttp.EncodeResponseFunc {
 	return func(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(statusCode)

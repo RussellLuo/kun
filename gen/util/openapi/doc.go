@@ -2,6 +2,7 @@ package openapi
 
 import (
 	"fmt"
+	"net/http"
 	"regexp"
 	"strings"
 
@@ -36,6 +37,9 @@ func FromDoc(result *reflector.Result, doc map[string][]string) (*Specification,
 			// Build the mapping for later manipulation.
 			params[p.Name] = p
 		}
+
+		// Set a default success response.
+		op.Resp(http.StatusOK, MediaTypeJSON, nil)
 
 		if err := manipulateByComments(op, params, comments); err != nil {
 			return nil, err
