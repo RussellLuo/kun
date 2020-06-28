@@ -50,8 +50,8 @@ func NewHTTPHandler(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}) http
 	var options []kithttp.ServerOption
 
 	// NOTE:
-	// If no method-specific comment ` + "`" + `// @kok(errorEncoder)` + "`" + ` is specified,
-	// a default error encoder named ` + "`" + `errorToResponse` + "`" + `, whose signature is
+	// If no method-specific comment ` + "`" + `// @kok(failure): "encoder:*"` + "`" + ` is specified,
+	// a default error encoder named ` + "`" + `encodeError` + "`" + `, whose signature is
 	// ` + "`" + `func(error) (int, interface{})` + "`" + `, must be provided in the
 	// current package, to transform any business error to an HTTP response!
 	{{range .Spec.Operations}}
@@ -61,14 +61,14 @@ func NewHTTPHandler(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}) http
 			MakeEndpointOf{{.Name}}(svc),
 			decode{{.Name}}Request,
 			makeResponseEncoder(
-			{{- if .SuccessResponse.Options.Encoder -}}
-			{{.SuccessResponse.Options.Encoder}},
+			{{- if .Options.ResponseEncoder.Success -}}
+			{{.Options.ResponseEncoder.Success}},
 			{{- else -}}
 			encodeJSON({{.SuccessResponse.StatusCode}}),
 			{{- end -}}
 			),
 			append(options,
-				kithttp.ServerErrorEncoder(makeErrorEncoder({{if .Options.ErrorEncoder}}{{.Options.ErrorEncoder}}{{else}}errorToResponse{{end}})),
+				kithttp.ServerErrorEncoder(makeErrorEncoder({{if .Options.ResponseEncoder.Failure}}{{.Options.ResponseEncoder.Failure}}{{else}}encodeError{{end}})),
 				{{- if $enableTracing}}
 				kithttp.ServerBefore(contextor.HTTPToContext("{{$pkgName}}", "{{.Name}}"))),
 				{{- end}}

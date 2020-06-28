@@ -17,9 +17,7 @@ const (
 	InCookie = "cookie"
 	InBody   = "body"
 
-	MediaTypeJSON      = "application/json; charset=utf-8"
-	MediaTypeImagePNG  = "image/png"
-	MediaTypeImageJPEG = "image/jpeg"
+	MediaTypeJSON = "application/json; charset=utf-8"
 )
 
 type Specification struct {
@@ -95,13 +93,13 @@ type Response struct {
 	StatusCode int
 	MediaType  string
 	Schema     interface{}
-	Options    struct {
-		Encoder string
-	}
 }
 
 type Options struct {
-	ErrorEncoder string
+	ResponseEncoder struct {
+		Success string
+		Failure string
+	}
 }
 
 type Operation struct {
@@ -216,10 +214,6 @@ func (o *Operation) Resp(statusCode int, mediaType string, schema interface{}) *
 	}
 
 	if statusCode >= http.StatusContinue && statusCode < http.StatusBadRequest {
-		if o.SuccessResponse != nil {
-			panic(errors.New("already has a success response"))
-		}
-
 		o.SuccessResponse = &Response{
 			StatusCode: statusCode,
 			MediaType:  mediaType,
@@ -232,6 +226,7 @@ func (o *Operation) Resp(statusCode int, mediaType string, schema interface{}) *
 			Schema:     schema,
 		})
 	}
+
 	return o
 }
 

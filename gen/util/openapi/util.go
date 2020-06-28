@@ -34,7 +34,7 @@ func isPrimitiveType(typ string) bool {
 	}
 }
 
-func buildResponse(text string) (resp *Response) {
+func buildSuccessResponse(text string) (resp *Response, encoder string) {
 	resp = new(Response)
 
 	for _, part := range strings.Split(text, ",") {
@@ -53,7 +53,7 @@ func buildResponse(text string) (resp *Response) {
 				panic(fmt.Errorf("%q cannot be converted to an integer: %v", value, err))
 			}
 		case "encoder":
-			resp.Options.Encoder = value
+			encoder = value
 		default:
 			panic(fmt.Errorf("invalid tag part: %s", part))
 		}
@@ -68,4 +68,23 @@ func buildResponse(text string) (resp *Response) {
 	}
 
 	return
+}
+
+func getFailureResponseEncoder(text string) string {
+	for _, part := range strings.Split(text, ",") {
+		if !strings.Contains(part, ":") {
+			panic(fmt.Errorf("invalid tag part: %s", part))
+		}
+
+		split := strings.SplitN(part, ":", 2)
+		key, value := split[0], split[1]
+
+		switch key {
+		case "encoder":
+			return value
+		default:
+			panic(fmt.Errorf("invalid tag part: %s", part))
+		}
+	}
+	panic(fmt.Errorf("empty @kok(failure)"))
 }
