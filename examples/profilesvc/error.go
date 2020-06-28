@@ -15,7 +15,7 @@ func codeFrom(err error) int {
 	}
 }
 
-func errorToResponse(err error) (int, interface{}) {
+func encodeError(err error) (int, interface{}) {
 	return codeFrom(err), map[string]string{
 		"error": err.Error(),
 	}

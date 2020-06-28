@@ -10,9 +10,9 @@ Let's take [profilesvc](https://github.com/go-kit/kit/tree/266ff8dc37c693d064970
     - Add a meaningful name to each input/output parameter, to get more human-readable field names in the corresponding request/response structs.
     - Add kok-specific comments (i.e. comments start with "// @kok") in a [OAS](http://spec.openapis.org/oas/v3.0.3)-inspired format, to describe the properties of the exposed HTTP APIs.
 
-2. Implement `errorToResponse()`
+2. Implement `encodeError()`
 
-    - Provide a function named `errorToResponse` in [error.go](error.go), to transform any business error to an HTTP response.
+    - Provide a function named `encodeError` in [error.go](error.go), to transform any business error to an HTTP response.
 
 3. Define HTTP test-cases in YAML (**Optional**)
 

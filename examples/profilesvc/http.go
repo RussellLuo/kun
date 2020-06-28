@@ -19,8 +19,8 @@ func NewHTTPHandler(svc Service) http.Handler {
 	var options []kithttp.ServerOption
 
 	// NOTE:
-	// If no method-specific comment `// @kok(errorEncoder)` is specified,
-	// a default error encoder named `errorToResponse`, whose signature is
+	// If no method-specific comment `// @kok(failure): "encoder:*"` is specified,
+	// a default error encoder named `encodeError`, whose signature is
 	// `func(error) (int, interface{})`, must be provided in the
 	// current package, to transform any business error to an HTTP response!
 
@@ -29,9 +29,9 @@ func NewHTTPHandler(svc Service) http.Handler {
 		kithttp.NewServer(
 			MakeEndpointOfDeleteAddress(svc),
 			decodeDeleteAddressRequest,
-			encodeGenericResponse,
+			makeResponseEncoder(encodeJSON(200)),
 			append(options,
-				kithttp.ServerErrorEncoder(makeErrorEncoder(errorToResponse)),
+				kithttp.ServerErrorEncoder(makeErrorEncoder(encodeError)),
 			)...,
 		),
 	)
@@ -40,9 +40,9 @@ func NewHTTPHandler(svc Service) http.Handler {
 		kithttp.NewServer(
 			MakeEndpointOfDeleteProfile(svc),
 			decodeDeleteProfileRequest,
-			encodeGenericResponse,
+			makeResponseEncoder(encodeJSON(200)),
 			append(options,
-				kithttp.ServerErrorEncoder(makeErrorEncoder(errorToResponse)),
+				kithttp.ServerErrorEncoder(makeErrorEncoder(encodeError)),
 			)...,
 		),
 	)
@@ -51,9 +51,9 @@ func NewHTTPHandler(svc Service) http.Handler {
 		kithttp.NewServer(
 			MakeEndpointOfGetAddress(svc),
 			decodeGetAddressRequest,
-			encodeGenericResponse,
+			makeResponseEncoder(encodeJSON(200)),
 			append(options,
-				kithttp.ServerErrorEncoder(makeErrorEncoder(errorToResponse)),
+				kithttp.ServerErrorEncoder(makeErrorEncoder(encodeError)),
 			)...,
 		),
 	)
@@ -62,9 +62,9 @@ func NewHTTPHandler(svc Service) http.Handler {
 		kithttp.NewServer(
 			MakeEndpointOfGetAddresses(svc),
 			decodeGetAddressesRequest,
-			encodeGenericResponse,
+			makeResponseEncoder(encodeJSON(200)),
 			append(options,
-				kithttp.ServerErrorEncoder(makeErrorEncoder(errorToResponse)),
+				kithttp.ServerErrorEncoder(makeErrorEncoder(encodeError)),
 			)...,
 		),
 	)
@@ -73,9 +73,9 @@ func NewHTTPHandler(svc Service) http.Handler {
 		kithttp.NewServer(
 			MakeEndpointOfGetProfile(svc),
 			decodeGetProfileRequest,
-			encodeGenericResponse,
+			makeResponseEncoder(encodeJSON(200)),
 			append(options,
-				kithttp.ServerErrorEncoder(makeErrorEncoder(errorToResponse)),
+				kithttp.ServerErrorEncoder(makeErrorEncoder(encodeError)),
 			)...,
 		),
 	)
@@ -84,9 +84,9 @@ func NewHTTPHandler(svc Service) http.Handler {
 		kithttp.NewServer(
 			MakeEndpointOfPatchProfile(svc),
 			decodePatchProfileRequest,
-			encodeGenericResponse,
+			makeResponseEncoder(encodeJSON(200)),
 			append(options,
-				kithttp.ServerErrorEncoder(makeErrorEncoder(errorToResponse)),
+				kithttp.ServerErrorEncoder(makeErrorEncoder(encodeError)),
 			)...,
 		),
 	)
@@ -95,9 +95,9 @@ func NewHTTPHandler(svc Service) http.Handler {
 		kithttp.NewServer(
 			MakeEndpointOfPostAddress(svc),
 			decodePostAddressRequest,
-			encodeGenericResponse,
+			makeResponseEncoder(encodeJSON(200)),
 			append(options,
-				kithttp.ServerErrorEncoder(makeErrorEncoder(errorToResponse)),
+				kithttp.ServerErrorEncoder(makeErrorEncoder(encodeError)),
 			)...,
 		),
 	)
@@ -106,9 +106,9 @@ func NewHTTPHandler(svc Service) http.Handler {
 		kithttp.NewServer(
 			MakeEndpointOfPostProfile(svc),
 			decodePostProfileRequest,
-			encodeGenericResponse,
+			makeResponseEncoder(encodeJSON(200)),
 			append(options,
-				kithttp.ServerErrorEncoder(makeErrorEncoder(errorToResponse)),
+				kithttp.ServerErrorEncoder(makeErrorEncoder(encodeError)),
 			)...,
 		),
 	)
@@ -117,9 +117,9 @@ func NewHTTPHandler(svc Service) http.Handler {
 		kithttp.NewServer(
 			MakeEndpointOfPutProfile(svc),
 			decodePutProfileRequest,
-			encodeGenericResponse,
+			makeResponseEncoder(encodeJSON(200)),
 			append(options,
-				kithttp.ServerErrorEncoder(makeErrorEncoder(errorToResponse)),
+				kithttp.ServerErrorEncoder(makeErrorEncoder(encodeError)),
 			)...,
 		),
 	)
@@ -127,7 +127,7 @@ func NewHTTPHandler(svc Service) http.Handler {
 	return r
 }
 
-func makeErrorEncoder(encode func(error) (int, interface{})) func(_ context.Context, err error, w http.ResponseWriter) {
+func makeErrorEncoder(encode func(error) (int, interface{})) kithttp.ErrorEncoder {
 	return func(_ context.Context, err error, w http.ResponseWriter) {
 		statusCode, body := encode(err)
 
@@ -244,10 +244,19 @@ func decodePutProfileRequest(_ context.Context, r *http.Request) (interface{}, e
 	}, nil
 }
 
-func encodeGenericResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
-	if f, ok := response.(endpoint.Failer); ok && f.Failed() != nil {
-		return f.Failed()
+func makeResponseEncoder(encodeSuccess kithttp.EncodeResponseFunc) kithttp.EncodeResponseFunc {
+	return func(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+		if f, ok := response.(endpoint.Failer); ok && f.Failed() != nil {
+			return f.Failed()
+		}
+		return encodeSuccess(ctx, w, response)
 	}
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	return json.NewEncoder(w).Encode(response)
+}
+
+func encodeJSON(statusCode int) kithttp.EncodeResponseFunc {
+	return func(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(statusCode)
+		return json.NewEncoder(w).Encode(response)
+	}
 }
