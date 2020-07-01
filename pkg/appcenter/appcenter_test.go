@@ -147,8 +147,11 @@ func TestInstall(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			for name, installFunc := range c.inRegisteredApps {
-				appcenter.Register(name, installFunc)
-				defer appcenter.Unregister(name)
+				if err := appcenter.Register(name, installFunc); err != nil {
+					t.Fatalf("err: %v", err)
+				} else {
+					defer appcenter.Unregister(name)
+				}
 			}
 
 			apps, err := appcenter.Install(context.Background(), c.inConfig.Installed(), c.inConfig.Apps())
