@@ -1,46 +1,57 @@
-package appcenter_test
-
-// We use `appcenter_test` as the package name, since the `golang` package is
-// imported and used in the tests below, which will cause an "import cycle"
-// if the same tests are located in the `appcenter` package.
+package appcenter
 
 import (
 	"context"
 	"reflect"
 	"testing"
-
-	"github.com/RussellLuo/kok/pkg/appcenter"
-	"github.com/RussellLuo/kok/pkg/appcenter/config/golang"
 )
 
-func TestInstall(t *testing.T) {
+type mockSettings struct {
+	CONFIG    map[string]interface{}
+	APPS      map[string]Settings
+	INSTALLED []string
+}
+
+func (s mockSettings) Config() Config {
+	return s.CONFIG
+}
+
+func (s mockSettings) Apps() map[string]Settings {
+	return s.APPS
+}
+
+func (s mockSettings) Installed() []string {
+	return s.INSTALLED
+}
+
+func TestInstallRoot(t *testing.T) {
 	cases := []struct {
 		name             string
-		inConfig         appcenter.Config
-		inRegisteredApps map[string]appcenter.InstallFunc
-		wantApps         []*appcenter.App
+		inSettings       Settings
+		inRegisteredApps map[string]NewFunc
+		wantApp          *App
 		wantErr          error
 		wantErrStr       string
 	}{
 		{
 			name: "app not registered",
-			inConfig: golang.Config{
-				SETTINGS: map[string]interface{}{
+			inSettings: mockSettings{
+				CONFIG: map[string]interface{}{
 					"ver": "v1",
 				},
-				APPS: map[string]appcenter.Config{
-					"a": golang.Config{
-						SETTINGS: map[string]interface{}{
+				APPS: map[string]Settings{
+					"a": mockSettings{
+						CONFIG: map[string]interface{}{
 							"ver": "v1",
 						},
 					},
-					"b": golang.Config{
-						SETTINGS: map[string]interface{}{
+					"b": mockSettings{
+						CONFIG: map[string]interface{}{
 							"ver": "v1",
 						},
-						APPS: map[string]appcenter.Config{
-							"c": golang.Config{
-								SETTINGS: map[string]interface{}{
+						APPS: map[string]Settings{
+							"c": mockSettings{
+								CONFIG: map[string]interface{}{
 									"ver": "v1",
 								},
 							},
@@ -50,94 +61,113 @@ func TestInstall(t *testing.T) {
 				},
 				INSTALLED: []string{"a", "b"},
 			},
-			inRegisteredApps: map[string]appcenter.InstallFunc{
-				"a": func(ctx context.Context, name string, config appcenter.Config) (*appcenter.App, error) {
-					return nil, nil
-				},
-			},
-			wantApps:   nil,
-			wantErrStr: `app "b" is not registered`,
-		},
-		{
-			name: "configuration not found",
-			inConfig: golang.Config{
-				SETTINGS: map[string]interface{}{
-					"ver": "v1",
-				},
-				APPS: map[string]appcenter.Config{
-					"b": golang.Config{
-						SETTINGS: map[string]interface{}{
-							"ver": "v1",
-						},
-						APPS: map[string]appcenter.Config{
-							"c": golang.Config{
-								SETTINGS: map[string]interface{}{
-									"ver": "v1",
-								},
-							},
-						},
-						INSTALLED: []string{"c"},
-					},
-				},
-				INSTALLED: []string{"a", "b"},
-			},
-			inRegisteredApps: map[string]appcenter.InstallFunc{
-				"a": func(ctx context.Context, name string, config appcenter.Config) (*appcenter.App, error) {
-					return nil, nil
-				},
-				"b": func(ctx context.Context, name string, config appcenter.Config) (*appcenter.App, error) {
-					return nil, nil
-				},
-			},
-			wantApps:   nil,
-			wantErrStr: `configuration of app "a" is not found`,
-		},
-		{
-			name: "ok",
-			inConfig: golang.Config{
-				SETTINGS: map[string]interface{}{
-					"ver": "v1",
-				},
-				APPS: map[string]appcenter.Config{
-					"a": golang.Config{
-						SETTINGS: map[string]interface{}{
-							"ver": "v1",
-						},
-					},
-					"b": golang.Config{
-						SETTINGS: map[string]interface{}{
-							"ver": "v1",
-						},
-						APPS: map[string]appcenter.Config{
-							"c": golang.Config{
-								SETTINGS: map[string]interface{}{
-									"ver": "v1",
-								},
-							},
-						},
-						INSTALLED: []string{"c"},
-					},
-				},
-				INSTALLED: []string{"a", "b"},
-			},
-			inRegisteredApps: map[string]appcenter.InstallFunc{
-				"a": func(ctx context.Context, name string, config appcenter.Config) (*appcenter.App, error) {
-					return &appcenter.App{
+			inRegisteredApps: map[string]NewFunc{
+				"root/a": func(ctx context.Context, config Config) (*App, error) {
+					return &App{
 						Name: "a",
 					}, nil
 				},
-				"b": func(ctx context.Context, name string, config appcenter.Config) (*appcenter.App, error) {
-					return &appcenter.App{
+			},
+			wantApp:    nil,
+			wantErrStr: `no app registered with name "root/b"`,
+		},
+		{
+			name: "settings not found",
+			inSettings: mockSettings{
+				CONFIG: map[string]interface{}{
+					"ver": "v1",
+				},
+				APPS: map[string]Settings{
+					"b": mockSettings{
+						CONFIG: map[string]interface{}{
+							"ver": "v1",
+						},
+						APPS: map[string]Settings{
+							"c": mockSettings{
+								CONFIG: map[string]interface{}{
+									"ver": "v1",
+								},
+							},
+						},
+						INSTALLED: []string{"c"},
+					},
+				},
+				INSTALLED: []string{"a", "b"},
+			},
+			inRegisteredApps: map[string]NewFunc{
+				"root/a": func(ctx context.Context, config Config) (*App, error) {
+					return &App{
+						Name: "a",
+					}, nil
+				},
+				"root/b": func(ctx context.Context, config Config) (*App, error) {
+					return &App{
 						Name: "b",
 					}, nil
 				},
 			},
-			wantApps: []*appcenter.App{
-				{
-					Name: "a",
+			wantApp:    nil,
+			wantErrStr: `settings of app "a" is not found`,
+		},
+		{
+			name: "ok",
+			inSettings: mockSettings{
+				CONFIG: map[string]interface{}{
+					"ver": "v1",
 				},
-				{
-					Name: "b",
+				APPS: map[string]Settings{
+					"a": mockSettings{
+						CONFIG: map[string]interface{}{
+							"ver": "v1",
+						},
+					},
+					"b": mockSettings{
+						CONFIG: map[string]interface{}{
+							"ver": "v1",
+						},
+						APPS: map[string]Settings{
+							"c": mockSettings{
+								CONFIG: map[string]interface{}{
+									"ver": "v1",
+								},
+							},
+						},
+						INSTALLED: []string{"c"},
+					},
+				},
+				INSTALLED: []string{"a", "b"},
+			},
+			inRegisteredApps: map[string]NewFunc{
+				"root/a": func(ctx context.Context, config Config) (*App, error) {
+					return &App{
+						Name: "a",
+					}, nil
+				},
+				"root/b": func(ctx context.Context, config Config) (*App, error) {
+					return &App{
+						Name: "b",
+					}, nil
+				},
+				"root/b/c": func(ctx context.Context, config Config) (*App, error) {
+					return &App{
+						Name: "c",
+					}, nil
+				},
+			},
+			wantApp: &App{
+				Name: "root",
+				subApps: []*App{
+					{
+						Name: "a",
+					},
+					{
+						Name: "b",
+						subApps: []*App{
+							{
+								Name: "c",
+							},
+						},
+					},
 				},
 			},
 			wantErr: nil,
@@ -147,14 +177,23 @@ func TestInstall(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			for name, installFunc := range c.inRegisteredApps {
-				if err := appcenter.Register(name, installFunc); err != nil {
+				if err := Register(name, installFunc); err != nil {
 					t.Fatalf("err: %v", err)
 				} else {
-					defer appcenter.Unregister(name)
+					defer Unregister(name)
 				}
 			}
 
-			apps, err := appcenter.Install(context.Background(), c.inConfig.Installed(), c.inConfig.Apps())
+			appName := "root"
+			newApp := func(ctx context.Context, config Config) (*App, error) {
+				return &App{
+					Name: appName,
+				}, nil
+			}
+			app, err := InstallRoot(context.Background(), c.inSettings, appName, newApp)
+			if err == nil {
+				defer app.Uninstall()
+			}
 
 			if c.wantErrStr != "" {
 				if err == nil || err.Error() != c.wantErrStr {
@@ -164,8 +203,8 @@ func TestInstall(t *testing.T) {
 				t.Fatalf("Err: Got (%#v) != Want (%#v)", err, c.wantErr)
 			}
 
-			if !reflect.DeepEqual(apps, c.wantApps) {
-				t.Fatalf("Apps: Got (%#v) != Want (%#v)", apps, c.wantApps)
+			if !reflect.DeepEqual(app, c.wantApp) {
+				t.Fatalf("App: Got (%#v) != Want (%#v)", app, c.wantApp)
 			}
 		})
 	}
