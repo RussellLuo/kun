@@ -192,7 +192,11 @@ func TestInstallRoot(t *testing.T) {
 			}
 			app, err := InstallRoot(context.Background(), c.inSettings, appName, newApp)
 			if err == nil {
-				defer app.Uninstall()
+				defer func() {
+					if err := app.Uninstall(); err != nil {
+						t.Fatalf("err: %v", err)
+					}
+				}()
 			}
 
 			if c.wantErrStr != "" {
