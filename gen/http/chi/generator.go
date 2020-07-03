@@ -36,7 +36,7 @@ import (
 )
 
 
-func NewHTTPHandler(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}) http.Handler {
+func NewHTTPRouter(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}) chi.Router {
 	r := chi.NewRouter()
 
 	{{if $enableTracing -}}

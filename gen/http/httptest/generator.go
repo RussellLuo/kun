@@ -182,7 +182,7 @@ func TestHTTP_{{.Name}}(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			var gotIn in
-			w := c.request.ServedBy(NewHTTPHandler(&{{$mockInterfaceName}}{
+			w := c.request.ServedBy(NewHTTPRouter(&{{$mockInterfaceName}}{
 				{{.Name}}Func: func({{joinParams $params "$Name $Type" ", "}}) ({{joinParams $returns "$Name $Type" ", "}}) {
 					gotIn = in{
 						{{- range $nonCtxParams}}

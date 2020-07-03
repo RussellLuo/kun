@@ -17,7 +17,7 @@ func main() {
 	flag.Parse()
 
 	svc := profilesvc.NewInmemService()
-	r := profilesvc.NewHTTPHandler(svc)
+	r := profilesvc.NewHTTPRouter(svc)
 
 	errs := make(chan error, 2)
 	go func() {

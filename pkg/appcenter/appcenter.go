@@ -137,7 +137,9 @@ func makeInstallFunc(registrationName string, newApp NewFunc) InstallFunc {
 		}
 
 		if app.MountFunc != nil {
-			app.MountFunc(ctx, app.subApps)
+			if err := app.MountFunc(ctx, app.subApps); err != nil {
+				return nil, err
+			}
 		}
 
 		return app, nil
