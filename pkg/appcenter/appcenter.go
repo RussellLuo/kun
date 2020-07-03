@@ -33,6 +33,12 @@ type Settings interface {
 // NewFunc creates an application. It will return an error if failed.
 type NewFunc func(ctx context.Context, config Config) (*App, error)
 
+// MountFunc mounts the sub-applications specified by subApps.
+//
+// For example, when developing HTTP applications, we can use MountFunc to mount
+// the HTTP routes of sub-applications on the HTTP route of their parent application.
+type MountFunc func(ctx context.Context, subApps []*App) error
+
 // CleanFunc does the cleanup work for the application.
 type CleanFunc func() error
 
@@ -43,6 +49,7 @@ type InstallFunc func(ctx context.Context, settings Settings) (*App, error)
 // App represents an application.
 type App struct {
 	Name      string
+	MountFunc MountFunc
 	CleanFunc CleanFunc
 
 	// The use-case specific options, which are customized by users.
@@ -127,6 +134,10 @@ func makeInstallFunc(registrationName string, newApp NewFunc) InstallFunc {
 			}
 
 			app.subApps = append(app.subApps, subApp)
+		}
+
+		if app.MountFunc != nil {
+			app.MountFunc(ctx, app.subApps)
 		}
 
 		return app, nil
