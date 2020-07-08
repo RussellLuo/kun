@@ -11,8 +11,13 @@ const (
 )
 
 var (
-	registry = make(map[string]InstallFunc)
+	registry = make(map[string]*Entry)
 )
+
+type Entry struct {
+	install InstallFunc
+	app     *App
+}
 
 // Config is the configuration that is devoted to an application.
 type Config map[string]interface{}
@@ -49,6 +54,7 @@ type InstallFunc func(ctx context.Context, settings Settings) (*App, error)
 // App represents an application.
 type App struct {
 	Name      string
+	Service   interface{} // The Go kit service.
 	MountFunc MountFunc
 	CleanFunc CleanFunc
 
@@ -88,7 +94,11 @@ func Register(name string, newApp NewFunc) error {
 	if _, ok := registry[name]; ok {
 		return fmt.Errorf("app %q already exists", name)
 	}
-	registry[name] = makeInstallFunc(name, newApp)
+
+	registry[name] = &Entry{
+		install: makeInstallFunc(name, newApp),
+		// app will be set after installation
+	}
 	return nil
 }
 
@@ -97,7 +107,7 @@ func Register(name string, newApp NewFunc) error {
 func Unregister(names ...string) {
 	if len(names) == 0 {
 		// Clear the registry.
-		registry = make(map[string]InstallFunc)
+		registry = make(map[string]*Entry)
 	}
 
 	for _, name := range names {
@@ -118,7 +128,7 @@ func makeInstallFunc(registrationName string, newApp NewFunc) InstallFunc {
 
 		for _, name := range settings.Installed() {
 			subRegistrationName := makeRegistrationName(registrationName, name)
-			install, ok := registry[subRegistrationName]
+			entry, ok := registry[subRegistrationName]
 			if !ok {
 				return nil, fmt.Errorf("no app registered with name %q", subRegistrationName)
 			}
@@ -128,12 +138,15 @@ func makeInstallFunc(registrationName string, newApp NewFunc) InstallFunc {
 				return nil, fmt.Errorf("settings of app %q is not found", name)
 			}
 
-			subApp, err := install(ctx, subSettings)
+			subApp, err := entry.install(ctx, subSettings)
 			if err != nil {
 				return nil, err
 			}
 
 			app.subApps = append(app.subApps, subApp)
+
+			// Set the app that has just been installed.
+			entry.app = subApp
 		}
 
 		if app.MountFunc != nil {
@@ -149,4 +162,17 @@ func makeInstallFunc(registrationName string, newApp NewFunc) InstallFunc {
 func InstallRoot(ctx context.Context, settings Settings, appName string, newApp NewFunc) (*App, error) {
 	install := makeInstallFunc(appName, newApp)
 	return install(ctx, settings)
+}
+
+func GetApp(registrationName string) (*App, error) {
+	entry, ok := registry[registrationName]
+	if !ok {
+		return nil, fmt.Errorf("no app registered with name %q", registrationName)
+	}
+
+	if entry.app == nil {
+		return nil, fmt.Errorf("app %q is not installed", registrationName)
+	}
+
+	return entry.app, nil
 }
