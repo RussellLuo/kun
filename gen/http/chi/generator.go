@@ -90,6 +90,16 @@ func makeErrorEncoder(encode func(error) (int, interface{})) kithttp.ErrorEncode
 	}
 }
 
+// decodingError is an error that happened when decoding the request.
+type decodingError struct {
+	Param string // the parameter name, or "body" for a group of parameters
+	Err   error  // the actual error
+}
+
+func (de *decodingError) Error() string {
+	return de.Err.Error()
+}
+
 {{- range .Spec.Operations}}
 
 {{- $nonCtxParams := nonCtxParams .Request.Params}}
@@ -106,7 +116,7 @@ func decode{{.Name}}Request(_ context.Context, r *http.Request) (interface{}, er
 	{{.Name}}Value := {{extractParam .}}
 	{{.Name}}, err := {{parseExpr .Name .Type}}
 	if err != nil {
-		return nil, err
+		return nil, &decodingError{Param: "{{.Name}}", Err: err}
 	}
 	{{end}}
 
@@ -130,7 +140,7 @@ func decode{{.Name}}Request(_ context.Context, r *http.Request) (interface{}, er
 		{{- end}}
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		return nil, err
+		return nil, &decodingError{Param: "body", Err: err}
 	}
 	{{end -}}
 
