@@ -177,20 +177,18 @@ func TestInstallRoot(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			for name, installFunc := range c.inRegisteredApps {
-				if err := Register(name, installFunc); err != nil {
-					t.Fatalf("err: %v", err)
-				} else {
-					defer Unregister(name)
-				}
+				Register(name, installFunc)
 			}
 
-			appName := "root"
-			newApp := func(ctx context.Context, config Config) (*App, error) {
+			Register("root", func(ctx context.Context, config Config) (*App, error) {
 				return &App{
-					Name: appName,
+					Name: "root",
 				}, nil
-			}
-			app, err := InstallRoot(context.Background(), c.inSettings, appName, newApp)
+			})
+
+			defer Unregister()
+
+			app, err := Install("root", context.Background(), c.inSettings)
 			if err == nil {
 				defer func() {
 					if err := app.Uninstall(); err != nil {

@@ -11,10 +11,10 @@ const (
 )
 
 var (
-	registry = make(map[string]*Entry)
+	registry = make(map[string]*entry)
 )
 
-type Entry struct {
+type entry struct {
 	install InstallFunc
 	app     *App
 }
@@ -88,18 +88,17 @@ func (a *App) Uninstall() error {
 
 // Register registers an application with the given registration name and the
 // installation function.
-func Register(name string, newApp NewFunc) error {
+func Register(name string, newApp NewFunc) {
 	name = strings.TrimSuffix(name, separator)
 
 	if _, ok := registry[name]; ok {
-		return fmt.Errorf("app %q already exists", name)
+		panic(fmt.Errorf("app %q already exists", name))
 	}
 
-	registry[name] = &Entry{
+	registry[name] = &entry{
 		install: makeInstallFunc(name, newApp),
 		// app will be set after installation
 	}
-	return nil
 }
 
 // Unregister unregisters the given applications specified by names. It will
@@ -107,12 +106,36 @@ func Register(name string, newApp NewFunc) error {
 func Unregister(names ...string) {
 	if len(names) == 0 {
 		// Clear the registry.
-		registry = make(map[string]*Entry)
+		registry = make(map[string]*entry)
 	}
 
 	for _, name := range names {
 		delete(registry, name)
 	}
+}
+
+// Install installs the application (specified by registrationName) and all its
+// sub-applications recursively, with the given ctx and settings.
+func Install(registrationName string, ctx context.Context, settings Settings) (*App, error) {
+	entry, ok := registry[registrationName]
+	if !ok || entry.install == nil {
+		return nil, fmt.Errorf("no app registered with name %q", registrationName)
+	}
+
+	return entry.install(ctx, settings)
+}
+
+func GetApp(registrationName string) (*App, error) {
+	entry, ok := registry[registrationName]
+	if !ok {
+		return nil, fmt.Errorf("no app registered with name %q", registrationName)
+	}
+
+	if entry.app == nil {
+		return nil, fmt.Errorf("app %q is not installed", registrationName)
+	}
+
+	return entry.app, nil
 }
 
 func makeRegistrationName(parent, name string) string {
@@ -157,22 +180,4 @@ func makeInstallFunc(registrationName string, newApp NewFunc) InstallFunc {
 
 		return app, nil
 	}
-}
-
-func InstallRoot(ctx context.Context, settings Settings, appName string, newApp NewFunc) (*App, error) {
-	install := makeInstallFunc(appName, newApp)
-	return install(ctx, settings)
-}
-
-func GetApp(registrationName string) (*App, error) {
-	entry, ok := registry[registrationName]
-	if !ok {
-		return nil, fmt.Errorf("no app registered with name %q", registrationName)
-	}
-
-	if entry.app == nil {
-		return nil, fmt.Errorf("app %q is not installed", registrationName)
-	}
-
-	return entry.app, nil
 }
