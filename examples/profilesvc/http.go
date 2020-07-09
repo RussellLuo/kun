@@ -137,6 +137,16 @@ func makeErrorEncoder(encode func(error) (int, interface{})) kithttp.ErrorEncode
 	}
 }
 
+// decodingError is an error that happened when decoding the request.
+type decodingError struct {
+	Param string // the parameter name, or "body" for a group of parameters
+	Err   error  // the actual error
+}
+
+func (de *decodingError) Error() string {
+	return de.Err.Error()
+}
+
 func decodeDeleteAddressRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	profileID := chi.URLParam(r, "id")
 
@@ -190,7 +200,7 @@ func decodePatchProfileRequest(_ context.Context, r *http.Request) (interface{},
 		Profile Profile `json:"profile"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		return nil, err
+		return nil, &decodingError{Param: "body", Err: err}
 	}
 
 	return &PatchProfileRequest{
@@ -206,7 +216,7 @@ func decodePostAddressRequest(_ context.Context, r *http.Request) (interface{}, 
 		Address Address `json:"address"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		return nil, err
+		return nil, &decodingError{Param: "body", Err: err}
 	}
 
 	return &PostAddressRequest{
@@ -220,7 +230,7 @@ func decodePostProfileRequest(_ context.Context, r *http.Request) (interface{}, 
 		Profile Profile `json:"profile"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		return nil, err
+		return nil, &decodingError{Param: "body", Err: err}
 	}
 
 	return &PostProfileRequest{
@@ -235,7 +245,7 @@ func decodePutProfileRequest(_ context.Context, r *http.Request) (interface{}, e
 		Profile Profile `json:"profile"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		return nil, err
+		return nil, &decodingError{Param: "body", Err: err}
 	}
 
 	return &PutProfileRequest{
