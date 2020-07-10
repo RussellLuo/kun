@@ -119,16 +119,22 @@ func Unregister(names ...string) {
 func Install(registrationName string, ctx context.Context, settings Settings) (*App, error) {
 	entry, ok := registry[registrationName]
 	if !ok || entry.install == nil {
-		return nil, fmt.Errorf("no app registered with name %q", registrationName)
+		return nil, fmt.Errorf("no app is registered with name %q", registrationName)
+	}
+
+	if entry.app != nil {
+		return nil, fmt.Errorf("app %q is already installed", registrationName)
 	}
 
 	return entry.install(ctx, settings)
 }
 
+// GetApp returns the application specified by registrationName. If no application
+// is registered or the application is not installed, it will return an error.
 func GetApp(registrationName string) (*App, error) {
 	entry, ok := registry[registrationName]
 	if !ok {
-		return nil, fmt.Errorf("no app registered with name %q", registrationName)
+		return nil, fmt.Errorf("no app is registered with name %q", registrationName)
 	}
 
 	if entry.app == nil {
@@ -153,7 +159,7 @@ func makeInstallFunc(registrationName string, newApp NewFunc) InstallFunc {
 			subRegistrationName := makeRegistrationName(registrationName, name)
 			entry, ok := registry[subRegistrationName]
 			if !ok {
-				return nil, fmt.Errorf("no app registered with name %q", subRegistrationName)
+				return nil, fmt.Errorf("no app is registered with name %q", subRegistrationName)
 			}
 
 			subSettings, ok := settings.Apps()[name]

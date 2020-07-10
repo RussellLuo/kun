@@ -69,7 +69,7 @@ func TestInstallRoot(t *testing.T) {
 				},
 			},
 			wantApp:    nil,
-			wantErrStr: `no app registered with name "root/b"`,
+			wantErrStr: `no app is registered with name "root/b"`,
 		},
 		{
 			name: "settings not found",
