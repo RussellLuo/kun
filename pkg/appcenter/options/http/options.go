@@ -14,6 +14,19 @@ type Options struct {
 	Router  chi.Router
 }
 
+func getOptions(app *appcenter.App) (*Options, error) {
+	if app.Options == nil {
+		return nil, nil
+	}
+
+	opts, ok := app.Options.(*Options)
+	if !ok {
+		return nil, fmt.Errorf("options %v cannot be converted to *Options in app: %v", app.Options, app)
+	}
+
+	return opts, nil
+}
+
 func extendRouter(r chi.Router, appRouter chi.Router) {
 	for _, route := range appRouter.Routes() {
 		for method, handler := range route.Handlers {
@@ -22,10 +35,10 @@ func extendRouter(r chi.Router, appRouter chi.Router) {
 	}
 }
 
-func mountRouter(r chi.Router, options interface{}) error {
-	opts, ok := options.(*Options)
-	if !ok {
-		return fmt.Errorf("%v cannot be converted to *Options", options)
+func mountRouter(r chi.Router, app *appcenter.App) error {
+	opts, err := getOptions(app)
+	if err != nil {
+		return err
 	}
 
 	if opts == nil || opts.Router == nil {
@@ -42,15 +55,25 @@ func mountRouter(r chi.Router, options interface{}) error {
 	return nil
 }
 
-func MakeMountFunc(r chi.Router) appcenter.MountFunc {
-	return func(ctx context.Context, subApps []*appcenter.App) error {
-		for _, subApp := range subApps {
-			if subApp.Options != nil {
-				if err := mountRouter(r, subApp.Options); err != nil {
-					return err
-				}
-			}
-		}
-		return nil
+func MountRouter(ctx context.Context, app *appcenter.App, subApps []*appcenter.App) error {
+	opts, err := getOptions(app)
+	if err != nil {
+		return err
 	}
+
+	if opts == nil {
+		return fmt.Errorf("nil options in app: %v", app)
+	}
+
+	r := opts.Router
+	if r == nil {
+		return fmt.Errorf("nil router in app: %v", app)
+	}
+
+	for _, subApp := range subApps {
+		if err := mountRouter(r, subApp); err != nil {
+			return err
+		}
+	}
+	return nil
 }
