@@ -130,7 +130,8 @@ func Install(registrationName string, ctx context.Context, settings Settings) (*
 }
 
 // GetApp returns the application specified by registrationName. If no application
-// is registered or the application is not installed, it will return an error.
+// is registered with the given name, or the corresponding application is not
+// installed, it will return an error.
 func GetApp(registrationName string) (*App, error) {
 	entry, ok := registry[registrationName]
 	if !ok {
@@ -142,6 +143,16 @@ func GetApp(registrationName string) (*App, error) {
 	}
 
 	return entry.app, nil
+}
+
+// MustGetApp is like GetApp but panics if no application is registered with the
+// given name, or the corresponding application is not installed.
+func MustGetApp(registrationName string) *App {
+	app, err := GetApp(registrationName)
+	if err != nil {
+		panic(err)
+	}
+	return app
 }
 
 func makeRegistrationName(parent, name string) string {
