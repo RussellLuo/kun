@@ -43,6 +43,10 @@ type Param struct {
 	Type     string
 	Required bool
 
+	// The name of the decoder function, which is used to convert the value
+	// from string to another type (e.g. integer, boolean or struct).
+	Decoder string
+
 	Sub []*Param
 }
 
@@ -61,13 +65,14 @@ func (p *Param) Set(o *Param) {
 		panic(fmt.Errorf("parent param %q can not be used alone", p.Name))
 	}
 
-	if !isPrimitiveType(p.Type) && o.In != InBody {
+	/*if !isPrimitiveType(p.Type) && o.In != InBody {
 		panic(fmt.Errorf("non-primitive param %q must be in `body`", p.Name))
-	}
+	}*/
 
 	p.In = o.In
 	p.Alias = o.Alias
 	p.Required = o.Required
+	p.Decoder = o.Decoder
 }
 
 // Add adds o as a sub parameter of the current parameter.
@@ -96,8 +101,16 @@ type Response struct {
 }
 
 type Options struct {
+	/*RequestDecoder struct {
+		// The name of the decoder function, which is used to extract the parameters
+		// in body by decoding the request body.
+		Body string
+	}*/
+
 	ResponseEncoder struct {
+		// The name of the encoder function for the successful response.
 		Success string
+		// The name of the encoder function for the error response.
 		Failure string
 	}
 }
@@ -178,6 +191,8 @@ func (o *Operation) buildParam(text, name, typ string) *Param {
 			p.SetName(value)
 		case "alias":
 			p.Alias = value
+		case "decoder":
+			p.Decoder = value
 		default:
 			panic(fmt.Errorf("invalid tag part: %s", part))
 		}

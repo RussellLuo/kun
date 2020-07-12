@@ -90,16 +90,6 @@ func makeErrorEncoder(encode func(error) (int, interface{})) kithttp.ErrorEncode
 	}
 }
 
-// decodingError is an error that happened when decoding the request.
-type decodingError struct {
-	Param string // the parameter name, or "body" for a group of parameters
-	Err   error  // the actual error
-}
-
-func (de *decodingError) Error() string {
-	return de.Err.Error()
-}
-
 {{- range .Spec.Operations}}
 
 {{- $nonCtxParams := nonCtxParams .Request.Params}}
@@ -108,15 +98,21 @@ func decode{{.Name}}Request(_ context.Context, r *http.Request) (interface{}, er
 	{{$nonBodyParams := nonBodyParams $nonCtxParams -}}
 	{{range $nonBodyParams -}}
 
-	{{- if eq .Type "string" -}}
+	{{- if .Decoder -}}
+	{{.Name}}Value := {{extractParam .}}
+	{{.Name}}, err := {{.Decoder}}({{.Name}}Value)
+	if err != nil {
+		return nil, err
+	}
+	{{- else if eq .Type "string" -}}
 	{{.Name}} := {{extractParam .}}
 	{{- else if eq .Type "bool" -}}
 	{{.Name}} := {{extractParam .}} == "true"
 	{{- else -}}
 	{{.Name}}Value := {{extractParam .}}
-	{{.Name}}, err := {{parseExpr .Name .Type}}
+	{{.Name}}, err := {{decodeInt .Name .Type}}
 	if err != nil {
-		return nil, &decodingError{Param: "{{.Name}}", Err: err}
+		return nil, err
 	}
 	{{end}}
 
@@ -140,7 +136,7 @@ func decode{{.Name}}Request(_ context.Context, r *http.Request) (interface{}, er
 		{{- end}}
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		return nil, &decodingError{Param: "body", Err: err}
+		return nil, err
 	}
 	{{end -}}
 
@@ -297,7 +293,7 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 				}
 				return
 			},
-			"parseExpr": func(name, typ string) string {
+			"decodeInt": func(name, typ string) string {
 				switch typ {
 				case "int", "int8", "int16", "int32", "int64":
 					return fmt.Sprintf("strconv.ParseInt(%sValue, 10, 64)", name)
