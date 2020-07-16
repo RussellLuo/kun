@@ -70,7 +70,7 @@ func NewHTTPRouter(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}) chi.R
 			append(options,
 				kithttp.ServerErrorEncoder(makeErrorEncoder({{if .Options.ResponseEncoder.Failure}}{{.Options.ResponseEncoder.Failure}}{{else}}encodeError{{end}})),
 				{{- if $enableTracing}}
-				kithttp.ServerBefore(contextor.HTTPToContext("{{$pkgName}}", "{{.Name}}"))),
+				kithttp.ServerBefore(contextor.HTTPToContext("{{$pkgName}}", "{{.Name}}")),
 				{{- end}}
 			)...,
 		),
