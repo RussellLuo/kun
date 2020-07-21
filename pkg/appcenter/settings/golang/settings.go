@@ -6,7 +6,7 @@ import (
 
 type Settings struct {
 	CONFIG    map[string]interface{}
-	APPS      map[string]appcenter.Settings
+	APPS      map[string]Settings
 	INSTALLED []string
 }
 
@@ -15,7 +15,11 @@ func (s Settings) Config() appcenter.Config {
 }
 
 func (s Settings) Apps() map[string]appcenter.Settings {
-	return s.APPS
+	apps := make(map[string]appcenter.Settings)
+	for name, settings := range s.APPS {
+		apps[name] = settings
+	}
+	return apps
 }
 
 func (s Settings) Installed() []string {
