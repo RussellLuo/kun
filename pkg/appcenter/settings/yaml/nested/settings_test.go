@@ -3,15 +3,13 @@ package yaml
 import (
 	"reflect"
 	"testing"
-
-	"github.com/RussellLuo/kok/pkg/appcenter"
 )
 
 func TestConfig(t *testing.T) {
 	cases := []struct {
 		inContent     string
-		wantConfig    appcenter.Config
-		wantApps      map[string]appcenter.Settings
+		wantConfig    map[string]interface{}
+		wantApps      map[string]Settings
 		wantInstalled []string
 	}{
 		{
@@ -38,13 +36,13 @@ installed:
 			wantConfig: map[string]interface{}{
 				"ver": "v1",
 			},
-			wantApps: map[string]appcenter.Settings{
-				"a": Settings{
+			wantApps: map[string]Settings{
+				"a": {
 					CONFIG: map[string]interface{}{
 						"ver": "v1",
 					},
 				},
-				"b": Settings{
+				"b": {
 					CONFIG: map[string]interface{}{
 						"ver": "v1",
 					},
@@ -68,16 +66,16 @@ installed:
 			t.Fatalf("err: %v", err)
 		}
 
-		if !reflect.DeepEqual(settings.Config(), c.wantConfig) {
-			t.Fatalf("Config: Got (%#v) != Want (%#v)", settings.Config(), c.wantConfig)
+		if !reflect.DeepEqual(settings.CONFIG, c.wantConfig) {
+			t.Fatalf("Config: Got (%#v) != Want (%#v)", settings.CONFIG, c.wantConfig)
 		}
 
-		if !reflect.DeepEqual(settings.Apps(), c.wantApps) {
-			t.Fatalf("Apps: Got (%#v) != Want (%#v)", settings.Apps(), c.wantApps)
+		if !reflect.DeepEqual(settings.APPS, c.wantApps) {
+			t.Fatalf("Apps: Got (%#v) != Want (%#v)", settings.APPS, c.wantApps)
 		}
 
-		if !reflect.DeepEqual(settings.Installed(), c.wantInstalled) {
-			t.Fatalf("Installed: Got (%#v) != Want (%#v)", settings.Installed(), c.wantInstalled)
+		if !reflect.DeepEqual(settings.INSTALLED, c.wantInstalled) {
+			t.Fatalf("Installed: Got (%#v) != Want (%#v)", settings.INSTALLED, c.wantInstalled)
 		}
 	}
 }

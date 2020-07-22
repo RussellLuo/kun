@@ -68,15 +68,15 @@ installed:
 		}
 
 		if !reflect.DeepEqual(settings.CONFIG, c.wantConfig) {
-			t.Fatalf("Config: Got (%#v) != Want (%#v)", settings.Config(), c.wantConfig)
+			t.Fatalf("Config: Got (%#v) != Want (%#v)", settings.CONFIG, c.wantConfig)
 		}
 
 		if !reflect.DeepEqual(settings.APPS, c.wantApps) {
-			t.Fatalf("Apps: Got (%#v) != Want (%#v)", settings.Apps(), c.wantApps)
+			t.Fatalf("Apps: Got (%#v) != Want (%#v)", settings.APPS, c.wantApps)
 		}
 
 		if !reflect.DeepEqual(settings.INSTALLED, c.wantInstalled) {
-			t.Fatalf("Installed: Got (%#v) != Want (%#v)", settings.Installed(), c.wantInstalled)
+			t.Fatalf("Installed: Got (%#v) != Want (%#v)", settings.INSTALLED, c.wantInstalled)
 		}
 	}
 }
