@@ -24,19 +24,18 @@ func (s Settings) getInstalled(key string) (installed []string, err error) {
 }
 
 func (s Settings) getAppSettings(appName string) (*golang.Settings, error) {
-	value, ok := s[appName]
+	settings := &golang.Settings{}
+
+	config, ok := s[appName]
 	if !ok {
-		return nil, fmt.Errorf("config of app %q is not found", appName)
+		return settings, nil
 	}
 
-	var config map[string]interface{}
-	if err := mapstructure.Decode(value, &config); err != nil {
+	if err := mapstructure.Decode(config, &settings.CONFIG); err != nil {
 		return nil, err
 	}
 
-	return &golang.Settings{
-		CONFIG: config,
-	}, nil
+	return settings, nil
 }
 
 func makeSettings(root string, r *trie.Trie) (settings golang.Settings, err error) {
