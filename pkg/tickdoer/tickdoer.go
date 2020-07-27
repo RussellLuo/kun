@@ -15,8 +15,9 @@ type TickDoer struct {
 
 func TickFunc(d time.Duration, f func()) *TickDoer {
 	td := &TickDoer{
-		t: time.NewTicker(d),
-		f: f,
+		t:     time.NewTicker(d),
+		f:     f,
+		exitC: make(chan struct{}),
 	}
 	td.start()
 	return td
