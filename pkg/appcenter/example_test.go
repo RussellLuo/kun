@@ -12,8 +12,7 @@ import (
 )
 
 func Example() {
-
-	// Typically located in `func init()` of package b.
+	// Typically located in `func init()` of package hi.
 	appx.MustRegister(appcenter.New("hi").
 		MountOn("main").Pattern("/v1/hi").
 		Init(func(ctx context.Context, apps map[string]*appx.App) (appx.Value, appx.CleanFunc, error) {
@@ -25,7 +24,7 @@ func Example() {
 			}, nil, nil
 		}))
 
-	// Typically located in `func init()` of package b.
+	// Typically located in `func init()` of package bye.
 	appx.MustRegister(appcenter.New("bye").
 		MountOn("main").Pattern("/v1/bye").
 		Init(func(ctx context.Context, apps map[string]*appx.App) (appx.Value, appx.CleanFunc, error) {
