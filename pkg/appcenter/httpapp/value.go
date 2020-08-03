@@ -1,4 +1,4 @@
-package appcenter
+package httpapp
 
 import (
 	"fmt"

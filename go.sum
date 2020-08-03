@@ -2,8 +2,8 @@ cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMT
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go.mod h1:r7JcOSlj0wfOMncg0iLm8Leh48TZaKVeNIfJntJ2wa0=
-github.com/RussellLuo/appx v0.0.0-20200727124009-f2df51e3c59a h1:cdFEBVMeulP0Crkd8AzHw4IzlBMZaT7x9a89I59jtDo=
-github.com/RussellLuo/appx v0.0.0-20200727124009-f2df51e3c59a/go.mod h1:BYiSO63uqNy81Mlv9EfnJ+wNr+vkgAohKMgeDyhWu1s=
+github.com/RussellLuo/appx v0.0.0-20200802131858-d385db0b9715 h1:6pO3RFOA2o79lxk/jZvOvWIBi3bCd5wZwsCr0YYw0Gk=
+github.com/RussellLuo/appx v0.0.0-20200802131858-d385db0b9715/go.mod h1:BYiSO63uqNy81Mlv9EfnJ+wNr+vkgAohKMgeDyhWu1s=
 github.com/Shopify/sarama v1.19.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWXgklEdEo=
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
 github.com/VividCortex/gohistogram v1.0.0 h1:6+hBz+qvs0JOrrNhhmR7lFxo5sINxBCGXrdtl/UvroE=

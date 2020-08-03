@@ -1,4 +1,4 @@
-package appcenter
+package httpapp
 
 import (
 	"context"
@@ -39,13 +39,13 @@ func (a *App) Init(initFunc appx.InitFunc) *appx.App {
 		init = a.mountOnParent(initFunc)
 	}
 
-	a.App.Init(init)
+	a.App.Init2(init)
 	return a.App // Return the wrapped *appx.App
 }
 
 func (a *App) mountOnParent(initFunc appx.InitFunc) appx.InitFunc {
-	return func(ctx context.Context, apps map[string]*appx.App) (appx.Value, appx.CleanFunc, error) {
-		value, clean, err := initFunc(ctx, apps)
+	return func(ctx context.Context, lc appx.Lifecycle, apps map[string]*appx.App) (appx.Value, appx.CleanFunc, error) {
+		value, clean, err := initFunc(ctx, lc, apps)
 		if err != nil {
 			return nil, nil, err
 		}
