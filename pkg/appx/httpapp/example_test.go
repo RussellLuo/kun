@@ -49,12 +49,12 @@ func Example() {
 			}
 			lc.Append(appx.Hook{
 				OnStart: func(context.Context) error {
-					fmt.Println("Starting the HTTP server")
+					fmt.Println("Starting HTTP server")
 					go server.ListenAndServe() // nolint:errcheck
 					return nil
 				},
 				OnStop: func(ctx context.Context) error {
-					fmt.Println("Stopping the HTTP server")
+					fmt.Println("Stopping HTTP server")
 					return server.Shutdown(ctx)
 				},
 			})
@@ -93,8 +93,8 @@ func Example() {
 	appx.Stop(stopCtx)
 
 	// Output:
-	// Starting the HTTP server
+	// Starting HTTP server
 	// Got a request for /hi
 	// Got a request for /bye
-	// Stopping the HTTP server
+	// Stopping HTTP server
 }

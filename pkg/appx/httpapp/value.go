@@ -19,11 +19,11 @@ func MustGetService(value interface{}) interface{} {
 func GetRouter(value interface{}) (chi.Router, error) {
 	val, ok := value.(*Value)
 	if !ok {
-		return nil, fmt.Errorf("value %v cannot be converted to *appcentever.Value", value)
+		return nil, fmt.Errorf("value %#v cannot be converted to *httpapp.Value", value)
 	}
 
 	if val == nil || val.Router == nil {
-		return nil, fmt.Errorf("value %v is not routable", val)
+		return nil, fmt.Errorf("value %#v is not routable", val)
 	}
 
 	return val.Router, nil
