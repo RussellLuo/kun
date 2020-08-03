@@ -9,7 +9,7 @@ import (
 	"github.com/RussellLuo/appx"
 	"github.com/go-chi/chi"
 
-	"github.com/RussellLuo/kok/pkg/appcenter/httpapp"
+	"github.com/RussellLuo/kok/pkg/appx/httpapp"
 )
 
 func Example() {
@@ -49,12 +49,12 @@ func Example() {
 			}
 			lc.Append(appx.Hook{
 				OnStart: func(context.Context) error {
-					fmt.Println("Starting HTTP server")
-					go server.ListenAndServe()
+					fmt.Println("Starting the HTTP server")
+					go server.ListenAndServe() // nolint:errcheck
 					return nil
 				},
 				OnStop: func(ctx context.Context) error {
-					fmt.Println("Stopping HTTP server")
+					fmt.Println("Stopping the HTTP server")
 					return server.Shutdown(ctx)
 				},
 			})
@@ -84,8 +84,8 @@ func Example() {
 	}
 
 	// Make two HTTP requests to demonstrate that our server is running.
-	http.Get("http://localhost:8080/hi")
-	http.Get("http://localhost:8080/bye")
+	http.Get("http://localhost:8080/hi")  // nolint:errcheck
+	http.Get("http://localhost:8080/bye") // nolint:errcheck
 
 	// Stop the greeter.
 	stopCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -93,8 +93,8 @@ func Example() {
 	appx.Stop(stopCtx)
 
 	// Output:
-	// Starting HTTP server
+	// Starting the HTTP server
 	// Got a request for /hi
 	// Got a request for /bye
-	// Stopping HTTP server
+	// Stopping the HTTP server
 }
