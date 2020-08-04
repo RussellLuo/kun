@@ -19,12 +19,29 @@ func (t task) Task() {
 }
 
 func Example() {
+	words := make(chan string, 3)
+	sleepAndPrintTimes := func() {
+		// Wait for 2.02s to execute the jobs 3 times.
+		time.Sleep(2020 * time.Millisecond)
+
+		// Calculate and print the execution times.
+		times := map[string]int{
+			"hi":  0,
+			"bye": 0,
+		}
+		for i := 0; i < cap(words); i++ {
+			times[<-words]++
+		}
+		fmt.Printf("Saying hi %d times\n", times["hi"])
+		fmt.Printf("Saying bye %d time\n", times["bye"])
+	}
+
 	// Typically located in `func init()` of package hi.
 	appx.MustRegister(cronapp.New("hi").
 		ScheduledBy("greeter").Expression("*/1 * * * * * *").
 		Init(func(ctx context.Context, lc appx.Lifecycle, apps map[string]*appx.App) (appx.Value, appx.CleanFunc, error) {
 			return task(func() {
-				fmt.Println("Saying hi to you")
+				words <- "hi"
 			}), nil, nil
 		}))
 
@@ -33,7 +50,7 @@ func Example() {
 		ScheduledBy("greeter").Expression("*/2 * * * * * *").
 		Init(func(ctx context.Context, lc appx.Lifecycle, apps map[string]*appx.App) (appx.Value, appx.CleanFunc, error) {
 			return task(func() {
-				fmt.Println("Saying bye to you")
+				words <- "bye"
 			}), nil, nil
 		}))
 
@@ -76,8 +93,7 @@ func Example() {
 		return
 	}
 
-	// Wait for 2.01s to give the two jobs enough time to run at least once.
-	time.Sleep(2010 * time.Millisecond)
+	sleepAndPrintTimes()
 
 	// Stop the greeter.
 	stopCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -86,8 +102,7 @@ func Example() {
 
 	// Output:
 	// Starting CRON scheduler
-	// Saying hi to you
-	// Saying bye to you
-	// Saying hi to you
+	// Saying hi 2 times
+	// Saying bye 1 time
 	// Stopping CRON scheduler
 }
