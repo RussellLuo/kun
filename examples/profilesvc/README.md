@@ -42,6 +42,7 @@ Code generated:
 - [endpoint.go](endpoint.go)
 - [http.go](http.go)
 - [http_test.go](http_test.go)
+- [http_client.go](http_client.go)
 
 ## Test the service
 

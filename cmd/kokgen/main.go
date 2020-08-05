@@ -74,9 +74,10 @@ func run(flags userFlags) error {
 	}
 
 	files := map[string][]byte{
-		"endpoint.go":  content.Endpoint,
-		"http.go":      content.HTTP,
-		"http_test.go": content.HTTPTest,
+		"endpoint.go":    content.Endpoint,
+		"http.go":        content.HTTP,
+		"http_test.go":   content.HTTPTest,
+		"http_client.go": content.HTTPClient,
 	}
 	for name, data := range files {
 		if len(data) == 0 {

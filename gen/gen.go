@@ -7,6 +7,7 @@ import (
 
 	"github.com/RussellLuo/kok/gen/endpoint"
 	"github.com/RussellLuo/kok/gen/http/chi"
+	"github.com/RussellLuo/kok/gen/http/httpclient"
 	"github.com/RussellLuo/kok/gen/http/httptest"
 	"github.com/RussellLuo/kok/gen/util/openapi"
 	"github.com/RussellLuo/kok/gen/util/reflector"
@@ -21,15 +22,17 @@ type Options struct {
 }
 
 type Content struct {
-	Endpoint []byte
-	HTTP     []byte
-	HTTPTest []byte
+	Endpoint   []byte
+	HTTP       []byte
+	HTTPTest   []byte
+	HTTPClient []byte
 }
 
 type Generator struct {
-	endpoint *endpoint.Generator
-	chi      *chi.Generator
-	httptest *httptest.Generator
+	endpoint   *endpoint.Generator
+	chi        *chi.Generator
+	httptest   *httptest.Generator
+	httpclient *httpclient.Generator
 }
 
 func New(opts Options) *Generator {
@@ -49,6 +52,12 @@ func New(opts Options) *Generator {
 		}),
 		httptest: httptest.New(&httptest.Options{
 			Formatted: opts.Formatted,
+		}),
+		httpclient: httpclient.New(&httpclient.Options{
+			SchemaPtr:         opts.SchemaPtr,
+			SchemaTag:         opts.SchemaTag,
+			TagKeyToSnakeCase: opts.TagKeyToSnakeCase,
+			Formatted:         opts.Formatted,
 		}),
 	}
 }
@@ -88,6 +97,12 @@ func (g *Generator) Generate(srcFilename, interfaceName, dstPkgName, testFilenam
 			fmt.Printf("WARNING: Skip generating the HTTP tests due to an error (%v)\n", err)
 			return content, nil
 		}
+		return content, err
+	}
+
+	// Generate the HTTP client code.
+	content.HTTPClient, err = g.httpclient.Generate(result, spec)
+	if err != nil {
 		return content, err
 	}
 
