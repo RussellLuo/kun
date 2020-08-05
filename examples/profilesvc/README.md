@@ -44,13 +44,14 @@ Code generated:
 - [http_test.go](http_test.go)
 - [http_client.go](http_client.go)
 
-## Test the service
 
-Run the Profile service:
+## Test the server
+
+Run the Profile server:
 
 ```bash
-$ go run cmd/main.go
-2020/05/08 10:22:22 transport=HTTP addr=:8080
+$ go run cmd/server/main.go
+2020/08/05 20:37:36 transport=HTTP addr=:8080
 ```
 
 Create a Profile:
@@ -77,7 +78,20 @@ Content-Length: 39
 {"profile":{"id":"1234","name":"kok"}}
 ```
 
-Run tests:
+
+## Test the client
+
+Run the Profile client:
+
+```bash
+$ go run cmd/client/main.go
+2020/08/05 20:37:45 GetProfile ok: {ID:1 Name:profile1 Addresses:[]}
+2020/08/05 20:37:45 GetAddress ok: {ID:4 Location:address4}
+2020/08/05 20:37:45 GetAddresses ok: [{ID:4 Location:address4}]
+```
+
+
+## Run tests:
 
 ```bash
 $ go test -v -race
