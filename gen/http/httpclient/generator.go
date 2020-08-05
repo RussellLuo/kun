@@ -27,19 +27,19 @@ import (
 	{{- end}}
 )
 
-type ServiceClient struct {
+type HTTPClient struct {
 	httpClient *http.Client
 	scheme string
 	host string
 	pathPrefix string
 }
 
-func New(httpClient *http.Client, baseURL string) (*ServiceClient, error) {
+func NewHTTPClient(httpClient *http.Client, baseURL string) (*HTTPClient, error) {
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, err
 	}
-	return &ServiceClient{
+	return &HTTPClient{
 		httpClient: httpClient,
 		scheme: u.Scheme,
 		host: u.Host,
@@ -56,7 +56,7 @@ func New(httpClient *http.Client, baseURL string) (*ServiceClient, error) {
 {{$bodyParams := bodyParams $nonCtxParams}}
 {{$nonErrReturns := nonErrReturns .Returns}}
 
-func (c *ServiceClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joinParams .Returns "$Name $Type" ", "}}) {
+func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joinParams .Returns "$Name $Type" ", "}}) {
 	{{if $pathParams -}}
 	path := {{patternToFmt $op.Pattern $pathParams}}
 	{{- else -}}

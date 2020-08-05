@@ -15,19 +15,19 @@ import (
 	"strings"
 )
 
-type ServiceClient struct {
+type HTTPClient struct {
 	httpClient *http.Client
 	scheme     string
 	host       string
 	pathPrefix string
 }
 
-func New(httpClient *http.Client, baseURL string) (*ServiceClient, error) {
+func NewHTTPClient(httpClient *http.Client, baseURL string) (*HTTPClient, error) {
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, err
 	}
-	return &ServiceClient{
+	return &HTTPClient{
 		httpClient: httpClient,
 		scheme:     u.Scheme,
 		host:       u.Host,
@@ -35,7 +35,7 @@ func New(httpClient *http.Client, baseURL string) (*ServiceClient, error) {
 	}, nil
 }
 
-func (c *ServiceClient) DeleteAddress(ctx context.Context, profileID string, addressID string) (err error) {
+func (c *HTTPClient) DeleteAddress(ctx context.Context, profileID string, addressID string) (err error) {
 	path := fmt.Sprintf("/profiles/%s/addresses/%s", profileID, addressID)
 	u := &url.URL{
 		Scheme: c.scheme,
@@ -67,7 +67,7 @@ func (c *ServiceClient) DeleteAddress(ctx context.Context, profileID string, add
 	}
 }
 
-func (c *ServiceClient) DeleteProfile(ctx context.Context, id string) (err error) {
+func (c *HTTPClient) DeleteProfile(ctx context.Context, id string) (err error) {
 	path := fmt.Sprintf("/profiles/%s", id)
 	u := &url.URL{
 		Scheme: c.scheme,
@@ -99,7 +99,7 @@ func (c *ServiceClient) DeleteProfile(ctx context.Context, id string) (err error
 	}
 }
 
-func (c *ServiceClient) GetAddress(ctx context.Context, profileID string, addressID string) (address Address, err error) {
+func (c *HTTPClient) GetAddress(ctx context.Context, profileID string, addressID string) (address Address, err error) {
 	path := fmt.Sprintf("/profiles/%s/addresses/%s", profileID, addressID)
 	u := &url.URL{
 		Scheme: c.scheme,
@@ -138,7 +138,7 @@ func (c *ServiceClient) GetAddress(ctx context.Context, profileID string, addres
 	}
 }
 
-func (c *ServiceClient) GetAddresses(ctx context.Context, id string) (addresses []Address, err error) {
+func (c *HTTPClient) GetAddresses(ctx context.Context, id string) (addresses []Address, err error) {
 	path := fmt.Sprintf("/profiles/%s/addresses", id)
 	u := &url.URL{
 		Scheme: c.scheme,
@@ -177,7 +177,7 @@ func (c *ServiceClient) GetAddresses(ctx context.Context, id string) (addresses 
 	}
 }
 
-func (c *ServiceClient) GetProfile(ctx context.Context, id string) (profile Profile, err error) {
+func (c *HTTPClient) GetProfile(ctx context.Context, id string) (profile Profile, err error) {
 	path := fmt.Sprintf("/profiles/%s", id)
 	u := &url.URL{
 		Scheme: c.scheme,
@@ -216,7 +216,7 @@ func (c *ServiceClient) GetProfile(ctx context.Context, id string) (profile Prof
 	}
 }
 
-func (c *ServiceClient) PatchProfile(ctx context.Context, id string, profile Profile) (err error) {
+func (c *HTTPClient) PatchProfile(ctx context.Context, id string, profile Profile) (err error) {
 	path := fmt.Sprintf("/profiles/%s", id)
 	u := &url.URL{
 		Scheme: c.scheme,
@@ -258,7 +258,7 @@ func (c *ServiceClient) PatchProfile(ctx context.Context, id string, profile Pro
 	}
 }
 
-func (c *ServiceClient) PostAddress(ctx context.Context, profileID string, address Address) (err error) {
+func (c *HTTPClient) PostAddress(ctx context.Context, profileID string, address Address) (err error) {
 	path := fmt.Sprintf("/profiles/%s/addresses", profileID)
 	u := &url.URL{
 		Scheme: c.scheme,
@@ -300,7 +300,7 @@ func (c *ServiceClient) PostAddress(ctx context.Context, profileID string, addre
 	}
 }
 
-func (c *ServiceClient) PostProfile(ctx context.Context, profile Profile) (err error) {
+func (c *HTTPClient) PostProfile(ctx context.Context, profile Profile) (err error) {
 	path := "/profiles"
 	u := &url.URL{
 		Scheme: c.scheme,
@@ -342,7 +342,7 @@ func (c *ServiceClient) PostProfile(ctx context.Context, profile Profile) (err e
 	}
 }
 
-func (c *ServiceClient) PutProfile(ctx context.Context, id string, profile Profile) (err error) {
+func (c *HTTPClient) PutProfile(ctx context.Context, id string, profile Profile) (err error) {
 	path := fmt.Sprintf("/profiles/%s", id)
 	u := &url.URL{
 		Scheme: c.scheme,
