@@ -50,8 +50,9 @@ func NewHTTPClient(httpClient *http.Client, baseURL string) (*HTTPClient, error)
 {{- range .Result.Interface.Methods}}
 
 {{$op := getOperation .Name}}
-{{$pathParams := pathParams $op.Request.Params }}
-{{$queryParams := queryParams $op.Request.Params }}
+{{$pathParams := pathParams $op.Request.Params}}
+{{$queryParams := queryParams $op.Request.Params}}
+{{$headerParams := headerParams $op.Request.Params}}
 {{$nonCtxParams := nonCtxParams $op.Request.Params}}
 {{$bodyParams := bodyParams $nonCtxParams}}
 {{$nonErrReturns := nonErrReturns .Returns}}
@@ -96,6 +97,9 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 		return {{returnErr .Returns}}
 	}
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
+	{{- range $headerParams}}
+	req.Header.Set("{{.Alias}}", {{.Name}})
+	{{end}}
 
 	{{- else -}}
 
@@ -103,6 +107,9 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 	if err != nil {
 		return {{returnErr .Returns}}
 	}
+	{{- range $headerParams}}
+	req.Header.Set("{{.Alias}}", {{.Name}})
+	{{end}}
 	{{- end}}
 
 	resp, err := c.httpClient.Do(req)
@@ -297,6 +304,14 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 				}
 				return
 			},
+			"headerParams": func(in []*openapi.Param) (out []*openapi.Param) {
+				for _, p := range in {
+					if p.In == openapi.InHeader {
+						out = append(out, p)
+					}
+				}
+				return
+			},
 			"nonCtxParams": func(params []*openapi.Param) (out []*openapi.Param) {
 				for _, p := range params {
 					if p.Type != "context.Context" {
@@ -312,7 +327,7 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 						"uint", "uint8", "uint16", "uint32":
 						return "0"
 					case "string":
-						return ""
+						return `""`
 					case "bool":
 						return "false"
 					default:
