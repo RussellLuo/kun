@@ -90,6 +90,12 @@ func (g *Generator) Generate(srcFilename, interfaceName, dstPkgName, testFilenam
 		return content, err
 	}
 
+	// Generate the HTTP client code.
+	content.HTTPClient, err = g.httpclient.Generate(result, spec)
+	if err != nil {
+		return content, err
+	}
+
 	// Generate the HTTP tests code.
 	content.HTTPTest, err = g.httptest.Generate(result, testFilename)
 	if err != nil {
@@ -97,12 +103,6 @@ func (g *Generator) Generate(srcFilename, interfaceName, dstPkgName, testFilenam
 			fmt.Printf("WARNING: Skip generating the HTTP tests due to an error (%v)\n", err)
 			return content, nil
 		}
-		return content, err
-	}
-
-	// Generate the HTTP client code.
-	content.HTTPClient, err = g.httpclient.Generate(result, spec)
-	if err != nil {
 		return content, err
 	}
 
