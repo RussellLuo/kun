@@ -238,6 +238,7 @@ func (c *HTTPClient) PatchProfile(ctx context.Context, id string, profile Profil
 	if err != nil {
 		return err
 	}
+	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -280,6 +281,7 @@ func (c *HTTPClient) PostAddress(ctx context.Context, profileID string, address 
 	if err != nil {
 		return err
 	}
+	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -322,6 +324,7 @@ func (c *HTTPClient) PostProfile(ctx context.Context, profile Profile) (err erro
 	if err != nil {
 		return err
 	}
+	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -364,6 +367,7 @@ func (c *HTTPClient) PutProfile(ctx context.Context, id string, profile Profile)
 	if err != nil {
 		return err
 	}
+	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {

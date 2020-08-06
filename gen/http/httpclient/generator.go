@@ -92,12 +92,18 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 	}
 
 	req, err := http.NewRequest("{{$op.Method}}", u.String(), bytes.NewBuffer(reqBodyBytes))
-	{{- else}}
-	req, err := http.NewRequest("{{$op.Method}}", u.String(), nil)
-	{{- end}}
 	if err != nil {
 		return {{returnErr .Returns}}
 	}
+	req.Header.Set("Content-Type", "application/json; charset=utf-8")
+
+	{{- else -}}
+
+	req, err := http.NewRequest("{{$op.Method}}", u.String(), nil)
+	if err != nil {
+		return {{returnErr .Returns}}
+	}
+	{{- end}}
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
