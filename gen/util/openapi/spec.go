@@ -44,8 +44,12 @@ type Param struct {
 	Required bool
 
 	// The name of the decoder function, which is used to convert the value
-	// from string to another type (e.g. integer, boolean or struct).
+	// from string to another type (e.g. integer, boolean, time or struct).
 	Decoder string
+
+	// The name of the encoder function, which is used to convert the value
+	// from non-string type (e.g. integer, boolean, time or struct) to string.
+	Encoder string
 
 	Sub []*Param
 }
@@ -73,6 +77,7 @@ func (p *Param) Set(o *Param) {
 	p.Alias = o.Alias
 	p.Required = o.Required
 	p.Decoder = o.Decoder
+	p.Encoder = o.Encoder
 }
 
 // Add adds o as a sub parameter of the current parameter.
@@ -193,6 +198,8 @@ func (o *Operation) buildParam(text, name, typ string) *Param {
 			p.Alias = value
 		case "decoder":
 			p.Decoder = value
+		case "encoder":
+			p.Encoder = value
 		default:
 			panic(fmt.Errorf("invalid tag part: %s", part))
 		}

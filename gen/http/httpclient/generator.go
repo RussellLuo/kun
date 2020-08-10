@@ -71,8 +71,8 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 
 	{{if $queryParams -}}
 	q := u.Query()
-	{{range $queryParams -}}
-	q.Set({{.Name}}, {{.Name}})
+	{{- range $queryParams}}
+	q.Set({{.Name}}, {{valueToString .Name .Type .Encoder}})
 	{{- end}}
 	u.RawQuery = q.Encode()
 	{{- end}}
@@ -190,6 +190,25 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 		operationMap[op.Name] = op
 	}
 
+	valueToString := func(name, typ, encoder string) string {
+		if encoder != "" {
+			return fmt.Sprintf("%s(%s)", encoder, name)
+		}
+
+		switch typ {
+		case "int", "int8", "int16", "int32", "int64":
+			return fmt.Sprintf("strconv.FormatInt(%s, 10)", name)
+		case "uint", "uint8", "uint16", "uint32", "uint64":
+			return fmt.Sprintf("strconv.FormatUint(%s, 10)", name)
+		case "bool":
+			return fmt.Sprintf("strconv.FormatBool(%s)", name)
+		case "string":
+			return name
+		default:
+			panic(fmt.Errorf("invalid param (name: %s, type: %s)", name, typ))
+		}
+	}
+
 	return generator.Generate(template, data, generator.Options{
 		Funcs: map[string]interface{}{
 			"joinParams": func(params []*reflector.Param, format, sep string) string {
@@ -235,20 +254,8 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 				}
 				return name
 			},
+			"valueToString": valueToString,
 			"patternToFmt": func(pattern string, params []*openapi.Param) string {
-				valueToString := func(name, typ string) string {
-					switch typ {
-					case "int", "int8", "int16", "int32":
-						return fmt.Sprintf("strconv.FormatInt(%s, 10)", name)
-					case "uint", "uint8", "uint16", "uint32":
-						return fmt.Sprintf("strconv.FormatUint(%s, 10)", name)
-					case "string":
-						return name
-					default:
-						panic(fmt.Errorf("invalid path param (name: %s, type: %s)", name, typ))
-					}
-				}
-
 				type nameType struct {
 					Name string
 					Type string
@@ -276,7 +283,7 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 
 				var sortedNames []string
 				for _, ni := range nameIndices {
-					sortedNames = append(sortedNames, valueToString(ni.NameType.Name, ni.NameType.Type))
+					sortedNames = append(sortedNames, valueToString(ni.NameType.Name, ni.NameType.Type, ""))
 				}
 				return fmt.Sprintf(`fmt.Sprintf("%s", %s)`, pattern, strings.Join(sortedNames, ", "))
 			},
