@@ -19,7 +19,7 @@ func FromDoc(result *reflector.Result, doc map[string][]string) (*Specification,
 	for _, m := range result.Interface.Methods {
 		comments, ok := doc[m.Name]
 		if !ok {
-			return nil, fmt.Errorf("method %s has no comment", m.Name)
+			continue
 		}
 
 		op := &Operation{Name: m.Name}

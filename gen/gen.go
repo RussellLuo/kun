@@ -68,23 +68,18 @@ func (g *Generator) Generate(srcFilename, interfaceName, dstPkgName, testFilenam
 		return content, err
 	}
 
+	spec, err := g.getSpec(result, srcFilename, interfaceName)
+	if err != nil {
+		return content, err
+	}
+
 	// Generate the endpoint code.
-	content.Endpoint, err = g.endpoint.Generate(result)
+	content.Endpoint, err = g.endpoint.Generate(result, spec)
 	if err != nil {
 		return content, err
 	}
 
 	// Generate the HTTP code.
-	doc, err := reflector.GetInterfaceMethodDoc(srcFilename, interfaceName)
-	if err != nil {
-		return content, err
-	}
-
-	spec, err := openapi.FromDoc(result, doc)
-	if err != nil {
-		return content, err
-	}
-
 	content.HTTP, err = g.chi.Generate(result, spec)
 	if err != nil {
 		return content, err
@@ -107,4 +102,18 @@ func (g *Generator) Generate(srcFilename, interfaceName, dstPkgName, testFilenam
 	}
 
 	return content, nil
+}
+
+func (g *Generator) getSpec(result *reflector.Result, srcFilename, interfaceName string) (*openapi.Specification, error) {
+	doc, err := reflector.GetInterfaceMethodDoc(srcFilename, interfaceName)
+	if err != nil {
+		return nil, err
+	}
+
+	spec, err := openapi.FromDoc(result, doc)
+	if err != nil {
+		return nil, err
+	}
+
+	return spec, nil
 }

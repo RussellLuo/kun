@@ -20,7 +20,7 @@ func GetInterfaceMethodDoc(filename, name string) (map[string][]string, error) {
 		methodName := method.Names[0].Name
 
 		if method.Doc == nil {
-			return nil, fmt.Errorf("method %q has no comment", methodName)
+			continue
 		}
 
 		var comments []string

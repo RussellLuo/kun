@@ -47,7 +47,7 @@ func NewHTTPClient(httpClient *http.Client, baseURL string) (*HTTPClient, error)
 	}, nil
 }
 
-{{- range .Result.Interface.Methods}}
+{{- range .DocMethods}}
 
 {{$op := getOperation .Name}}
 {{$pathParams := pathParams $op.Request.Params}}
@@ -175,19 +175,26 @@ func New(opts *Options) *Generator {
 }
 
 func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specification) ([]byte, error) {
-	data := struct {
-		Result *reflector.Result
-		Spec   *openapi.Specification
-		Opts   *Options
-	}{
-		Result: result,
-		Spec:   spec,
-		Opts:   g.opts,
-	}
-
 	operationMap := make(map[string]*openapi.Operation)
 	for _, op := range spec.Operations {
 		operationMap[op.Name] = op
+	}
+
+	var docMethods []*reflector.Method
+	for _, m := range result.Interface.Methods {
+		if _, ok := operationMap[m.Name]; ok {
+			docMethods = append(docMethods, m)
+		}
+	}
+
+	data := struct {
+		Result     *reflector.Result
+		DocMethods []*reflector.Method
+		Opts       *Options
+	}{
+		Result:     result,
+		DocMethods: docMethods,
+		Opts:       g.opts,
 	}
 
 	valueToString := func(name, typ, encoder string) string {
