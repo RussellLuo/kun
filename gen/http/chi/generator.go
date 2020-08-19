@@ -29,14 +29,14 @@ import (
 	{{- end}}
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-kit/kit/endpoint"
+	httpcodec "github.com/RussellLuo/kok/pkg/codec/http"
 
 	{{- range .Result.Imports}}
 	"{{.}}"
 	{{- end}}
 )
 
-
-func NewHTTPRouter(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}) chi.Router {
+func NewHTTPRouter(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}, codecs httpcodec.Codecs) chi.Router {
 	r := chi.NewRouter()
 
 	{{if $enableTracing -}}
@@ -48,27 +48,19 @@ func NewHTTPRouter(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}) chi.R
 	{{- end}}
 
 	var options []kithttp.ServerOption
+	var codec httpcodec.Codec
 
-	// NOTE:
-	// If no method-specific comment ` + "`" + `// @kok(failure): "encoder:*"` + "`" + ` is specified,
-	// a default error encoder named ` + "`" + `encodeError` + "`" + `, whose signature is
-	// ` + "`" + `func(error) (int, interface{})` + "`" + `, must be provided in the
-	// current package, to transform any business error to an HTTP response!
-	{{range .Spec.Operations}}
+	{{- range .Spec.Operations}}
+
+	codec = codecs.EncodeDecoder("{{.Name}}")
 	r.Method(
 		"{{.Method}}", "{{.Pattern}}",
 		kithttp.NewServer(
 			MakeEndpointOf{{.Name}}(svc),
-			decode{{.Name}}Request,
-			makeResponseEncoder(
-			{{- if .Options.ResponseEncoder.Success -}}
-			{{.Options.ResponseEncoder.Success}},
-			{{- else -}}
-			encodeJSON({{.SuccessResponse.StatusCode}}),
-			{{- end -}}
-			),
+			decode{{.Name}}Request(codec),
+			httpcodec.MakeResponseEncoder(codec, {{.SuccessResponse.StatusCode}}),
 			append(options,
-				kithttp.ServerErrorEncoder(makeErrorEncoder({{if .Options.ResponseEncoder.Failure}}{{.Options.ResponseEncoder.Failure}}{{else}}encodeError{{end}})),
+				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
 				{{- if $enableTracing}}
 				kithttp.ServerBefore(contextor.HTTPToContext("{{$pkgName}}", "{{.Name}}")),
 				{{- end}}
@@ -80,102 +72,64 @@ func NewHTTPRouter(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}) chi.R
 	return r
 }
 
-func makeErrorEncoder(encode func(error) (int, interface{})) kithttp.ErrorEncoder {
-	return func(_ context.Context, err error, w http.ResponseWriter) {
-		statusCode, body := encode(err)
-
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(statusCode)
-		json.NewEncoder(w).Encode(body)
-	}
-}
-
 {{- range .Spec.Operations}}
 
 {{- $nonCtxParams := nonCtxParams .Request.Params}}
+{{- $nonBodyParams := nonBodyParams $nonCtxParams}}
+{{- $bodyParams := bodyParams $nonCtxParams}}
 
-func decode{{.Name}}Request(_ context.Context, r *http.Request) (interface{}, error) {
-	{{$nonBodyParams := nonBodyParams $nonCtxParams -}}
-	{{range $nonBodyParams -}}
+func decode{{.Name}}Request(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
+	return func(_ context.Context, r *http.Request) (interface{}, error) {
+		{{- range $nonBodyParams}}
+		{{.Name}}Value := {{extractParam .}}
+		var {{.Name}} {{.Type}}
+		if err := codec.DecodeRequestParam("{{.Name}}", {{.Name}}Value, &{{.Name}}); err != nil {
+			return nil, err
+		}
 
-	{{- if .Decoder -}}
-	{{.Name}}Value := {{extractParam .}}
-	{{.Name}}, err := {{.Decoder}}({{.Name}}Value)
-	if err != nil {
-		return nil, err
-	}
-	{{- else if eq .Type "string" -}}
-	{{.Name}} := {{extractParam .}}
-	{{- else if eq .Type "bool" -}}
-	{{.Name}} := {{extractParam .}} == "true"
-	{{- else -}}
-	{{.Name}}Value := {{extractParam .}}
-	{{.Name}}, err := {{decodeInt .Name .Type}}
-	if err != nil {
-		return nil, err
-	}
-	{{end}}
+		{{end -}}
 
-	{{end -}}
+		{{range nonBodyParentParams $nonCtxParams}}
 
-	{{range nonBodyParentParams $nonCtxParams}}
+		{{- .Name}} := {{.Type}}{
+			{{- range .Sub}}
+			{{.Name}}: {{lowerFirst .Name}},
+			{{- end}}
+		}
 
-	{{- .Name}} := {{.Type}}{
-		{{- range .Sub}}
-		{{.Name}}: {{lowerFirst .Name}},
+		{{end -}}
+
+		{{- if $bodyParams -}}
+		var body struct {
+			{{- range $bodyParams}}
+			{{title .Name}} {{.Type}} {{addTag .Name .Type}}
+			{{- end}}
+		}
+		if err := codec.DecodeRequestBody(r.Body, &body); err != nil {
+			return nil, err
+		}
+		{{end -}}
+
+		{{- if $nonCtxParams}}
+
+		return {{addAmpersand .Name}}Request{
+			{{- range $nonCtxParams}}
+
+			{{- if eq .In "body"}}
+			{{title .Name}}: body.{{title .Name}},
+			{{- else}}
+			{{title .Name}}: {{castIfInt .Name .Type}},
+			{{- end}}
+
+			{{- end}}
+		}, nil
+		{{- else -}}
+		return nil, nil
 		{{- end}}
 	}
-
-	{{end -}}
-
-	{{$bodyParams := bodyParams $nonCtxParams}}
-	{{- if $bodyParams -}}
-	var body struct {
-		{{- range $bodyParams}}
-		{{title .Name}} {{.Type}} {{addTag .Name .Type}}
-		{{- end}}
-	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		return nil, err
-	}
-	{{end -}}
-
-	{{- if $nonCtxParams}}
-
-	return {{addAmpersand .Name}}Request{
-		{{- range $nonCtxParams}}
-
-		{{- if eq .In "body"}}
-		{{title .Name}}: body.{{title .Name}},
-		{{- else}}
-		{{title .Name}}: {{castIfInt .Name .Type}},
-		{{- end}}
-
-		{{- end}}
-	}, nil
-	{{- else -}}
-	return nil, nil
-	{{- end}}
 }
 
 {{- end}}
-
-func makeResponseEncoder(encodeSuccess kithttp.EncodeResponseFunc) kithttp.EncodeResponseFunc {
-	return func(ctx context.Context, w http.ResponseWriter, response interface{}) error {
-		if f, ok := response.(endpoint.Failer); ok && f.Failed() != nil {
-			return f.Failed()
-		}
-		return encodeSuccess(ctx, w, response)
-	}
-}
-
-func encodeJSON(statusCode int) kithttp.EncodeResponseFunc {
-	return func(ctx context.Context, w http.ResponseWriter, response interface{}) error {
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(statusCode)
-		return json.NewEncoder(w).Encode(response)
-	}
-}
 `
 )
 
