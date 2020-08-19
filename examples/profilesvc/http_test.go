@@ -216,14 +216,17 @@ func TestHTTP_PostProfile(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			var gotIn in
-			w := c.request.ServedBy(NewHTTPRouter(&ServiceMock{
-				PostProfileFunc: func(ctx context.Context, profile Profile) (err error) {
-					gotIn = in{
-						profile: profile,
-					}
-					return c.out.err
+			w := c.request.ServedBy(NewHTTPRouter(
+				&ServiceMock{
+					PostProfileFunc: func(ctx context.Context, profile Profile) (err error) {
+						gotIn = in{
+							profile: profile,
+						}
+						return c.out.err
+					},
 				},
-			}))
+				NewCodecs(),
+			))
 
 			if !reflect.DeepEqual(gotIn, c.wantIn) {
 				t.Fatalf("In: got (%v), want (%v)", gotIn, c.wantIn)
@@ -299,14 +302,17 @@ func TestHTTP_GetProfile(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			var gotIn in
-			w := c.request.ServedBy(NewHTTPRouter(&ServiceMock{
-				GetProfileFunc: func(ctx context.Context, id string) (profile Profile, err error) {
-					gotIn = in{
-						id: id,
-					}
-					return c.out.profile, c.out.err
+			w := c.request.ServedBy(NewHTTPRouter(
+				&ServiceMock{
+					GetProfileFunc: func(ctx context.Context, id string) (profile Profile, err error) {
+						gotIn = in{
+							id: id,
+						}
+						return c.out.profile, c.out.err
+					},
 				},
-			}))
+				NewCodecs(),
+			))
 
 			if !reflect.DeepEqual(gotIn, c.wantIn) {
 				t.Fatalf("In: got (%v), want (%v)", gotIn, c.wantIn)
@@ -399,15 +405,18 @@ func TestHTTP_PutProfile(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			var gotIn in
-			w := c.request.ServedBy(NewHTTPRouter(&ServiceMock{
-				PutProfileFunc: func(ctx context.Context, id string, profile Profile) (err error) {
-					gotIn = in{
-						id:      id,
-						profile: profile,
-					}
-					return c.out.err
+			w := c.request.ServedBy(NewHTTPRouter(
+				&ServiceMock{
+					PutProfileFunc: func(ctx context.Context, id string, profile Profile) (err error) {
+						gotIn = in{
+							id:      id,
+							profile: profile,
+						}
+						return c.out.err
+					},
 				},
-			}))
+				NewCodecs(),
+			))
 
 			if !reflect.DeepEqual(gotIn, c.wantIn) {
 				t.Fatalf("In: got (%v), want (%v)", gotIn, c.wantIn)
@@ -494,15 +503,18 @@ func TestHTTP_PatchProfile(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			var gotIn in
-			w := c.request.ServedBy(NewHTTPRouter(&ServiceMock{
-				PatchProfileFunc: func(ctx context.Context, id string, profile Profile) (err error) {
-					gotIn = in{
-						id:      id,
-						profile: profile,
-					}
-					return c.out.err
+			w := c.request.ServedBy(NewHTTPRouter(
+				&ServiceMock{
+					PatchProfileFunc: func(ctx context.Context, id string, profile Profile) (err error) {
+						gotIn = in{
+							id:      id,
+							profile: profile,
+						}
+						return c.out.err
+					},
 				},
-			}))
+				NewCodecs(),
+			))
 
 			if !reflect.DeepEqual(gotIn, c.wantIn) {
 				t.Fatalf("In: got (%v), want (%v)", gotIn, c.wantIn)
@@ -572,14 +584,17 @@ func TestHTTP_DeleteProfile(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			var gotIn in
-			w := c.request.ServedBy(NewHTTPRouter(&ServiceMock{
-				DeleteProfileFunc: func(ctx context.Context, id string) (err error) {
-					gotIn = in{
-						id: id,
-					}
-					return c.out.err
+			w := c.request.ServedBy(NewHTTPRouter(
+				&ServiceMock{
+					DeleteProfileFunc: func(ctx context.Context, id string) (err error) {
+						gotIn = in{
+							id: id,
+						}
+						return c.out.err
+					},
 				},
-			}))
+				NewCodecs(),
+			))
 
 			if !reflect.DeepEqual(gotIn, c.wantIn) {
 				t.Fatalf("In: got (%v), want (%v)", gotIn, c.wantIn)
@@ -657,14 +672,17 @@ func TestHTTP_GetAddresses(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			var gotIn in
-			w := c.request.ServedBy(NewHTTPRouter(&ServiceMock{
-				GetAddressesFunc: func(ctx context.Context, id string) (addresses []Address, err error) {
-					gotIn = in{
-						id: id,
-					}
-					return c.out.addresses, c.out.err
+			w := c.request.ServedBy(NewHTTPRouter(
+				&ServiceMock{
+					GetAddressesFunc: func(ctx context.Context, id string) (addresses []Address, err error) {
+						gotIn = in{
+							id: id,
+						}
+						return c.out.addresses, c.out.err
+					},
 				},
-			}))
+				NewCodecs(),
+			))
 
 			if !reflect.DeepEqual(gotIn, c.wantIn) {
 				t.Fatalf("In: got (%v), want (%v)", gotIn, c.wantIn)
@@ -743,15 +761,18 @@ func TestHTTP_GetAddress(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			var gotIn in
-			w := c.request.ServedBy(NewHTTPRouter(&ServiceMock{
-				GetAddressFunc: func(ctx context.Context, profileID string, addressID string) (address Address, err error) {
-					gotIn = in{
-						profileID: profileID,
-						addressID: addressID,
-					}
-					return c.out.address, c.out.err
+			w := c.request.ServedBy(NewHTTPRouter(
+				&ServiceMock{
+					GetAddressFunc: func(ctx context.Context, profileID string, addressID string) (address Address, err error) {
+						gotIn = in{
+							profileID: profileID,
+							addressID: addressID,
+						}
+						return c.out.address, c.out.err
+					},
 				},
-			}))
+				NewCodecs(),
+			))
 
 			if !reflect.DeepEqual(gotIn, c.wantIn) {
 				t.Fatalf("In: got (%v), want (%v)", gotIn, c.wantIn)
@@ -832,15 +853,18 @@ func TestHTTP_PostAddress(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			var gotIn in
-			w := c.request.ServedBy(NewHTTPRouter(&ServiceMock{
-				PostAddressFunc: func(ctx context.Context, profileID string, address Address) (err error) {
-					gotIn = in{
-						profileID: profileID,
-						address:   address,
-					}
-					return c.out.err
+			w := c.request.ServedBy(NewHTTPRouter(
+				&ServiceMock{
+					PostAddressFunc: func(ctx context.Context, profileID string, address Address) (err error) {
+						gotIn = in{
+							profileID: profileID,
+							address:   address,
+						}
+						return c.out.err
+					},
 				},
-			}))
+				NewCodecs(),
+			))
 
 			if !reflect.DeepEqual(gotIn, c.wantIn) {
 				t.Fatalf("In: got (%v), want (%v)", gotIn, c.wantIn)
@@ -913,15 +937,18 @@ func TestHTTP_DeleteAddress(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			var gotIn in
-			w := c.request.ServedBy(NewHTTPRouter(&ServiceMock{
-				DeleteAddressFunc: func(ctx context.Context, profileID string, addressID string) (err error) {
-					gotIn = in{
-						profileID: profileID,
-						addressID: addressID,
-					}
-					return c.out.err
+			w := c.request.ServedBy(NewHTTPRouter(
+				&ServiceMock{
+					DeleteAddressFunc: func(ctx context.Context, profileID string, addressID string) (err error) {
+						gotIn = in{
+							profileID: profileID,
+							addressID: addressID,
+						}
+						return c.out.err
+					},
 				},
-			}))
+				NewCodecs(),
+			))
 
 			if !reflect.DeepEqual(gotIn, c.wantIn) {
 				t.Fatalf("In: got (%v), want (%v)", gotIn, c.wantIn)

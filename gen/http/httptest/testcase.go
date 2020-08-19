@@ -36,6 +36,7 @@ type test struct {
 
 type TestSpec struct {
 	Imports []string `yaml:"imports"`
+	Codecs  string   `yaml:"codecs"`
 	Tests   []test   `yaml:"tests"`
 }
 

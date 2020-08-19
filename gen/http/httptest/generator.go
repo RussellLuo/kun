@@ -114,6 +114,7 @@ func (want response) Equal(w *httptest.ResponseRecorder) string {
 	return ""
 }
 
+{{- $codecs := .TestSpec.Codecs}}
 {{- range .TestSpec.Tests}}
 
 {{$params := methodParams .Name}}
@@ -182,16 +183,19 @@ func TestHTTP_{{.Name}}(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			var gotIn in
-			w := c.request.ServedBy(NewHTTPRouter(&{{$mockInterfaceName}}{
-				{{.Name}}Func: func({{joinParams $params "$Name $Type" ", "}}) ({{joinParams $returns "$Name $Type" ", "}}) {
-					gotIn = in{
-						{{- range $nonCtxParams}}
-						{{.Name}}: {{.Name}},
-						{{- end}}
-					}
-					return {{joinParams $returns "c.out.$Name" ", "}}
+			w := c.request.ServedBy(NewHTTPRouter(
+				&{{$mockInterfaceName}}{
+					{{.Name}}Func: func({{joinParams $params "$Name $Type" ", "}}) ({{joinParams $returns "$Name $Type" ", "}}) {
+						gotIn = in{
+							{{- range $nonCtxParams}}
+							{{.Name}}: {{.Name}},
+							{{- end}}
+						}
+						return {{joinParams $returns "c.out.$Name" ", "}}
+					},
 				},
-			}))
+				{{$codecs}},
+			))
 
 			if !reflect.DeepEqual(gotIn, c.wantIn) {
 				t.Fatalf("In: got (%v), want (%v)", gotIn, c.wantIn)

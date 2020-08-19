@@ -1,3 +1,4 @@
+codecs: "NewCodecs()"
 tests:
   - name: 'PostProfile'
     cases:
