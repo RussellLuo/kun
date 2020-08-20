@@ -91,29 +91,34 @@ func decode{{.Name}}Request(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 		{{end -}}
 
 		{{- range $nonBodyParams}}
+
+		{{- if .Sub}} {{/* This is a parent parameter */}}
+		{{- $parentName := .Name}}
+
+		{{- range .Sub}}
+		{{lowerFirst .Name}} := {{extractParam .}}
+		if err := codec.DecodeRequestParam("{{$parentName}}.{{.Name}}", {{lowerFirst .Name}}, &req.{{title $parentName}}.{{.Name}}); err != nil {
+			return nil, err
+		}
+
+		{{end -}} {{/* End of range .Sub */}}
+
+		{{- else}} {{/* This is a normal (non-parent) parameter */}}
+
 		{{.Name}} := {{extractParam .}}
 		if err := codec.DecodeRequestParam("{{.Name}}", {{.Name}}, &req.{{title .Name}}); err != nil {
 			return nil, err
 		}
+		{{- end}} {{/* End of if .Sub */}}
 
-		{{end -}}
-
-		{{range nonBodyParentParams $nonCtxParams}}
-
-		{{- .Name}} := {{.Type}}{
-			{{- range .Sub}}
-			{{.Name}}: {{lowerFirst .Name}},
-			{{- end}}
-		}
-
-		{{end -}}
+		{{end -}} {{/* End of range $nonBodyParams */}}
 
 		{{- if $nonCtxParams}}
 
 		return {{addAmpersand "req"}}, nil
 		{{- else -}}
 		return nil, nil
-		{{- end}}
+		{{- end}} {{/* End of if $nonCtxParams */}}
 	}
 }
 
@@ -164,19 +169,6 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 		Funcs: map[string]interface{}{
 			"title":      strings.Title,
 			"lowerFirst": misc.LowerFirst,
-			"addTag": func(name, typ string) string {
-				if g.opts.SchemaTag == "" {
-					return ""
-				}
-
-				if typ == "error" {
-					name = "-"
-				} else if g.opts.TagKeyToSnakeCase {
-					name = misc.ToSnakeCase(name)
-				}
-
-				return fmt.Sprintf("`%s:\"%s\"`", g.opts.SchemaTag, name)
-			},
 			"addAmpersand": func(name string) string {
 				if g.opts.SchemaPtr {
 					return "&" + name
@@ -198,22 +190,6 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 			"nonBodyParams": func(in []*openapi.Param) (out []*openapi.Param) {
 				for _, p := range in {
 					if p.In != openapi.InBody {
-						if len(p.Sub) == 0 {
-							out = append(out, p)
-						} else {
-							for _, s := range p.Sub {
-								cs := *s // copy by value
-								cs.Name = misc.LowerFirst(s.Name)
-								out = append(out, &cs)
-							}
-						}
-					}
-				}
-				return
-			},
-			"nonBodyParentParams": func(in []*openapi.Param) (out []*openapi.Param) {
-				for _, p := range in {
-					if len(p.Sub) != 0 {
 						out = append(out, p)
 					}
 				}
@@ -234,25 +210,6 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 					}
 				}
 				return
-			},
-			"decodeInt": func(name, typ string) string {
-				switch typ {
-				case "int", "int8", "int16", "int32", "int64":
-					return fmt.Sprintf("strconv.ParseInt(%sValue, 10, 64)", name)
-				case "uint", "uint8", "uint16", "uint32", "uint64":
-					return fmt.Sprintf("strconv.ParseUint(%sValue, 10, 64)", name)
-				default:
-					panic(fmt.Errorf("unrecognized integer type %s", typ))
-				}
-			},
-			"castIfInt": func(name, typ string) string {
-				switch typ {
-				case "int", "int8", "int16", "int32",
-					"uint", "uint8", "uint16", "uint32":
-					return fmt.Sprintf("%s(%s)", typ, name)
-				default:
-					return name
-				}
 			},
 		},
 		Formatted: g.opts.Formatted,
