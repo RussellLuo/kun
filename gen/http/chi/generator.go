@@ -80,10 +80,19 @@ func NewHTTPRouter(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}, codec
 
 func decode{{.Name}}Request(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
+		{{- if $nonCtxParams}}
+		var req {{.Name}}Request
+		{{- end}}
+
+		{{if $bodyParams -}}
+		if err := codec.DecodeRequestBody(r.Body, &req); err != nil {
+			return nil, err
+		}
+		{{end -}}
+
 		{{- range $nonBodyParams}}
-		{{.Name}}Value := {{extractParam .}}
-		var {{.Name}} {{.Type}}
-		if err := codec.DecodeRequestParam("{{.Name}}", {{.Name}}Value, &{{.Name}}); err != nil {
+		{{.Name}} := {{extractParam .}}
+		if err := codec.DecodeRequestParam("{{.Name}}", {{.Name}}, &req.{{title .Name}}); err != nil {
 			return nil, err
 		}
 
@@ -99,30 +108,9 @@ func decode{{.Name}}Request(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 
 		{{end -}}
 
-		{{- if $bodyParams -}}
-		var body struct {
-			{{- range $bodyParams}}
-			{{title .Name}} {{.Type}} {{addTag .Name .Type}}
-			{{- end}}
-		}
-		if err := codec.DecodeRequestBody(r.Body, &body); err != nil {
-			return nil, err
-		}
-		{{end -}}
-
 		{{- if $nonCtxParams}}
 
-		return {{addAmpersand .Name}}Request{
-			{{- range $nonCtxParams}}
-
-			{{- if eq .In "body"}}
-			{{title .Name}}: body.{{title .Name}},
-			{{- else}}
-			{{title .Name}}: {{castIfInt .Name .Type}},
-			{{- end}}
-
-			{{- end}}
-		}, nil
+		return {{addAmpersand "req"}}, nil
 		{{- else -}}
 		return nil, nil
 		{{- end}}
