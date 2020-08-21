@@ -5,121 +5,132 @@ package profilesvc
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
+	httpcodec "github.com/RussellLuo/kok/pkg/codec/http"
 	"github.com/go-chi/chi"
-	"github.com/go-kit/kit/endpoint"
 	kithttp "github.com/go-kit/kit/transport/http"
 )
 
-func NewHTTPRouter(svc Service) chi.Router {
+func NewHTTPRouter(svc Service, codecs httpcodec.Codecs) chi.Router {
 	r := chi.NewRouter()
 
 	var options []kithttp.ServerOption
+	var codec httpcodec.Codec
 
-	// NOTE:
-	// If no method-specific comment `// @kok(failure): "encoder:*"` is specified,
-	// a default error encoder named `encodeError`, whose signature is
-	// `func(error) (int, interface{})`, must be provided in the
-	// current package, to transform any business error to an HTTP response!
-
+	codec = codecs.EncodeDecoder("DeleteAddress")
 	r.Method(
 		"DELETE", "/profiles/{id}/addresses/{addressID}",
 		kithttp.NewServer(
 			MakeEndpointOfDeleteAddress(svc),
-			decodeDeleteAddressRequest,
-			makeResponseEncoder(encodeJSON(200)),
+			decodeDeleteAddressRequest(codec),
+			httpcodec.MakeResponseEncoder(codec, 200),
 			append(options,
-				kithttp.ServerErrorEncoder(makeErrorEncoder(encodeError)),
+				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
 			)...,
 		),
 	)
+
+	codec = codecs.EncodeDecoder("DeleteProfile")
 	r.Method(
 		"DELETE", "/profiles/{id}",
 		kithttp.NewServer(
 			MakeEndpointOfDeleteProfile(svc),
-			decodeDeleteProfileRequest,
-			makeResponseEncoder(encodeJSON(200)),
+			decodeDeleteProfileRequest(codec),
+			httpcodec.MakeResponseEncoder(codec, 200),
 			append(options,
-				kithttp.ServerErrorEncoder(makeErrorEncoder(encodeError)),
+				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
 			)...,
 		),
 	)
+
+	codec = codecs.EncodeDecoder("GetAddress")
 	r.Method(
 		"GET", "/profiles/{id}/addresses/{addressID}",
 		kithttp.NewServer(
 			MakeEndpointOfGetAddress(svc),
-			decodeGetAddressRequest,
-			makeResponseEncoder(encodeJSON(200)),
+			decodeGetAddressRequest(codec),
+			httpcodec.MakeResponseEncoder(codec, 200),
 			append(options,
-				kithttp.ServerErrorEncoder(makeErrorEncoder(encodeError)),
+				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
 			)...,
 		),
 	)
+
+	codec = codecs.EncodeDecoder("GetAddresses")
 	r.Method(
 		"GET", "/profiles/{id}/addresses",
 		kithttp.NewServer(
 			MakeEndpointOfGetAddresses(svc),
-			decodeGetAddressesRequest,
-			makeResponseEncoder(encodeJSON(200)),
+			decodeGetAddressesRequest(codec),
+			httpcodec.MakeResponseEncoder(codec, 200),
 			append(options,
-				kithttp.ServerErrorEncoder(makeErrorEncoder(encodeError)),
+				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
 			)...,
 		),
 	)
+
+	codec = codecs.EncodeDecoder("GetProfile")
 	r.Method(
 		"GET", "/profiles/{id}",
 		kithttp.NewServer(
 			MakeEndpointOfGetProfile(svc),
-			decodeGetProfileRequest,
-			makeResponseEncoder(encodeJSON(200)),
+			decodeGetProfileRequest(codec),
+			httpcodec.MakeResponseEncoder(codec, 200),
 			append(options,
-				kithttp.ServerErrorEncoder(makeErrorEncoder(encodeError)),
+				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
 			)...,
 		),
 	)
+
+	codec = codecs.EncodeDecoder("PatchProfile")
 	r.Method(
 		"PATCH", "/profiles/{id}",
 		kithttp.NewServer(
 			MakeEndpointOfPatchProfile(svc),
-			decodePatchProfileRequest,
-			makeResponseEncoder(encodeJSON(200)),
+			decodePatchProfileRequest(codec),
+			httpcodec.MakeResponseEncoder(codec, 200),
 			append(options,
-				kithttp.ServerErrorEncoder(makeErrorEncoder(encodeError)),
+				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
 			)...,
 		),
 	)
+
+	codec = codecs.EncodeDecoder("PostAddress")
 	r.Method(
 		"POST", "/profiles/{id}/addresses",
 		kithttp.NewServer(
 			MakeEndpointOfPostAddress(svc),
-			decodePostAddressRequest,
-			makeResponseEncoder(encodeJSON(200)),
+			decodePostAddressRequest(codec),
+			httpcodec.MakeResponseEncoder(codec, 200),
 			append(options,
-				kithttp.ServerErrorEncoder(makeErrorEncoder(encodeError)),
+				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
 			)...,
 		),
 	)
+
+	codec = codecs.EncodeDecoder("PostProfile")
 	r.Method(
 		"POST", "/profiles",
 		kithttp.NewServer(
 			MakeEndpointOfPostProfile(svc),
-			decodePostProfileRequest,
-			makeResponseEncoder(encodeJSON(200)),
+			decodePostProfileRequest(codec),
+			httpcodec.MakeResponseEncoder(codec, 200),
 			append(options,
-				kithttp.ServerErrorEncoder(makeErrorEncoder(encodeError)),
+				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
 			)...,
 		),
 	)
+
+	codec = codecs.EncodeDecoder("PutProfile")
 	r.Method(
 		"PUT", "/profiles/{id}",
 		kithttp.NewServer(
 			MakeEndpointOfPutProfile(svc),
-			decodePutProfileRequest,
-			makeResponseEncoder(encodeJSON(200)),
+			decodePutProfileRequest(codec),
+			httpcodec.MakeResponseEncoder(codec, 200),
 			append(options,
-				kithttp.ServerErrorEncoder(makeErrorEncoder(encodeError)),
+				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
 			)...,
 		),
 	)
@@ -127,136 +138,140 @@ func NewHTTPRouter(svc Service) chi.Router {
 	return r
 }
 
-func makeErrorEncoder(encode func(error) (int, interface{})) kithttp.ErrorEncoder {
-	return func(_ context.Context, err error, w http.ResponseWriter) {
-		statusCode, body := encode(err)
+func decodeDeleteAddressRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
+	return func(_ context.Context, r *http.Request) (interface{}, error) {
+		var req DeleteAddressRequest
 
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(statusCode)
-		json.NewEncoder(w).Encode(body)
-	}
-}
-
-func decodeDeleteAddressRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	profileID := chi.URLParam(r, "id")
-
-	addressID := chi.URLParam(r, "addressID")
-
-	return &DeleteAddressRequest{
-		ProfileID: profileID,
-		AddressID: addressID,
-	}, nil
-}
-
-func decodeDeleteProfileRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	id := chi.URLParam(r, "id")
-
-	return &DeleteProfileRequest{
-		Id: id,
-	}, nil
-}
-
-func decodeGetAddressRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	profileID := chi.URLParam(r, "id")
-
-	addressID := chi.URLParam(r, "addressID")
-
-	return &GetAddressRequest{
-		ProfileID: profileID,
-		AddressID: addressID,
-	}, nil
-}
-
-func decodeGetAddressesRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	id := chi.URLParam(r, "id")
-
-	return &GetAddressesRequest{
-		Id: id,
-	}, nil
-}
-
-func decodeGetProfileRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	id := chi.URLParam(r, "id")
-
-	return &GetProfileRequest{
-		Id: id,
-	}, nil
-}
-
-func decodePatchProfileRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	id := chi.URLParam(r, "id")
-
-	var body struct {
-		Profile Profile `json:"profile"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		return nil, err
-	}
-
-	return &PatchProfileRequest{
-		Id:      id,
-		Profile: body.Profile,
-	}, nil
-}
-
-func decodePostAddressRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	profileID := chi.URLParam(r, "id")
-
-	var body struct {
-		Address Address `json:"address"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		return nil, err
-	}
-
-	return &PostAddressRequest{
-		ProfileID: profileID,
-		Address:   body.Address,
-	}, nil
-}
-
-func decodePostProfileRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	var body struct {
-		Profile Profile `json:"profile"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		return nil, err
-	}
-
-	return &PostProfileRequest{
-		Profile: body.Profile,
-	}, nil
-}
-
-func decodePutProfileRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	id := chi.URLParam(r, "id")
-
-	var body struct {
-		Profile Profile `json:"profile"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		return nil, err
-	}
-
-	return &PutProfileRequest{
-		Id:      id,
-		Profile: body.Profile,
-	}, nil
-}
-
-func makeResponseEncoder(encodeSuccess kithttp.EncodeResponseFunc) kithttp.EncodeResponseFunc {
-	return func(ctx context.Context, w http.ResponseWriter, response interface{}) error {
-		if f, ok := response.(endpoint.Failer); ok && f.Failed() != nil {
-			return f.Failed()
+		profileID := chi.URLParam(r, "id")
+		if err := codec.DecodeRequestParam("profileID", profileID, &req.ProfileID); err != nil {
+			return nil, err
 		}
-		return encodeSuccess(ctx, w, response)
+
+		addressID := chi.URLParam(r, "addressID")
+		if err := codec.DecodeRequestParam("addressID", addressID, &req.AddressID); err != nil {
+			return nil, err
+		}
+
+		return &req, nil
 	}
 }
 
-func encodeJSON(statusCode int) kithttp.EncodeResponseFunc {
-	return func(ctx context.Context, w http.ResponseWriter, response interface{}) error {
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(statusCode)
-		return json.NewEncoder(w).Encode(response)
+func decodeDeleteProfileRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
+	return func(_ context.Context, r *http.Request) (interface{}, error) {
+		var req DeleteProfileRequest
+
+		id := chi.URLParam(r, "id")
+		if err := codec.DecodeRequestParam("id", id, &req.Id); err != nil {
+			return nil, err
+		}
+
+		return &req, nil
+	}
+}
+
+func decodeGetAddressRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
+	return func(_ context.Context, r *http.Request) (interface{}, error) {
+		var req GetAddressRequest
+
+		profileID := chi.URLParam(r, "id")
+		if err := codec.DecodeRequestParam("profileID", profileID, &req.ProfileID); err != nil {
+			return nil, err
+		}
+
+		addressID := chi.URLParam(r, "addressID")
+		if err := codec.DecodeRequestParam("addressID", addressID, &req.AddressID); err != nil {
+			return nil, err
+		}
+
+		return &req, nil
+	}
+}
+
+func decodeGetAddressesRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
+	return func(_ context.Context, r *http.Request) (interface{}, error) {
+		var req GetAddressesRequest
+
+		id := chi.URLParam(r, "id")
+		if err := codec.DecodeRequestParam("id", id, &req.Id); err != nil {
+			return nil, err
+		}
+
+		return &req, nil
+	}
+}
+
+func decodeGetProfileRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
+	return func(_ context.Context, r *http.Request) (interface{}, error) {
+		var req GetProfileRequest
+
+		id := chi.URLParam(r, "id")
+		if err := codec.DecodeRequestParam("id", id, &req.Id); err != nil {
+			return nil, err
+		}
+
+		return &req, nil
+	}
+}
+
+func decodePatchProfileRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
+	return func(_ context.Context, r *http.Request) (interface{}, error) {
+		var req PatchProfileRequest
+
+		if err := codec.DecodeRequestBody(r.Body, &req); err != nil {
+			return nil, err
+		}
+
+		id := chi.URLParam(r, "id")
+		if err := codec.DecodeRequestParam("id", id, &req.Id); err != nil {
+			return nil, err
+		}
+
+		return &req, nil
+	}
+}
+
+func decodePostAddressRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
+	return func(_ context.Context, r *http.Request) (interface{}, error) {
+		var req PostAddressRequest
+
+		if err := codec.DecodeRequestBody(r.Body, &req); err != nil {
+			return nil, err
+		}
+
+		profileID := chi.URLParam(r, "id")
+		if err := codec.DecodeRequestParam("profileID", profileID, &req.ProfileID); err != nil {
+			return nil, err
+		}
+
+		return &req, nil
+	}
+}
+
+func decodePostProfileRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
+	return func(_ context.Context, r *http.Request) (interface{}, error) {
+		var req PostProfileRequest
+
+		if err := codec.DecodeRequestBody(r.Body, &req); err != nil {
+			return nil, err
+		}
+
+		return &req, nil
+	}
+}
+
+func decodePutProfileRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
+	return func(_ context.Context, r *http.Request) (interface{}, error) {
+		var req PutProfileRequest
+
+		if err := codec.DecodeRequestBody(r.Body, &req); err != nil {
+			return nil, err
+		}
+
+		id := chi.URLParam(r, "id")
+		if err := codec.DecodeRequestParam("id", id, &req.Id); err != nil {
+			return nil, err
+		}
+
+		return &req, nil
 	}
 }
