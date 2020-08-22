@@ -47,8 +47,8 @@ func NewHTTPRouter(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}, codec
 	)
 	{{- end}}
 
-	var options []kithttp.ServerOption
 	var codec httpcodec.Codec
+	var options []kithttp.ServerOption
 
 	{{- range .Spec.Operations}}
 
@@ -82,7 +82,8 @@ func decode{{.Name}}Request(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		{{- if $nonCtxParams}}
 		var req {{.Name}}Request
-		{{- end}}
+
+		{{end -}}
 
 		{{if $bodyParams -}}
 		if err := codec.DecodeRequestBody(r.Body, &req); err != nil {
