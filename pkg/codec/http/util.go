@@ -84,7 +84,7 @@ func DecodeStringPerOutType(value string, out interface{}) error {
 		*out.(*time.Time) = v
 	default:
 		// Panic since this is a programming error.
-		panic(fmt.Errorf("unsupported type %v", t))
+		panic(fmt.Errorf("unsupported out type: %T", t))
 	}
 
 	return nil

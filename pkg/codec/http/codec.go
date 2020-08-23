@@ -63,96 +63,96 @@ func (jc JSONCodec) DecodeRequestParam(name, value string, out interface{}) erro
 		v, ok := result.(int)
 		if !ok {
 			// Panic since this is a programming error.
-			panic(fmt.Errorf("decoder %+v must return int value", decoder))
+			panic(fmt.Errorf("decoder of %q returns %v (want int)", name, result))
 		}
 		*out.(*int) = v
 	case *int8:
 		v, ok := result.(int8)
 		if !ok {
 			// Panic since this is a programming error.
-			panic(fmt.Errorf("decoder %+v must return int8 value", decoder))
+			panic(fmt.Errorf("decoder of %q returns %v (want int8)", name, result))
 		}
 		*out.(*int8) = v
 	case *int16:
 		v, ok := result.(int16)
 		if !ok {
 			// Panic since this is a programming error.
-			panic(fmt.Errorf("decoder %+v must return int16 value", decoder))
+			panic(fmt.Errorf("decoder of %q returns %v (want int16)", name, result))
 		}
 		*out.(*int16) = v
 	case *int32:
 		v, ok := result.(int32)
 		if !ok {
 			// Panic since this is a programming error.
-			panic(fmt.Errorf("decoder %+v must return int32 value", decoder))
+			panic(fmt.Errorf("decoder of %q returns %v (want int32)", name, result))
 		}
 		*out.(*int32) = v
 	case *int64:
 		v, ok := result.(int64)
 		if !ok {
 			// Panic since this is a programming error.
-			panic(fmt.Errorf("decoder %+v must return int64 value", decoder))
+			panic(fmt.Errorf("decoder of %q returns %v (want int64)", name, result))
 		}
 		*out.(*int64) = v
 	case *uint:
 		v, ok := result.(uint)
 		if !ok {
 			// Panic since this is a programming error.
-			panic(fmt.Errorf("decoder %+v must return uint value", decoder))
+			panic(fmt.Errorf("decoder of %q returns %v (want uint)", name, result))
 		}
 		*out.(*uint) = v
 	case *uint8:
 		v, ok := result.(uint8)
 		if !ok {
 			// Panic since this is a programming error.
-			panic(fmt.Errorf("decoder %+v must return uint8 value", decoder))
+			panic(fmt.Errorf("decoder of %q returns %v (want uint8)", name, result))
 		}
 		*out.(*uint8) = v
 	case *uint16:
 		v, ok := result.(uint16)
 		if !ok {
 			// Panic since this is a programming error.
-			panic(fmt.Errorf("decoder %+v must return uint16 value", decoder))
+			panic(fmt.Errorf("decoder of %q returns %v (want uint16)", name, result))
 		}
 		*out.(*uint16) = v
 	case *uint32:
 		v, ok := result.(uint32)
 		if !ok {
 			// Panic since this is a programming error.
-			panic(fmt.Errorf("decoder %+v must return uint32 value", decoder))
+			panic(fmt.Errorf("decoder of %q returns %v (want uint32)", name, result))
 		}
 		*out.(*uint32) = v
 	case *uint64:
 		v, ok := result.(uint64)
 		if !ok {
 			// Panic since this is a programming error.
-			panic(fmt.Errorf("decoder %+v must return uint64 value", decoder))
+			panic(fmt.Errorf("decoder of %q returns %v (want uint64)", name, result))
 		}
 		*out.(*uint64) = v
 	case *bool:
 		v, ok := result.(bool)
 		if !ok {
 			// Panic since this is a programming error.
-			panic(fmt.Errorf("decoder %+v must return bool value", decoder))
+			panic(fmt.Errorf("decoder of %q returns %v (want bool)", name, result))
 		}
 		*out.(*bool) = v
 	case *string:
 		v, ok := result.(string)
 		if !ok {
 			// Panic since this is a programming error.
-			panic(fmt.Errorf("decoder %+v must return string value", decoder))
+			panic(fmt.Errorf("decoder of %q returns %v (want string)", name, result))
 		}
 		*out.(*string) = v
 	case *time.Time:
 		v, ok := result.(time.Time)
 		if !ok {
 			// Panic since this is a programming error.
-			panic(fmt.Errorf("decoder %+v must return time.Time value", decoder))
+			panic(fmt.Errorf("decoder of %q returns %v (want time.Time)", name, result))
 		}
 		*out.(*time.Time) = v
 	default:
 		// Panic since this is a programming error.
-		panic(fmt.Errorf("unrecognized type %v", t))
+		panic(fmt.Errorf("unsupported out type: %T", t))
 	}
 
 	return nil
