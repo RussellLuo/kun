@@ -1,7 +1,9 @@
 package httptest
 
 import (
+	"fmt"
 	"io/ioutil"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 )
@@ -34,10 +36,16 @@ type test struct {
 	Cases []testCase `yaml:"cases"`
 }
 
+type Import struct {
+	Path  string `yaml:"path"`
+	Alias string `yaml:"alias"`
+}
+
 type TestSpec struct {
-	Imports []string `yaml:"imports"`
-	Codecs  string   `yaml:"codecs"`
-	Tests   []test   `yaml:"tests"`
+	RawImports []string `yaml:"imports"`
+	Imports    []Import `yaml:"-"`
+	Codecs     string   `yaml:"codecs"`
+	Tests      []test   `yaml:"tests"`
 }
 
 func getTestSpec(testFilename string) (*TestSpec, error) {
@@ -52,5 +60,34 @@ func getTestSpec(testFilename string) (*TestSpec, error) {
 		return nil, err
 	}
 
+	imports := getImports(testSpec.RawImports)
+	testSpec.Imports = append(testSpec.Imports, imports...)
+
 	return testSpec, nil
+}
+
+func getImports(rawImports []string) (imports []Import) {
+	var path, alias string
+
+	for i, str := range rawImports {
+		fields := strings.Fields(str)
+		switch len(fields) {
+		case 1:
+			alias, path = "", fields[0]
+		case 2:
+			alias, path = fields[0], fields[1]
+		default:
+			panic(fmt.Errorf("invalid path in imports[%d]: %s", i, str))
+		}
+
+		if !strings.HasPrefix(path, `"`) {
+			path = fmt.Sprintf("%q", path)
+		}
+		imports = append(imports, Import{
+			Path:  path,
+			Alias: alias,
+		})
+	}
+
+	return
 }

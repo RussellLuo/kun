@@ -28,7 +28,7 @@ import (
 	{{- end }}
 
 	{{- range .TestSpec.Imports}}
-	"{{.}}"
+	{{.Alias}} {{.Path}}
 	{{- end }}
 )
 
