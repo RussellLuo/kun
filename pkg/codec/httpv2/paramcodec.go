@@ -12,39 +12,37 @@ type ParamCodec struct {
 }
 
 func (pc ParamCodec) Decode(name, value string, out interface{}) error {
-	switch t := out.(type) {
+	switch v := out.(type) {
 	case *int:
-		return pc.decodeInt(name, value, out.(*int))
+		return pc.decodeInt(name, value, v)
 	case *int8:
-		return pc.decodeInt8(name, value, out.(*int8))
+		return pc.decodeInt8(name, value, v)
 	case *int16:
-		return pc.decodeInt16(name, value, out.(*int16))
+		return pc.decodeInt16(name, value, v)
 	case *int32:
-		return pc.decodeInt32(name, value, out.(*int32))
+		return pc.decodeInt32(name, value, v)
 	case *int64:
-		return pc.decodeInt64(name, value, out.(*int64))
+		return pc.decodeInt64(name, value, v)
 	case *uint:
-		return pc.decodeUint(name, value, out.(*uint))
+		return pc.decodeUint(name, value, v)
 	case *uint8:
-		return pc.decodeUint8(name, value, out.(*uint8))
+		return pc.decodeUint8(name, value, v)
 	case *uint16:
-		return pc.decodeUint16(name, value, out.(*uint16))
+		return pc.decodeUint16(name, value, v)
 	case *uint32:
-		return pc.decodeUint32(name, value, out.(*uint32))
+		return pc.decodeUint32(name, value, v)
 	case *uint64:
-		return pc.decodeUint64(name, value, out.(*uint64))
+		return pc.decodeUint64(name, value, v)
 	case *bool:
-		return pc.decodeBool(name, value, out.(*bool))
+		return pc.decodeBool(name, value, v)
 	case *string:
-		return pc.decodeString(name, value, out.(*string))
+		return pc.decodeString(name, value, v)
 	case *time.Time:
-		return pc.decodeTime(name, value, out.(*time.Time))
+		return pc.decodeTime(name, value, v)
 	default:
 		// Panic since this is a programming error.
-		panic(fmt.Errorf("unsupported out type: %T", t))
+		panic(fmt.Errorf("unsupported out type: %T", v))
 	}
-
-	return nil
 }
 
 func (pc ParamCodec) Encode(name string, value interface{}) string {
@@ -52,44 +50,32 @@ func (pc ParamCodec) Encode(name string, value interface{}) string {
 		return pc.OnEncode(value)
 	}
 
-	switch value.(type) {
+	switch v := value.(type) {
 	case int:
-		v := value.(int)
 		return strconv.FormatInt(int64(v), 10)
 	case int8:
-		v := value.(int8)
 		return strconv.FormatInt(int64(v), 10)
 	case int16:
-		v := value.(int16)
 		return strconv.FormatInt(int64(v), 10)
 	case int32:
-		v := value.(int32)
 		return strconv.FormatInt(int64(v), 10)
 	case int64:
-		v := value.(int64)
 		return strconv.FormatInt(v, 10)
 	case uint:
-		v := value.(uint)
 		return strconv.FormatUint(uint64(v), 10)
 	case uint8:
-		v := value.(uint8)
 		return strconv.FormatUint(uint64(v), 10)
 	case uint16:
-		v := value.(uint16)
 		return strconv.FormatUint(uint64(v), 10)
 	case uint32:
-		v := value.(uint32)
 		return strconv.FormatUint(uint64(v), 10)
 	case uint64:
-		v := value.(uint64)
 		return strconv.FormatUint(v, 10)
 	case bool:
-		v := value.(bool)
 		return strconv.FormatBool(v)
 	case string:
-		return value.(string)
+		return v
 	case time.Time:
-		v := value.(time.Time)
 		return v.Format(time.RFC3339)
 	default:
 		return fmt.Sprintf("%v", value)
