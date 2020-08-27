@@ -15,6 +15,7 @@ func main() {
 	flag.Parse()
 
 	client, err := profilesvc.NewHTTPClient(
+		profilesvc.NewCodecs(),
 		&http.Client{Timeout: 10 * time.Second},
 		*baseURL,
 	)

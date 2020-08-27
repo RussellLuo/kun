@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv2"
 
 	{{- range .Result.Imports}}
 	"{{.}}"
@@ -28,21 +29,23 @@ import (
 )
 
 type HTTPClient struct {
+	codecs     httpcodec.Codecs
 	httpClient *http.Client
-	scheme string
-	host string
+	scheme     string
+	host       string
 	pathPrefix string
 }
 
-func NewHTTPClient(httpClient *http.Client, baseURL string) (*HTTPClient, error) {
+func NewHTTPClient(codecs httpcodec.Codecs, httpClient *http.Client, baseURL string) (*HTTPClient, error) {
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, err
 	}
 	return &HTTPClient{
+		codecs:     codecs,
 		httpClient: httpClient,
-		scheme: u.Scheme,
-		host: u.Host,
+		scheme:     u.Scheme,
+		host:       u.Host,
 		pathPrefix: strings.TrimSuffix(u.Path, "/"),
 	}, nil
 }
@@ -58,8 +61,15 @@ func NewHTTPClient(httpClient *http.Client, baseURL string) (*HTTPClient, error)
 {{$nonErrReturns := nonErrReturns .Returns}}
 
 func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joinParams .Returns "$Name $Type" ", "}}) {
+	codec := c.codecs.EncodeDecoder("{{.Name}}")
+
 	{{if $pathParams -}}
-	path := {{patternToFmt $op.Pattern $pathParams}}
+	{{- $fmtPatternParams := patternToFmt $op.Pattern $pathParams}}
+	path := fmt.Sprintf("{{$fmtPatternParams.Pattern}}",
+		{{- range $fmtPatternParams.SortedParams}}
+		{{.}},
+		{{- end}}
+	)
 	{{- else -}}
 	path := "{{$op.Pattern}}"
 	{{- end }}
@@ -72,7 +82,7 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 	{{if $queryParams -}}
 	q := u.Query()
 	{{- range $queryParams}}
-	q.Set({{.Name}}, {{valueToString .Name .Type .Encoder}})
+	q.Set("{{.Alias}}", codec.EncodeRequestParam("{{.Name}}", {{.Name}}))
 	{{- end}}
 	u.RawQuery = q.Encode()
 	{{- end}}
@@ -87,18 +97,21 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 		{{title .Name}}: {{.Name}},
 		{{- end}}
 	}
-	reqBodyBytes, err := json.Marshal(&reqBody)
+	reqBodyReader, headers, err := codec.EncodeRequestBody(&reqBody)
 	if err != nil {
 		return {{returnErr .Returns}}
 	}
 
-	req, err := http.NewRequest("{{$op.Method}}", u.String(), bytes.NewBuffer(reqBodyBytes))
+	req, err := http.NewRequest("{{$op.Method}}", u.String(), reqBodyReader)
 	if err != nil {
 		return {{returnErr .Returns}}
 	}
-	req.Header.Set("Content-Type", "application/json; charset=utf-8")
+
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
 	{{- range $headerParams}}
-	req.Header.Set("{{.Alias}}", {{.Name}})
+	req.Header.Set("{{.Alias}}", codec.EncodeRequestParam("{{.Name}}", {{.Name}}))
 	{{end}}
 
 	{{- else -}}
@@ -118,11 +131,6 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 	}
 	defer resp.Body.Close()
 
-	respBodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return {{returnErr .Returns}}
-	}
-
 	if resp.StatusCode >= http.StatusOK && resp.StatusCode <= http.StatusNoContent {
 		{{- if $nonErrReturns}}
 			var respBody struct {
@@ -130,7 +138,7 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 				{{title .Name}} {{.Type}} {{addTag .Name .Type}}
 				{{- end}}
 			}
-			err := json.Unmarshal(respBodyBytes, &respBody)
+			err := codec.DecodeSuccessResponse(resp.Body, &respBody)
 			if err != nil {
 				return {{returnErr .Returns}}
 			}
@@ -139,7 +147,11 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 			return nil
 		{{- end}}
 	} else {
-		err := errors.New(string(respBodyBytes))
+		var respErr error
+		err := codec.DecodeFailureResponse(resp.Body, &respErr)
+		if err == nil {
+			err = respErr
+		}
 		return {{returnErr .Returns}}
 	}
 }
@@ -197,23 +209,9 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 		Opts:       g.opts,
 	}
 
-	valueToString := func(name, typ, encoder string) string {
-		if encoder != "" {
-			return fmt.Sprintf("%s(%s)", encoder, name)
-		}
-
-		switch typ {
-		case "int", "int8", "int16", "int32", "int64":
-			return fmt.Sprintf("strconv.FormatInt(%s, 10)", name)
-		case "uint", "uint8", "uint16", "uint32", "uint64":
-			return fmt.Sprintf("strconv.FormatUint(%s, 10)", name)
-		case "bool":
-			return fmt.Sprintf("strconv.FormatBool(%s)", name)
-		case "string":
-			return name
-		default:
-			panic(fmt.Errorf("invalid param (name: %s, type: %s)", name, typ))
-		}
+	type FmtPatternParams struct {
+		Pattern      string
+		SortedParams []string
 	}
 
 	return generator.Generate(template, data, generator.Options{
@@ -261,8 +259,7 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 				}
 				return name
 			},
-			"valueToString": valueToString,
-			"patternToFmt": func(pattern string, params []*openapi.Param) string {
+			"patternToFmt": func(pattern string, params []*openapi.Param) FmtPatternParams {
 				type nameType struct {
 					Name string
 					Type string
@@ -290,9 +287,13 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 
 				var sortedNames []string
 				for _, ni := range nameIndices {
-					sortedNames = append(sortedNames, valueToString(ni.NameType.Name, ni.NameType.Type, ""))
+					name := ni.NameType.Name
+					sortedNames = append(sortedNames, fmt.Sprintf("codec.EncodeRequestParam(%q, %s)", name, name))
 				}
-				return fmt.Sprintf(`fmt.Sprintf("%s", %s)`, pattern, strings.Join(sortedNames, ", "))
+				return FmtPatternParams{
+					Pattern:      pattern,
+					SortedParams: sortedNames,
+				}
 			},
 			"bodyParams": func(in []*openapi.Param) (out []*openapi.Param) {
 				for _, p := range in {
