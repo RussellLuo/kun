@@ -3,7 +3,7 @@ package profilesvc
 import (
 	"net/http"
 
-	httpcodec "github.com/RussellLuo/kok/pkg/codec/http"
+	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv2"
 )
 
 type Codec struct {

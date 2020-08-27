@@ -7,7 +7,7 @@ import (
 	"context"
 	"net/http"
 
-	httpcodec "github.com/RussellLuo/kok/pkg/codec/http"
+	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv2"
 	"github.com/go-chi/chi"
 	kithttp "github.com/go-kit/kit/transport/http"
 )
@@ -15,8 +15,8 @@ import (
 func NewHTTPRouter(svc Service, codecs httpcodec.Codecs) chi.Router {
 	r := chi.NewRouter()
 
-	var options []kithttp.ServerOption
 	var codec httpcodec.Codec
+	var options []kithttp.ServerOption
 
 	codec = codecs.EncodeDecoder("DeleteAddress")
 	r.Method(
