@@ -50,19 +50,20 @@ kokgen [flags] source-file interface-name
 
     - Key: `@kok(param)`
     - Value: `"name:<name>,type:<type>,in:<in>,alias:<alias>"`
-        + **name**: The name of the argument in the interface method.
-            - *Argument group*: By using `.` in **name**, multiple request arguments (each one is of basic type) can be grouped into one method argument (of struct type).
-        + **type**: The type of the argument in the interface method.
-            - Optional: Default will infer from the declaration of the interface method. **Required** for *argument group*.
+        + **name**: The name of the method argument.
+            - *Argument group*: By using `.` in **name**, multiple request parameters (each one is of basic type) can be grouped into one method argument (of struct type).
+        + **type**: The type of the method argument.
+            - Optional: Default will infer from the method declaration.
+            - **Required** for arguments in *Argument group*.
         + **in**:
-            - **path**: The argument is located in the request path.
-            - **query**: The argument is located in the request query parameters.
-            - **header**: The argument is located in the request header.
-            - **cookie**: The argument is located in the request cookie.
-                + Not supported
-            - **body**: The argument is located in the request body.
-                + Optional: All arguments, unless otherwise specified, are in body.
-        + **alias**: The name of the argument in the request.
+            - **path**: The method argument is passed via the request path.
+            - **query**: The method argument is passed via the request query string.
+            - **header**: The method argument is passed via the request headers.
+            - **cookie**: The method argument is passed via the request cookies.
+                + Not supported yet
+            - **body**: The method argument is passed via the request body.
+                + Optional: All method arguments, unless otherwise specified, are in **body**.
+        + **alias**: The name of the request parameter.
             - Optional: Defaults to **name** if not specified.
     - Example:
         + Simple argument:
@@ -91,7 +92,7 @@ kokgen [flags] source-file interface-name
                 CreateUser(ctx context.Context, user User) (err error)
             }
 
-            // HTTP request: POST /users?name=russell&age=1
+            // HTTP request: POST /users?name=tracey&age=1
             ```
 
 3. Define the status code of the success HTTP response
