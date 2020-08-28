@@ -9,7 +9,8 @@ The toolkit of [Go kit][1].
 $ go get -u github.com/RussellLuo/kok/cmd/kokgen
 ```
 
-Usage:
+<details>
+  <summary> Usage </summary>
 
 ```bash
 $ kokgen -h
@@ -26,90 +27,102 @@ kokgen [flags] source-file interface-name
     	whether to enable tracing
 ```
 
+</details>
+
 
 ## HTTP API
 
 ### API annotations
 
-1. Define the HTTP operation
+<details>
+  <summary> Define the HTTP request operation </summary>
 
-    - Key: `@kok(op)`
-    - Value: `"<method> <pattern>"`
-        + **method**: The HTTP method
-        + **pattern**: The URL pattern
-    - Example:
+- Key: `@kok(op)`
+- Value: `"<method> <pattern>"`
+    + **method**: The request method
+    + **pattern**: The request URL
+- Example:
 
-        ```go
-        type Service interface {
-            // @kok(op): "POST /users"
-            CreateUser(ctx context.Context) (err error)
-        }
-        ```
+    ```go
+    type Service interface {
+        // @kok(op): "POST /users"
+        CreateUser(ctx context.Context) (err error)
+    }
+    ```
 
-2. Define the HTTP request parameters
+</details>
 
-    - Key: `@kok(param)`
-    - Value: `"name:<name>,type:<type>,in:<in>,alias:<alias>"`
-        + **name**: The name of the method argument.
-            - *Argument group*: By using `.` in **name**, multiple request parameters (each one is of basic type) can be grouped into one method argument (of struct type).
-        + **type**: The type of the method argument.
-            - Optional: Default will infer from the method declaration.
-            - **Required** for arguments in *Argument group*.
-        + **in**:
-            - **path**: The method argument is passed via the request path.
-            - **query**: The method argument is passed via the request query string.
-            - **header**: The method argument is passed via the request headers.
-            - **cookie**: The method argument is passed via the request cookies.
-                + Not supported yet
-            - **body**: The method argument is passed via the request body.
-                + Optional: All method arguments, unless otherwise specified, are in **body**.
-        + **alias**: The name of the request parameter.
-            - Optional: Defaults to **name** if not specified.
-    - Example:
-        + Simple argument:
+<details>
+  <summary> Define the HTTP request parameters </summary>
 
-            ```go
-            type Service interface {
-                // @kok(op): "DELETE /users/{id}"
-                // @kok(param): "name:id,in:path"
-                DeleteUser(ctx context.Context, id int) (err error)
-            }
-
-            // HTTP request: DELETE /users/101
-            ```
-        + Argument group:
-
-            ```go
-            type User struct {
-                Name string
-                Age  int
-            }
-
-            type Service interface {
-                // @kok(op): "POST /users"
-                // @kok(param): "name:user.Name,type:string,in:query,alias:name"
-                // @kok(param): "name:user.Age,type:int,in:query,alias:age"
-                CreateUser(ctx context.Context, user User) (err error)
-            }
-
-            // HTTP request: POST /users?name=tracey&age=1
-            ```
-
-3. Define the status code of the success HTTP response
-
-    - Key: `@kok(success)`
-    - Value: `"statusCode:<statusCode>"`
-        + **statusCode**: The status code of the success HTTP response.
-            - Optional: Defaults to 200 if not specified.
-    - Example:
+- Key: `@kok(param)`
+- Value: `"name:<name>,type:<type>,in:<in>,alias:<alias>"`
+    + **name**: The name of the method argument.
+        - *Argument group*: By using `.` in **name**, multiple request parameters (each one is of basic type) can be grouped into one method argument (of struct type).
+    + **type**: The type of the method argument.
+        - Optional: Default will infer from the method declaration.
+        - **Required** for arguments in *Argument group*.
+    + **in**:
+        - **path**: The method argument is passed via the request path.
+        - **query**: The method argument is passed via the request query string.
+        - **header**: The method argument is passed via the request headers.
+        - **cookie**: The method argument is passed via the request cookies.
+            + Not supported yet
+        - **body**: The method argument is passed via the request body.
+            + Optional: All method arguments, unless otherwise specified, are in **body**.
+    + **alias**: The name of the request parameter.
+        - Optional: Defaults to **name** if not specified.
+- Example:
+    + Simple argument:
 
         ```go
         type Service interface {
-            // @kok(op): "POST /users"
-            // @kok(success): "statusCode:201"
-            CreateUser(ctx context.Context) (err error)
+            // @kok(op): "DELETE /users/{id}"
+            // @kok(param): "name:id,in:path"
+            DeleteUser(ctx context.Context, id int) (err error)
         }
+
+        // HTTP request: DELETE /users/101
         ```
+    + Argument group:
+
+        ```go
+        type User struct {
+            Name string
+            Age  int
+        }
+
+        type Service interface {
+            // @kok(op): "POST /users"
+            // @kok(param): "name:user.Name,type:string,in:query,alias:name"
+            // @kok(param): "name:user.Age,type:int,in:query,alias:age"
+            CreateUser(ctx context.Context, user User) (err error)
+        }
+
+        // HTTP request: POST /users?name=tracey&age=1
+        ```
+
+</details>
+
+<details>
+  <summary> Define the status code of the success HTTP response </summary>
+
+
+- Key: `@kok(success)`
+- Value: `"statusCode:<statusCode>"`
+    + **statusCode**: The status code of the success HTTP response.
+        - Optional: Defaults to 200 if not specified.
+- Example:
+
+    ```go
+    type Service interface {
+        // @kok(op): "POST /users"
+        // @kok(success): "statusCode:201"
+        CreateUser(ctx context.Context) (err error)
+    }
+    ```
+
+</details>
 
 ### Encoding and decoding
 
@@ -132,4 +145,4 @@ Checkout the [Godoc][2].
 
 
 [1]: https://github.com/go-kit/kit
-[2]: https://godoc.org/github.com/RussellLuo/kok
+[2]: https://pkg.go.dev/github.com/RussellLuo/kok
