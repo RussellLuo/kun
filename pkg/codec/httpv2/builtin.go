@@ -43,11 +43,18 @@ func (jc JSONCodec) DecodeRequestParam(name, value string, out interface{}) erro
 	if !ok {
 		pc = jc.defaultParamCodec
 	}
-	return pc.Decode(name, value, out)
+
+	if err := pc.Decode(name, value, out); err != nil {
+		return werror.Wrap(googlecode.ErrInvalidArgument).SetError(err)
+	}
+	return nil
 }
 
 func (jc JSONCodec) DecodeRequestBody(body io.ReadCloser, out interface{}) error {
-	return json.NewDecoder(body).Decode(out)
+	if err := json.NewDecoder(body).Decode(out); err != nil {
+		return werror.Wrap(googlecode.ErrInvalidArgument).SetError(err)
+	}
+	return nil
 }
 
 func (jc JSONCodec) EncodeSuccessResponse(w http.ResponseWriter, statusCode int, body interface{}) error {
