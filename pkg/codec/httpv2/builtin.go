@@ -73,7 +73,8 @@ func (jc JSONCodec) EncodeSuccessResponse(w http.ResponseWriter, statusCode int,
 }
 
 func (jc JSONCodec) EncodeFailureResponse(w http.ResponseWriter, err error) error {
-	statusCode, code, message := googlecode.HTTPResponse(err)
+	statusCode := googlecode.HTTPStatusCode(err)
+	code, message := googlecode.ToCodeMessage(err)
 	return jc.EncodeSuccessResponse(w, statusCode, FailureResponse{
 		Error: Error{
 			Code:    code,
@@ -111,8 +112,6 @@ func (jc JSONCodec) DecodeFailureResponse(body io.ReadCloser, out *error) error 
 		return err
 	}
 
-	code := werror.Wrap(nil).SetErrorf(resp.Error.Code)
-	*out = werror.Wrap(code).SetErrorf(resp.Error.Message)
-
+	*out = googlecode.FromCodeMessage(resp.Error.Code, resp.Error.Message)
 	return nil
 }

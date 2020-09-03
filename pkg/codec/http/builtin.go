@@ -158,7 +158,8 @@ func (jc JSONCodec) EncodeSuccessResponse(w http.ResponseWriter, statusCode int,
 }
 
 func (jc JSONCodec) EncodeFailureResponse(w http.ResponseWriter, err error) error {
-	statusCode, code, message := googlecode.HTTPResponse(err)
+	statusCode := googlecode.HTTPStatusCode(err)
+	code, message := googlecode.ToCodeMessage(err)
 	return jc.EncodeSuccessResponse(w, statusCode, map[string]map[string]string{
 		"error": {
 			"code":    code,

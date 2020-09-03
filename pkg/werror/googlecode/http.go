@@ -45,7 +45,7 @@ func HTTPStatusCode(err error) int {
 	}
 }
 
-func HTTPResponse(err error) (int, string, string) {
+func ToCodeMessage(err error) (string, string) {
 	var e *werror.Error
 	var code, message string
 
@@ -55,5 +55,10 @@ func HTTPResponse(err error) (int, string, string) {
 		code, message = ErrUnknown.Error(), err.Error()
 	}
 
-	return HTTPStatusCode(err), code, message
+	return code, message
+}
+
+func FromCodeMessage(code, message string) error {
+	codeErr := werror.Wrap(nil).SetErrorf(code)
+	return werror.Wrap(codeErr).SetErrorf(message)
 }
