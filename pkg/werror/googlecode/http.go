@@ -45,7 +45,7 @@ func HTTPStatusCode(err error) int {
 	}
 }
 
-func HTTPResponse(err error) (int, interface{}) {
+func HTTPResponse(err error) (int, string, string) {
 	var e *werror.Error
 	var code, message string
 
@@ -55,10 +55,5 @@ func HTTPResponse(err error) (int, interface{}) {
 		code, message = ErrUnknown.Error(), err.Error()
 	}
 
-	return HTTPStatusCode(err), map[string]map[string]string{
-		"error": {
-			"code":    code,
-			"message": message,
-		},
-	}
+	return HTTPStatusCode(err), code, message
 }

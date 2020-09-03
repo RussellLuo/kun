@@ -26,6 +26,15 @@ func (cm CodecMap) EncodeDecoder(name string) Codec {
 	return NewJSONCodec(nil) // defaults to JSONCodec
 }
 
+type Error struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+type FailureResponse struct {
+	Error Error `json:"error"`
+}
+
 type JSONCodec struct {
 	paramCodecs       map[string]ParamCodec
 	defaultParamCodec ParamCodec
@@ -64,8 +73,13 @@ func (jc JSONCodec) EncodeSuccessResponse(w http.ResponseWriter, statusCode int,
 }
 
 func (jc JSONCodec) EncodeFailureResponse(w http.ResponseWriter, err error) error {
-	statusCode, body := googlecode.HTTPResponse(err)
-	return jc.EncodeSuccessResponse(w, statusCode, body)
+	statusCode, code, message := googlecode.HTTPResponse(err)
+	return jc.EncodeSuccessResponse(w, statusCode, FailureResponse{
+		Error: Error{
+			Code:    code,
+			Message: message,
+		},
+	})
 }
 
 func (jc JSONCodec) EncodeRequestParam(name string, value interface{}) string {
@@ -92,12 +106,7 @@ func (jc JSONCodec) DecodeSuccessResponse(body io.ReadCloser, out interface{}) e
 }
 
 func (jc JSONCodec) DecodeFailureResponse(body io.ReadCloser, out *error) error {
-	var resp struct {
-		Error struct {
-			Code    string `json:"code"`
-			Message string `json:"message"`
-		} `json:"error"`
-	}
+	var resp FailureResponse
 	if err := json.NewDecoder(body).Decode(&resp); err != nil {
 		return err
 	}
