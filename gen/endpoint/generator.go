@@ -27,7 +27,10 @@ import (
 {{- $interfaceName := .Result.Interface.Name}}
 
 {{- range .DocMethods}}
+
 {{- $params := nonCtxParams .Params}}
+{{- $hasCtxParam := hasCtxParam .Params}}
+
 {{- if $params}}
 type {{.Name}}Request struct {
 	{{- range $params}}
@@ -53,9 +56,12 @@ func MakeEndpointOf{{.Name}}(s {{$srcPkgPrefix}}{{$interfaceName}}) endpoint.End
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		{{- if $params}}
 		req := request.({{addAsterisks .Name}}Request)
-		{{- end}}
-		{{joinName .Returns ", "}} := s.{{.Name}}(
+		{{end}}
+
+		{{- joinName .Returns ", "}} := s.{{.Name}}(
+			{{- if $hasCtxParam}}
 			ctx,
+			{{- end}}
 			{{- range $params}}
 			req.{{title .Name}} {{- if .Variadic}}...{{end}},
 			{{- end}}
@@ -67,7 +73,8 @@ func MakeEndpointOf{{.Name}}(s {{$srcPkgPrefix}}{{$interfaceName}}) endpoint.End
 		}, nil
 	}
 }
-{{- end}}
+
+{{- end}} {{/* End of range .DocMethods */}}
 `
 )
 
@@ -117,6 +124,14 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 					}
 				}
 				return
+			},
+			"hasCtxParam": func(params []*reflector.Param) bool {
+				for _, p := range params {
+					if p.Type == "context.Context" {
+						return true
+					}
+				}
+				return false
 			},
 			"getErrParamName": func(params []*reflector.Param) string {
 				for _, p := range params {
