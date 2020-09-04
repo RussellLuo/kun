@@ -13,6 +13,13 @@ func MakeResponseEncoder(codec Codec, statusCode int) kithttp.EncodeResponseFunc
 		if f, ok := response.(endpoint.Failer); ok && f.Failed() != nil {
 			return f.Failed()
 		}
+
+		if statusCode == http.StatusNoContent {
+			// Respond with no content.
+			w.WriteHeader(statusCode)
+			return nil
+		}
+
 		return codec.EncodeSuccessResponse(w, statusCode, response)
 	}
 }
