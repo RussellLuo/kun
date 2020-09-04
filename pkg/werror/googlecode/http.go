@@ -47,15 +47,10 @@ func HTTPStatusCode(err error) int {
 
 func ToCodeMessage(err error) (string, string) {
 	var e *werror.Error
-	var code, message string
-
 	if errors.As(err, &e) {
-		code, message = e.Code, e.Message
-	} else {
-		code, message = ErrUnknown.Error(), err.Error()
+		return e.Code, e.Message
 	}
-
-	return code, message
+	return ErrUnknown.Error(), err.Error()
 }
 
 func FromCodeMessage(code, message string) error {
