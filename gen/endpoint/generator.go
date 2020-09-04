@@ -39,11 +39,13 @@ type {{.Name}}Request struct {
 }
 {{- end}}
 
+{{if .Returns -}}
 type {{.Name}}Response struct {
 	{{- range .Returns}}
 	{{title .Name}} {{.Type}} {{addTag .Name .Type}}
 	{{- end}}
 }
+{{- end}}
 
 {{- $errParamName := getErrParamName .Returns}}
 {{- if $errParamName}}
@@ -56,9 +58,10 @@ func MakeEndpointOf{{.Name}}(s {{$srcPkgPrefix}}{{$interfaceName}}) endpoint.End
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		{{- if $params}}
 		req := request.({{addAsterisks .Name}}Request)
-		{{end}}
+		{{- end}}
 
-		{{- joinName .Returns ", "}} := s.{{.Name}}(
+		{{- if .Returns}}
+		{{joinName .Returns ", "}} := s.{{.Name}}(
 			{{- if $hasCtxParam}}
 			ctx,
 			{{- end}}
@@ -71,6 +74,17 @@ func MakeEndpointOf{{.Name}}(s {{$srcPkgPrefix}}{{$interfaceName}}) endpoint.End
 			{{title .Name}}: {{.Name}},
 			{{- end}}
 		}, nil
+		{{- else}}
+		s.{{.Name}}(
+			{{- if $hasCtxParam}}
+			ctx,
+			{{- end}}
+			{{- range $params}}
+			req.{{title .Name}} {{- if .Variadic}}...{{end}},
+			{{- end}}
+		)
+		return nil, nil
+		{{- end}} {{/* End of if .Returns */}}
 	}
 }
 

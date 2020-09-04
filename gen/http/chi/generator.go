@@ -2,6 +2,7 @@ package chi
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/RussellLuo/kok/gen/util/generator"
@@ -58,7 +59,7 @@ func NewHTTPRouter(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}, codec
 		kithttp.NewServer(
 			MakeEndpointOf{{.Name}}(svc),
 			decode{{.Name}}Request(codec),
-			httpcodec.MakeResponseEncoder(codec, {{.SuccessResponse.StatusCode}}),
+			httpcodec.MakeResponseEncoder(codec, {{getStatusCode .SuccessResponse.StatusCode .Name}}),
 			append(options,
 				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
 				{{- if $enableTracing}}
@@ -166,6 +167,11 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 		Opts:   g.opts,
 	}
 
+	methodMap := make(map[string]*reflector.Method)
+	for _, method := range result.Interface.Methods {
+		methodMap[method.Name] = method
+	}
+
 	return generator.Generate(template, data, generator.Options{
 		Funcs: map[string]interface{}{
 			"title":      strings.Title,
@@ -211,6 +217,28 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 					}
 				}
 				return
+			},
+			"getStatusCode": func(givenStatusCode int, name string) int {
+				method, ok := methodMap[name]
+				if !ok {
+					panic(fmt.Errorf("no method named %q", name))
+				}
+
+				if len(method.Returns) > 0 {
+					// Use the given status code, since the corresponding
+					// method is a fruitful function.
+					return givenStatusCode
+				}
+
+				if givenStatusCode == http.StatusOK {
+					fmt.Printf("NOTE: statusCode is changed to be 204, since method %q returns no result\n", name)
+					return http.StatusNoContent
+				}
+
+				if givenStatusCode != http.StatusNoContent {
+					panic(fmt.Errorf("statusCode must be 204, since method %q returns no result", name))
+				}
+				return givenStatusCode
 			},
 		},
 		Formatted: g.opts.Formatted,
