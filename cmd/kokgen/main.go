@@ -78,6 +78,7 @@ func run(flags userFlags) error {
 		"http.go":        content.HTTP,
 		"http_test.go":   content.HTTPTest,
 		"http_client.go": content.HTTPClient,
+		"oasv2.go":       content.OASv2,
 	}
 	for name, data := range files {
 		if len(data) == 0 {

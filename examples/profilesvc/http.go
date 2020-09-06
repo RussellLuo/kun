@@ -8,12 +8,21 @@ import (
 	"net/http"
 
 	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv2"
+	"github.com/RussellLuo/kok/pkg/oasv2"
 	"github.com/go-chi/chi"
 	kithttp "github.com/go-kit/kit/transport/http"
 )
 
 func NewHTTPRouter(svc Service, codecs httpcodec.Codecs) chi.Router {
+	return NewHTTPRouterWithOAS(svc, codecs, nil)
+}
+
+func NewHTTPRouterWithOAS(svc Service, codecs httpcodec.Codecs, schema oasv2.Schema) chi.Router {
 	r := chi.NewRouter()
+
+	if schema != nil {
+		r.Method("GET", "/api", oasv2.Handler(OASv2APIDoc, schema))
+	}
 
 	var codec httpcodec.Codec
 	var options []kithttp.ServerOption

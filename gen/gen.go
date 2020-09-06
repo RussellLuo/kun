@@ -9,6 +9,7 @@ import (
 	"github.com/RussellLuo/kok/gen/http/chi"
 	"github.com/RussellLuo/kok/gen/http/httpclient"
 	"github.com/RussellLuo/kok/gen/http/httptest"
+	"github.com/RussellLuo/kok/gen/http/oasv2"
 	"github.com/RussellLuo/kok/gen/util/openapi"
 	"github.com/RussellLuo/kok/gen/util/reflector"
 )
@@ -26,6 +27,7 @@ type Content struct {
 	HTTP       []byte
 	HTTPTest   []byte
 	HTTPClient []byte
+	OASv2      []byte
 }
 
 type Generator struct {
@@ -33,6 +35,7 @@ type Generator struct {
 	chi        *chi.Generator
 	httptest   *httptest.Generator
 	httpclient *httpclient.Generator
+	oasv2      *oasv2.Generator
 }
 
 func New(opts Options) *Generator {
@@ -54,6 +57,12 @@ func New(opts Options) *Generator {
 			Formatted: opts.Formatted,
 		}),
 		httpclient: httpclient.New(&httpclient.Options{
+			SchemaPtr:         opts.SchemaPtr,
+			SchemaTag:         opts.SchemaTag,
+			TagKeyToSnakeCase: opts.TagKeyToSnakeCase,
+			Formatted:         opts.Formatted,
+		}),
+		oasv2: oasv2.New(&oasv2.Options{
 			SchemaPtr:         opts.SchemaPtr,
 			SchemaTag:         opts.SchemaTag,
 			TagKeyToSnakeCase: opts.TagKeyToSnakeCase,
@@ -94,10 +103,14 @@ func (g *Generator) Generate(srcFilename, interfaceName, dstPkgName, testFilenam
 	// Generate the HTTP tests code.
 	content.HTTPTest, err = g.httptest.Generate(result, testFilename)
 	if err != nil {
-		if os.IsNotExist(err) {
-			fmt.Printf("WARNING: Skip generating the HTTP tests due to an error (%v)\n", err)
-			return content, nil
+		if !os.IsNotExist(err) {
+			return content, err
 		}
+		fmt.Printf("WARNING: Skip generating the HTTP tests due to an error (%v)\n", err)
+	}
+
+	content.OASv2, err = g.oasv2.Generate(result, spec)
+	if err != nil {
 		return content, err
 	}
 
