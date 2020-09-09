@@ -12,9 +12,13 @@ Let's take [profilesvc](https://github.com/go-kit/kit/tree/266ff8dc37c693d064970
 
 2. Customize HTTP encoders and decoders
 
-    - Override the method `Codec.EncodeFailureResponse()` in [codec.go](codec.go), to transform any business error to an HTTP response.
+    - Override the method [Codec.EncodeFailureResponse](https://github.com/RussellLuo/kok/blob/master/examples/profilesvc/codec.go#L14-L16), to transform any business error to an HTTP response.
 
-3. Define HTTP test-cases in YAML (**Optional**)
+3. List business errors for generating failure responses in OAS (**Optional**)
+
+    - See [GetFailures](https://github.com/RussellLuo/kok/blob/master/examples/profilesvc/codec.go#L41-L64).
+
+4. Define HTTP test-cases in YAML (**Optional**)
 
     - See [http.test.yaml](http.test.yaml).
 
@@ -43,6 +47,7 @@ Code generated:
 - [http.go](http.go)
 - [http_test.go](http_test.go)
 - [http_client.go](http_client.go)
+- [oasv2.go](oasv2.go)
 
 
 ## Test the server
@@ -77,6 +82,15 @@ Content-Length: 39
 
 {"profile":{"id":"1234","name":"kok"}}
 ```
+
+
+## Generate OAS Documentation
+
+```bash
+$ curl http://localhost:8080/api > api.yaml
+```
+
+For those who want to preview the final generated documentation, see the pre-generated file [api.yaml](api.yaml).
 
 
 ## Test the client
