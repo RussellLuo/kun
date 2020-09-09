@@ -338,8 +338,8 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 			"returnErr": func(params []*reflector.Param) string {
 				emptyValue := func(typ string) string {
 					switch typ {
-					case "int", "int8", "int16", "int32",
-						"uint", "uint8", "uint16", "uint32":
+					case "int", "int8", "int16", "int32", "int64",
+						"uint", "uint8", "uint16", "uint32", "uint64":
 						return "0"
 					case "string":
 						return `""`
