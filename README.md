@@ -7,12 +7,14 @@ The toolkit of [Go kit][1].
 
 1. Code Generation Tool
 
-    - [x] HTTP
-        + [x] HTTP Server
-        + [x] HTTP Tests
-        + [x] HTTP Client
-        + [x] OAS Documentation
-    - [ ] gRPC
+    - [x] Endpoint
+    - [x] Transport
+        - [x] HTTP
+            + [x] HTTP Server
+            + [x] HTTP Test
+            + [x] HTTP Client
+            + [x] [OAS-v2][2] Documentation
+        - [ ] gRPC
 
 2. Useful Packages
 
@@ -163,5 +165,5 @@ Checkout the [Godoc][3].
 
 
 [1]: https://github.com/go-kit/kit
-[2]: https://github.com/RussellLuo/appx
+[2]: https://swagger.io/specification/v2/
 [3]: https://pkg.go.dev/github.com/RussellLuo/kok
