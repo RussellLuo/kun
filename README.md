@@ -3,6 +3,24 @@
 The toolkit of [Go kit][1].
 
 
+## Features
+
+1. Code Generation Tool
+
+    - [x] HTTP
+        + [x] HTTP Server
+        + [x] HTTP Tests
+        + [x] HTTP Client
+        + [x] OAS Documentation
+    - [ ] gRPC
+
+2. Useful Packages
+
+    - [appx](pkg/appx): Application framework for HTTP and CRON applications.
+    - [prometheus](pkg/prometheus): Prometheus metrics utilities.
+    - [werror](pkg/werror): Classified business errors.
+
+
 ## Installation
 
 ```bash
@@ -136,7 +154,7 @@ See [examples/profilesvc](examples/profilesvc).
 
 ## Documentation
 
-Checkout the [Godoc][2].
+Checkout the [Godoc][3].
 
 
 ## License
@@ -145,4 +163,5 @@ Checkout the [Godoc][2].
 
 
 [1]: https://github.com/go-kit/kit
-[2]: https://pkg.go.dev/github.com/RussellLuo/kok
+[2]: https://github.com/RussellLuo/appx
+[3]: https://pkg.go.dev/github.com/RussellLuo/kok
