@@ -1,0 +1,380 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "Swagger Example"
+  description: ""
+  license:
+    name: "MIT"
+host: "example.com"
+basePath: "/api"
+schemes:
+  - "https"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+
+paths:
+  /profiles/{id}/addresses/{addressID}:
+    delete:
+      description: ""
+      operationId: "DeleteAddress"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+          description: ""
+        - name: addressID
+          in: path
+          required: true
+          type: string
+          description: ""  
+      
+      produces:
+        - application/json; charset=utf-8
+      responses:
+        200:
+          description: ""
+          schema:
+            $ref: "#/definitions/DeleteAddressResponse"
+        404:
+          description: ""
+          schema:
+            $ref: "#/definitions/DeleteAddressResponseError404"
+
+    get:
+      description: ""
+      operationId: "GetAddress"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+          description: ""
+        - name: addressID
+          in: path
+          required: true
+          type: string
+          description: ""  
+      
+      produces:
+        - application/json; charset=utf-8
+      responses:
+        200:
+          description: ""
+          schema:
+            $ref: "#/definitions/GetAddressResponse"
+        404:
+          description: ""
+          schema:
+            $ref: "#/definitions/GetAddressResponseError404"
+ 
+  /profiles/{id}:
+    delete:
+      description: ""
+      operationId: "DeleteProfile"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+          description: ""  
+      
+      produces:
+        - application/json; charset=utf-8
+      responses:
+        200:
+          description: ""
+          schema:
+            $ref: "#/definitions/DeleteProfileResponse"
+        404:
+          description: ""
+          schema:
+            $ref: "#/definitions/DeleteProfileResponseError404"
+
+    get:
+      description: ""
+      operationId: "GetProfile"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+          description: ""  
+      
+      produces:
+        - application/json; charset=utf-8
+      responses:
+        200:
+          description: ""
+          schema:
+            $ref: "#/definitions/GetProfileResponse"
+        404:
+          description: ""
+          schema:
+            $ref: "#/definitions/GetProfileResponseError404"
+
+    patch:
+      description: ""
+      operationId: "PatchProfile"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+          description: "" 
+        - name: body
+          in: body
+          schema:
+            $ref: "#/definitions/PatchProfileRequestBody" 
+      
+      produces:
+        - application/json; charset=utf-8
+      responses:
+        200:
+          description: ""
+          schema:
+            $ref: "#/definitions/PatchProfileResponse"
+        400:
+          description: ""
+          schema:
+            $ref: "#/definitions/PatchProfileResponseError400"
+        404:
+          description: ""
+          schema:
+            $ref: "#/definitions/PatchProfileResponseError404"
+
+    put:
+      description: ""
+      operationId: "PutProfile"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+          description: "" 
+        - name: body
+          in: body
+          schema:
+            $ref: "#/definitions/PutProfileRequestBody" 
+      
+      produces:
+        - application/json; charset=utf-8
+      responses:
+        200:
+          description: ""
+          schema:
+            $ref: "#/definitions/PutProfileResponse"
+        400:
+          description: ""
+          schema:
+            $ref: "#/definitions/PutProfileResponseError400"
+ 
+  /profiles/{id}/addresses:
+    get:
+      description: ""
+      operationId: "GetAddresses"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+          description: ""  
+      
+      produces:
+        - application/json; charset=utf-8
+      responses:
+        200:
+          description: ""
+          schema:
+            $ref: "#/definitions/GetAddressesResponse"
+        404:
+          description: ""
+          schema:
+            $ref: "#/definitions/GetAddressesResponseError404"
+
+    post:
+      description: ""
+      operationId: "PostAddress"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+          description: "" 
+        - name: body
+          in: body
+          schema:
+            $ref: "#/definitions/PostAddressRequestBody" 
+      
+      produces:
+        - application/json; charset=utf-8
+      responses:
+        200:
+          description: ""
+          schema:
+            $ref: "#/definitions/PostAddressResponse"
+        400:
+          description: ""
+          schema:
+            $ref: "#/definitions/PostAddressResponseError400"
+        404:
+          description: ""
+          schema:
+            $ref: "#/definitions/PostAddressResponseError404"
+ 
+  /profiles:
+    post:
+      description: ""
+      operationId: "PostProfile"
+      parameters: 
+        - name: body
+          in: body
+          schema:
+            $ref: "#/definitions/PostProfileRequestBody" 
+      
+      produces:
+        - application/json; charset=utf-8
+      responses:
+        200:
+          description: ""
+          schema:
+            $ref: "#/definitions/PostProfileResponse"
+        400:
+          description: ""
+          schema:
+            $ref: "#/definitions/PostProfileResponseError400"
+  
+
+definitions:
+  Address:
+    type: object
+    properties:
+      id:
+        type: string  
+      location:
+        type: string     
+  DeleteAddressResponse:
+    type: object  
+  DeleteAddressResponseError404:
+    type: object
+    properties:
+      error:
+        type: string     
+  DeleteProfileResponse:
+    type: object  
+  DeleteProfileResponseError404:
+    type: object
+    properties:
+      error:
+        type: string     
+  GetAddressResponse:
+    type: object
+    properties:
+      address:
+        $ref: "#/definitions/Address"    
+  GetAddressResponseError404:
+    type: object
+    properties:
+      error:
+        type: string     
+  GetAddressesResponse:
+    type: object
+    properties:
+      addresses:
+        type: array
+        items:
+          $ref: "#/definitions/Address"    
+  GetAddressesResponseError404:
+    type: object
+    properties:
+      error:
+        type: string     
+  GetProfileResponse:
+    type: object
+    properties:
+      profile:
+        $ref: "#/definitions/Profile"    
+  GetProfileResponseError404:
+    type: object
+    properties:
+      error:
+        type: string     
+  PatchProfileRequestBody:
+    type: object
+    properties:
+      profile:
+        $ref: "#/definitions/Profile"    
+  PatchProfileResponse:
+    type: object  
+  PatchProfileResponseError400:
+    type: object
+    properties:
+      error:
+        type: string     
+  PatchProfileResponseError404:
+    type: object
+    properties:
+      error:
+        type: string     
+  PostAddressRequestBody:
+    type: object
+    properties:
+      address:
+        $ref: "#/definitions/Address"    
+  PostAddressResponse:
+    type: object  
+  PostAddressResponseError400:
+    type: object
+    properties:
+      error:
+        type: string     
+  PostAddressResponseError404:
+    type: object
+    properties:
+      error:
+        type: string     
+  PostProfileRequestBody:
+    type: object
+    properties:
+      profile:
+        $ref: "#/definitions/Profile"    
+  PostProfileResponse:
+    type: object  
+  PostProfileResponseError400:
+    type: object
+    properties:
+      error:
+        type: string     
+  Profile:
+    type: object
+    properties:
+      id:
+        type: string  
+      name:
+        type: string  
+      addresses:
+        type: array
+        items:
+          $ref: "#/definitions/Address"    
+  PutProfileRequestBody:
+    type: object
+    properties:
+      profile:
+        $ref: "#/definitions/Profile"    
+  PutProfileResponse:
+    type: object  
+  PutProfileResponseError400:
+    type: object
+    properties:
+      error:
+        type: string     
+  profilesvc.Address:
+    type: object
+    properties:
+      id:
+        type: string  
+      location:
+        type: string      
+
