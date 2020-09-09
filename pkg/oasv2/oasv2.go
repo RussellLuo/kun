@@ -116,8 +116,6 @@ func AddDefinition(defs map[string]Definition, name string, value reflect.Value)
 		structType := value.Type()
 		for i := 0; i < structType.NumField(); i++ {
 			field := structType.Field(i)
-			fieldValue := value.Field(i)
-
 			fieldName := field.Name
 			jsonTag := field.Tag.Get("json")
 			jsonName := strings.SplitN(jsonTag, ",", 2)[0]
@@ -128,16 +126,11 @@ func AddDefinition(defs map[string]Definition, name string, value reflect.Value)
 				fieldName = jsonName
 			}
 
-			switch field.Type.Kind() {
-			case reflect.Struct, reflect.Ptr, reflect.Slice, reflect.Array:
-				AddDefinition(defs, field.Type.Name(), fieldValue)
-			case reflect.Interface:
-				fieldValue = reflect.ValueOf(fieldValue)
-			}
+			fieldValue := addSubDefinition(defs, fieldName, value.Field(i))
 
 			properties = append(properties, Property{
 				Name: fieldName,
-				Type: getJSONType(fieldValue.Type()),
+				Type: getJSONType(fieldValue.Type(), fieldName),
 			})
 		}
 
@@ -157,17 +150,11 @@ func AddDefinition(defs map[string]Definition, name string, value reflect.Value)
 
 		for _, key := range value.MapKeys() {
 			keyString := key.String()
-			keyValue := value.MapIndex(key)
-			switch keyValue.Kind() {
-			case reflect.Map, reflect.Slice, reflect.Array:
-				AddDefinition(defs, strings.Title(keyString), keyValue)
-			case reflect.Interface:
-				keyValue = reflect.ValueOf(keyValue)
-			}
+			keyValue := addSubDefinition(defs, keyString, value.MapIndex(key))
 
 			properties = append(properties, Property{
 				Name: keyString,
-				Type: getJSONType(keyValue.Type()),
+				Type: getJSONType(keyValue.Type(), keyString),
 			})
 		}
 
@@ -196,7 +183,25 @@ func AddDefinition(defs map[string]Definition, name string, value reflect.Value)
 	}
 }
 
-func getJSONType(typ reflect.Type) JSONType {
+func addSubDefinition(defs map[string]Definition, name string, value reflect.Value) reflect.Value {
+	typeName := value.Type().Name()
+	if typeName == "" {
+		typeName = strings.Title(name)
+	}
+
+	switch value.Kind() {
+	case reflect.Map, reflect.Ptr, reflect.Slice, reflect.Array:
+		AddDefinition(defs, typeName, value)
+	case reflect.Struct:
+		AddDefinition(defs, typeName, value)
+	case reflect.Interface:
+		value = addSubDefinition(defs, typeName, value.Elem())
+	}
+
+	return value
+}
+
+func getJSONType(typ reflect.Type, name string) JSONType {
 	switch typ.Kind() {
 	case reflect.Bool:
 		return JSONType{Kind: "basic", Type: "boolean"}
@@ -214,11 +219,13 @@ func getJSONType(typ reflect.Type) JSONType {
 		return JSONType{Kind: "basic", Type: "string"}
 	case reflect.Struct:
 		return JSONType{Kind: "object", Type: typ.Name()}
+	case reflect.Map:
+		return JSONType{Kind: "object", Type: strings.Title(name)}
 	case reflect.Ptr:
 		if typ.Elem().Kind() != reflect.Struct {
 			panic(fmt.Errorf("only struct pointer is supported, but got %v", typ))
 		}
-		return getJSONType(typ.Elem())
+		return getJSONType(typ.Elem(), name)
 	case reflect.Slice, reflect.Array:
 		return JSONType{Kind: "array", Type: typ.Elem().Name()}
 	default:

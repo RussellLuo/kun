@@ -211,9 +211,7 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 							out = append(out, p)
 						} else {
 							// Only one nested level is supported.
-							for _, sub := range p.Sub {
-								out = append(out, sub)
-							}
+							out = append(out, p.Sub...)
 						}
 					}
 				}
