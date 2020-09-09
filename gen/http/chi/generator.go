@@ -31,6 +31,7 @@ import (
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-kit/kit/endpoint"
 	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv2"
+	"github.com/RussellLuo/kok/pkg/oasv2"
 
 	{{- range .Result.Imports}}
 	"{{.}}"
@@ -38,15 +39,20 @@ import (
 )
 
 func NewHTTPRouter(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}, codecs httpcodec.Codecs) chi.Router {
+	return NewHTTPRouterWithOAS(svc, codecs, nil)
+}
+
+func NewHTTPRouterWithOAS(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}, codecs httpcodec.Codecs, schema oasv2.Schema) chi.Router {
 	r := chi.NewRouter()
 
 	{{if $enableTracing -}}
 	contextor := xnet.NewContextor()
-	r.Method(
-		"PUT", "/trace",
-		xnet.HTTPHandler(contextor),
-	)
+	r.Method("PUT", "/trace", xnet.HTTPHandler(contextor))
 	{{- end}}
+
+	if schema != nil {
+		r.Method("GET", "/api", oasv2.Handler(OASv2APIDoc, schema))
+	}
 
 	var codec httpcodec.Codec
 	var options []kithttp.ServerOption

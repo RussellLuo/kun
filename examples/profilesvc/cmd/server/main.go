@@ -17,7 +17,7 @@ func main() {
 	flag.Parse()
 
 	svc := profilesvc.NewInmemService()
-	r := profilesvc.NewHTTPRouter(svc, profilesvc.NewCodecs())
+	r := profilesvc.NewHTTPRouterWithOAS(svc, profilesvc.NewCodecs(), profilesvc.NewSchema())
 
 	errs := make(chan error, 2)
 	go func() {
