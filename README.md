@@ -146,7 +146,11 @@ kokgen [flags] source-file interface-name
 
 ### Encoding and decoding
 
-See [HTTP codec interfaces](https://github.com/RussellLuo/kok/blob/master/pkg/codec/httpv2/codec.go).
+See the [HTTP Codec](https://github.com/RussellLuo/kok/blob/master/pkg/codec/httpv2/codec.go) interfaces.
+
+### OAS Schema
+
+See the [OAS Schema](https://github.com/RussellLuo/kok/blob/master/pkg/oasv2/schema.go#L18-L21) interface.
 
 
 ## Examples
