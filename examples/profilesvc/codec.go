@@ -12,13 +12,9 @@ type Codec struct {
 }
 
 func (c Codec) EncodeFailureResponse(w http.ResponseWriter, err error) error {
-	return c.JSONCodec.EncodeSuccessResponse(w, codeFrom(err), toBody(err))
-}
-
-func toBody(err error) interface{} {
-	return map[string]string{
+	return c.JSONCodec.EncodeSuccessResponse(w, codeFrom(err), map[string]string{
 		"error": err.Error(),
-	}
+	})
 }
 
 func codeFrom(err error) int {
@@ -32,7 +28,7 @@ func codeFrom(err error) int {
 	}
 }
 
-func NewCodecs() httpcodec.Codecs {
+func NewCodecs() httpcodec.CodecMap {
 	return httpcodec.CodecMap{
 		Default: Codec{},
 	}
@@ -55,7 +51,7 @@ func GetFailures(name string) map[error]interface{} {
 	}
 }
 
-func NewSchema() oasv2.Schema {
+func NewSchema() *oasv2.ResponseSchema {
 	return &oasv2.ResponseSchema{
 		Codecs:          NewCodecs(),
 		GetFailuresFunc: GetFailures,

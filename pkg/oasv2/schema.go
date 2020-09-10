@@ -94,7 +94,7 @@ func (rs *ResponseSchema) FailureResponses(name string) (resps []Response) {
 func decodePerContentType(contentType string, body io.ReadCloser) (out map[string]interface{}) {
 	switch {
 	case strings.HasPrefix(contentType, "application/json"):
-		httpcodec.JSONCodec{}.DecodeSuccessResponse(body, &out)
+		_ = httpcodec.JSONCodec{}.DecodeSuccessResponse(body, &out)
 	}
 	return
 }
