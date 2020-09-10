@@ -39,25 +39,17 @@ func NewCodecs() httpcodec.Codecs {
 }
 
 func GetFailures(name string) map[error]interface{} {
-	toFailures := func(errs ...error) map[error]interface{} {
-		m := make(map[error]interface{})
-		for _, err := range errs {
-			m[err] = toBody(err)
-		}
-		return m
-	}
-
 	switch name {
 	case "PostProfile":
-		return toFailures(ErrAlreadyExists)
+		return oasv2.Errors(ErrAlreadyExists)
 	case "GetProfile", "DeleteProfile", "GetAddresses", "GetAddress", "DeleteAddress":
-		return toFailures(ErrNotFound)
+		return oasv2.Errors(ErrNotFound)
 	case "PutProfile":
-		return toFailures(ErrInconsistentIDs)
+		return oasv2.Errors(ErrInconsistentIDs)
 	case "PatchProfile":
-		return toFailures(ErrInconsistentIDs, ErrNotFound)
+		return oasv2.Errors(ErrInconsistentIDs, ErrNotFound)
 	case "PostAddress":
-		return toFailures(ErrAlreadyExists, ErrNotFound)
+		return oasv2.Errors(ErrAlreadyExists, ErrNotFound)
 	default:
 		return nil
 	}
