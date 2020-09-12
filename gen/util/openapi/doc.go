@@ -28,8 +28,9 @@ func FromDoc(result *reflector.Result, doc map[string][]string) (*Specification,
 		params := make(map[string]*Param)
 		for _, mp := range m.Params {
 			p := &Param{
-				In:   InBody, // param is in body by default
-				Type: mp.Type,
+				In:        InBody, // param is in body by default
+				Type:      mp.Type,
+				AliasType: mp.Type,
 			}
 			p.SetName(mp.Name)
 			op.addParam(p)
@@ -41,7 +42,7 @@ func FromDoc(result *reflector.Result, doc map[string][]string) (*Specification,
 		// Set a default success response.
 		op.Resp(http.StatusOK, MediaTypeJSON, nil)
 
-		if err := manipulateByComments(op, params, comments); err != nil {
+		if err := manipulateOp(op, params, comments); err != nil {
 			return nil, err
 		}
 
@@ -51,9 +52,25 @@ func FromDoc(result *reflector.Result, doc map[string][]string) (*Specification,
 	return spec, nil
 }
 
+func manipulateOp(op *Operation, params map[string]*Param, comments []string) error {
+	if err := manipulateByComments(op, params, comments); err != nil {
+		return err
+	}
+
+	if err := manipulateByCommentsV2(op, params, comments); err != nil {
+		return err
+	}
+
+	if op.Method == "" && op.Pattern == "" {
+		return fmt.Errorf("method %s has no comment about @kok2(op)", op.Name)
+	}
+
+	return nil
+}
+
 func manipulateByComments(op *Operation, params map[string]*Param, comments []string) error {
 	for _, comment := range comments {
-		if !strings.Contains(comment, "@kok") {
+		if !strings.Contains(comment, "@kok(") {
 			continue
 		}
 
@@ -92,14 +109,6 @@ func manipulateByComments(op *Operation, params map[string]*Param, comments []st
 		default:
 			return fmt.Errorf(`unrecognized kok key "%s" in comment: %s`, key, comment)
 		}
-	}
-
-	if op.Method == "" {
-		return fmt.Errorf("method %s has no comment about @kok(method)", op.Name)
-	}
-
-	if op.Pattern == "" {
-		return fmt.Errorf("method %s has no comment about @kok(pattern)", op.Name)
 	}
 
 	return nil

@@ -68,7 +68,7 @@ paths:
         - name: {{.Alias}}
           in: {{.In}}
           required: {{.Required}}
-          {{paramSchema .Type}}
+          {{paramSchema .AliasType}}
           description: ""
         {{- end}} {{/* range $nonCtxNonBodyFlatParams */}}
 
