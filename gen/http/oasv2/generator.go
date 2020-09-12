@@ -198,7 +198,8 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 			},
 			"nonCtxParams": func(params []*openapi.Param) (out []*openapi.Param) {
 				for _, p := range params {
-					if p.Type != "context.Context" {
+					if p.Type != "context.Context" && p.In != openapi.InRequest {
+						// Parameters in `request` have no relationship with OAS.
 						out = append(out, p)
 					}
 				}

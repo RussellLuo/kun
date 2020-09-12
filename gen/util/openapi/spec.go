@@ -17,6 +17,9 @@ const (
 	InCookie = "cookie"
 	InBody   = "body"
 
+	// This flag indicates that the parameter is located in *http.Request.
+	InRequest = "request"
+
 	MediaTypeJSON = "application/json; charset=utf-8"
 )
 
@@ -212,8 +215,12 @@ func (o *Operation) buildParam(text, name, typ string) *Param {
 		p.SetName(misc.LowerFirst(name))
 	}
 
+	if p.In == InRequest && p.Alias != "RemoteAddr" {
+		panic(fmt.Errorf("param %q tries to extract value from `request.%s`, but only `request.RemoteAddr` is available", p.Name, p.Alias))
+	}
+
 	if strings.Contains(p.Name, ".") && p.In == InBody {
-		panic(fmt.Errorf("sub param %q must be in `path`, `query` or `header`", p.Name))
+		panic(fmt.Errorf("sub param %q must be in `path`, `query`, `header` or `request`", p.Name))
 	}
 
 	return p

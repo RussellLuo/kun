@@ -196,6 +196,8 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 					return fmt.Sprintf(`r.URL.Query().Get("%s")`, param.Alias)
 				case openapi.InHeader:
 					return fmt.Sprintf(`r.Header.Get("%s")`, param.Alias)
+				case openapi.InRequest:
+					return fmt.Sprintf(`r.%s`, param.Alias)
 				default:
 					panic(fmt.Errorf("param.In `%s` not supported", param.In))
 				}
