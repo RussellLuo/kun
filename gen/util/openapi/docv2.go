@@ -11,7 +11,7 @@ var (
 )
 
 func manipulateByCommentsV2(op *Operation, params map[string]*Param, comments []string) error {
-	prevParamName := ""
+	var prevParamName string
 
 	for _, comment := range comments {
 		if !strings.Contains(comment, "@kok2(") {
@@ -35,17 +35,19 @@ func manipulateByCommentsV2(op *Operation, params map[string]*Param, comments []
 			p := op.buildParamV2(value, prevParamName)
 			prevParamName = p.Name
 
-			name, subName := splitParamName(p.Name)
-			param, ok := params[name]
+			param, ok := params[p.Name]
 			if !ok {
-				return fmt.Errorf("no param `%s` declared in the method %s", name, op.Name)
+				return fmt.Errorf("no param `%s` declared in the method %s", p.Name, op.Name)
 			}
 
-			if subName == "" {
+			if !param.inUse {
 				param.Set(p)
 			} else {
-				p.SetName(subName)
-				param.Add(p)
+				copied := *param
+				param.Set(p)
+
+				// Add a new parameter with the same name.
+				op.addParam(&copied)
 			}
 		case "success":
 			op.SuccessResponse, _ = buildSuccessResponse(value)

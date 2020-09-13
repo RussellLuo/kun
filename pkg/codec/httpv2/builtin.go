@@ -3,6 +3,7 @@ package codec
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -59,6 +60,10 @@ func (jc JSONCodec) DecodeRequestParam(name, value string, out interface{}) erro
 	return nil
 }
 
+func (jc JSONCodec) DecodeRequestParams(name string, params Params, out interface{}) error {
+	panic(fmt.Errorf("DecodeRequestParams not implemented for %q", name))
+}
+
 func (jc JSONCodec) DecodeRequestBody(body io.ReadCloser, out interface{}) error {
 	if err := json.NewDecoder(body).Decode(out); err != nil {
 		return werror.Wrap(googlecode.ErrInvalidArgument).SetError(err)
@@ -89,6 +94,10 @@ func (jc JSONCodec) EncodeRequestParam(name string, value interface{}) string {
 		pc = jc.defaultParamCodec
 	}
 	return pc.Encode(name, value)
+}
+
+func (jc JSONCodec) EncodeRequestParams(name string, value interface{}) Params {
+	panic(fmt.Errorf("EncodeRequestParams not implemented for %q", name))
 }
 
 func (jc JSONCodec) EncodeRequestBody(body interface{}) (io.Reader, map[string]string, error) {

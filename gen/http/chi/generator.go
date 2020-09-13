@@ -82,7 +82,7 @@ func NewHTTPRouterWithOAS(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}
 {{- range .Spec.Operations}}
 
 {{- $nonCtxParams := nonCtxParams .Request.Params}}
-{{- $nonBodyParams := nonBodyParams $nonCtxParams}}
+{{- $nonBodyParamsGroupByName := nonBodyParamsGroupByName $nonCtxParams}}
 {{- $bodyParams := bodyParams $nonCtxParams}}
 
 func decode{{.Name}}Request(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
@@ -98,28 +98,55 @@ func decode{{.Name}}Request(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 		}
 		{{end -}}
 
-		{{- range $nonBodyParams}}
+		{{- range $nonBodyParamsGroupByName}}
 
-		{{- if .Sub}} {{/* This is a parent parameter */}}
-		{{- $parentName := .Name}}
+		{{- if .Aggregation}}
+		{{$properties := propertiesGroupByIn .Properties}}
+		{{.Name}} := codec.Params{
+			{{- if $properties.Path}}
+			Path: map[string]string{
+				{{- range $properties.Path}}
+				"{{.Alias}}": {{extractParam .}},
+				{{- end}}
+			},
+			{{- end}} {{/* if $properties.Path */}}
 
-		{{- range .Sub}}
-		{{lowerFirst .Name}} := {{extractParam .}}
-		if err := codec.DecodeRequestParam("{{$parentName}}.{{.Name}}", {{lowerFirst .Name}}, &req.{{title $parentName}}.{{.Name}}); err != nil {
+			{{- if $properties.Query}}
+			Query: map[string]string{
+				{{- range $properties.Query}}
+				"{{.Alias}}": {{extractParam .}},
+				{{- end}}
+			},
+			{{- end}} {{/* if $properties.Query */}}
+
+			{{- if $properties.Header}}
+			Header: map[string]string{
+				{{- range $properties.Header}}
+				"{{.Alias}}": {{extractParam .}},
+				{{- end}}
+			},
+			{{- end}} {{/* if $properties.Header */}}
+
+			{{- if $properties.Request}}
+			Request: map[string]string{
+				{{- range $properties.Request}}
+				"{{.Alias}}": {{extractParam .}},
+				{{- end}}
+			},
+			{{- end}} {{/* if $properties.Request */}}
+		}
+		if err := codec.DecodeRequestParams("{{.Name}}", {{.Name}}, &req.{{title .Name}}); err != nil {
 			return nil, err
 		}
 
-		{{end -}} {{/* End of range .Sub */}}
-
-		{{- else}} {{/* This is a normal (non-parent) parameter */}}
-
-		{{.Name}} := {{extractParam .}}
+		{{- else}}
+		{{.Name}} := {{index .Properties 0 | extractParam}}
 		if err := codec.DecodeRequestParam("{{.Name}}", {{.Name}}, &req.{{title .Name}}); err != nil {
 			return nil, err
 		}
-		{{- end}} {{/* End of if .Sub */}}
 
-		{{end -}} {{/* End of range $nonBodyParams */}}
+		{{- end}} {{/* if .Aggregation */}}
+		{{end -}} {{/* End of range $nonBodyParamsGroupByName */}}
 
 		{{- if $nonCtxParams}}
 
@@ -178,6 +205,24 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 		methodMap[method.Name] = method
 	}
 
+	type ParamProperty struct {
+		In    string
+		Alias string
+	}
+
+	type ParamsGroupByName struct {
+		Name        string
+		Aggregation bool
+		Properties  []ParamProperty
+	}
+
+	type PropertiesGroupByIn struct {
+		Path    []ParamProperty
+		Query   []ParamProperty
+		Header  []ParamProperty
+		Request []ParamProperty
+	}
+
 	return generator.Generate(template, data, generator.Options{
 		Funcs: map[string]interface{}{
 			"title":      strings.Title,
@@ -188,7 +233,7 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 				}
 				return name
 			},
-			"extractParam": func(param *openapi.Param) string {
+			"extractParam": func(param *ParamProperty) string {
 				switch param.In {
 				case openapi.InPath:
 					return fmt.Sprintf(`chi.URLParam(r, "%s")`, param.Alias)
@@ -202,10 +247,46 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 					panic(fmt.Errorf("param.In `%s` not supported", param.In))
 				}
 			},
-			"nonBodyParams": func(in []*openapi.Param) (out []*openapi.Param) {
+			"nonBodyParamsGroupByName": func(in []*openapi.Param) (out []*ParamsGroupByName) {
+				var names []string
+				params := make(map[string]*ParamsGroupByName)
+
 				for _, p := range in {
 					if p.In != openapi.InBody {
-						out = append(out, p)
+						grouped, ok := params[p.Name]
+						if !ok {
+							grouped = &ParamsGroupByName{Name: p.Name}
+
+							names = append(names, p.Name)
+							params[p.Name] = grouped
+						}
+						grouped.Properties = append(grouped.Properties, ParamProperty{
+							In:    p.In,
+							Alias: p.Alias,
+						})
+					}
+				}
+
+				for _, name := range names {
+					p := params[name]
+					if len(p.Properties) > 1 {
+						p.Aggregation = true
+					}
+					out = append(out, p)
+				}
+				return
+			},
+			"propertiesGroupByIn": func(in []ParamProperty) (out PropertiesGroupByIn) {
+				for _, p := range in {
+					switch p.In {
+					case openapi.InPath:
+						out.Path = append(out.Path, p)
+					case openapi.InHeader:
+						out.Header = append(out.Header, p)
+					case openapi.InQuery:
+						out.Query = append(out.Query, p)
+					case openapi.InRequest:
+						out.Request = append(out.Request, p)
 					}
 				}
 				return

@@ -56,6 +56,8 @@ type Param struct {
 	Encoder string
 
 	Sub []*Param
+
+	inUse bool // Indicates this parameter already has a corresponding @kok(param).
 }
 
 func (p *Param) SetName(name string) {
@@ -85,6 +87,8 @@ func (p *Param) Set(o *Param) {
 	p.Required = o.Required
 	p.Decoder = o.Decoder
 	p.Encoder = o.Encoder
+
+	p.inUse = true
 }
 
 // Add adds o as a sub parameter of the current parameter.
@@ -230,7 +234,7 @@ func (o *Operation) buildParam(text, name, typ string) *Param {
 	return p
 }
 
-func (o *Operation) buildParamV2(text, prevName string) *Param {
+func (o *Operation) buildParamV2(text, prevParamName string) *Param {
 	if !strings.Contains(text, "<") {
 		panic(fmt.Errorf("invalid format of @kok2(param): %s", text))
 	}
@@ -239,10 +243,10 @@ func (o *Operation) buildParamV2(text, prevName string) *Param {
 	name, value := strings.TrimSpace(split[0]), strings.TrimSpace(split[1])
 
 	if name == "" {
-		if prevName == "" {
+		if prevParamName == "" {
 			panic(fmt.Errorf("found no argument name in: %s", text))
 		}
-		name = prevName
+		name = prevParamName
 	}
 
 	if value == "" {
@@ -293,12 +297,6 @@ func (o *Operation) buildParamV2(text, prevName string) *Param {
 }
 
 func (o *Operation) addParam(p *Param) *Operation {
-	for _, param := range o.Request.Params {
-		if p.Name == param.Name {
-			panic(errors.New("duplicate parameter name " + p.Name))
-		}
-	}
-
 	o.Request.Params = append(o.Request.Params, p)
 	return o
 }
