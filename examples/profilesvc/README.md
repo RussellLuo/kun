@@ -5,7 +5,7 @@ Let's take [profilesvc](https://github.com/go-kit/kit/tree/266ff8dc37c693d064970
 
 ## Prerequisites
 
-1. Adjust the [Service](https://github.com/RussellLuo/kok/blob/master/examples/profilesvc/service.go#L11-L58) interface
+1. Adjust the [Service](https://github.com/RussellLuo/kok/blob/master/examples/profilesvc/service.go#L11-L49) interface
 
     - Add a meaningful name to each input/output parameter, to get more human-readable field names in the corresponding request/response structs.
     - Add kok-specific comments (i.e. comments start with "// @kok") in a [OAS](http://spec.openapis.org/oas/v3.0.3)-inspired format, to describe the properties of the exposed HTTP APIs.
