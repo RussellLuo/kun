@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"reflect"
 
 	"github.com/RussellLuo/kok/pkg/werror"
 	"github.com/RussellLuo/kok/pkg/werror/googlecode"
@@ -62,15 +61,13 @@ func (jc JSONCodec) DecodeRequestParam(name, value string, out interface{}) erro
 }
 
 func (jc JSONCodec) DecodeRequestParams(name string, values map[string]string, out interface{}) error {
-	v := reflect.ValueOf(out)
-	switch k := v.Kind(); {
-	case k == reflect.Ptr && v.Elem().Kind() == reflect.Struct:
-		// TODO: decode map[string]string into the struct pointer out.
-		fallthrough
-	default:
-		// Panic since this is a programming error.
-		panic(fmt.Errorf("DecodeRequestParams not implemented for %q (of type %T)", name, v))
+	if err := DecodeMapToStruct(values, out); err != nil {
+		if err == errUnsupportedType {
+			panic(fmt.Errorf("DecodeRequestParams not implemented for %q (of type %T)", name, out))
+		}
+		return werror.Wrap(googlecode.ErrInvalidArgument).SetError(err)
 	}
+	return nil
 }
 
 func (jc JSONCodec) DecodeRequestBody(body io.ReadCloser, out interface{}) error {
@@ -106,20 +103,14 @@ func (jc JSONCodec) EncodeRequestParam(name string, value interface{}) string {
 }
 
 func (jc JSONCodec) EncodeRequestParams(name string, value interface{}) map[string]string {
-	v := reflect.ValueOf(value)
-	if v.Kind() == reflect.Ptr && v.Elem().Kind() == reflect.Struct {
-		// Convert v from *struct to struct implicitly.
-		v = v.Elem()
+	out := make(map[string]string)
+	if err := EncodeStructToMap(value, &out); err != nil {
+		if err == errUnsupportedType {
+			panic(fmt.Errorf("EncodeRequestParams not implemented for %q (of type %T)", name, out))
+		}
+		panic(err)
 	}
-
-	switch v.Kind() {
-	case reflect.Struct:
-		// TODO: encode struct (or struct pointer) value into map[string]string.
-		fallthrough
-	default:
-		// Panic since this is a programming error.
-		panic(fmt.Errorf("EncodeRequestParams not implemented for %q (of type %T)", name, v))
-	}
+	return nil
 }
 
 func (jc JSONCodec) EncodeRequestBody(body interface{}) (io.Reader, map[string]string, error) {
