@@ -40,11 +40,12 @@ func (s *Specification) Path(pattern string, operations ...*Operation) *Specific
 }
 
 type Param struct {
-	Name     string
-	In       string
-	Alias    string
-	Type     string
-	Required bool
+	Name      string // Method argument name
+	Type      string // Method argument type
+	In        string
+	Alias     string // Request parameter name
+	AliasType string // Request parameter name
+	Required  bool
 
 	// The name of the decoder function, which is used to convert the value
 	// from string to another type (e.g. integer, boolean, time or struct).
@@ -55,6 +56,8 @@ type Param struct {
 	Encoder string
 
 	Sub []*Param
+
+	inUse bool // Indicates this parameter already has a corresponding @kok(param).
 }
 
 func (p *Param) SetName(name string) {
@@ -78,9 +81,14 @@ func (p *Param) Set(o *Param) {
 
 	p.In = o.In
 	p.Alias = o.Alias
+	if o.AliasType != "" {
+		p.AliasType = o.AliasType
+	}
 	p.Required = o.Required
 	p.Decoder = o.Decoder
 	p.Encoder = o.Encoder
+
+	p.inUse = true
 }
 
 // Add adds o as a sub parameter of the current parameter.
@@ -226,13 +234,69 @@ func (o *Operation) buildParam(text, name, typ string) *Param {
 	return p
 }
 
-func (o *Operation) addParam(p *Param) *Operation {
-	for _, param := range o.Request.Params {
-		if p.Name == param.Name {
-			panic(errors.New("duplicate parameter name " + p.Name))
+func (o *Operation) buildParamV2(text, prevParamName string) *Param {
+	if !strings.Contains(text, "<") {
+		panic(fmt.Errorf("invalid format of @kok2(param): %s", text))
+	}
+
+	split := strings.SplitN(text, "<", 2)
+	name, value := strings.TrimSpace(split[0]), strings.TrimSpace(split[1])
+
+	if name == "" {
+		if prevParamName == "" {
+			panic(fmt.Errorf("found no argument name in: %s", text))
+		}
+		name = prevParamName
+	}
+
+	if value == "" {
+		panic(fmt.Errorf("found no value definition after < in: %s", text))
+	}
+
+	p := &Param{Name: name, Alias: name}
+
+	for _, part := range strings.Split(value, ",") {
+		part = strings.TrimSpace(part)
+		if !strings.Contains(part, ":") {
+			panic(fmt.Errorf("invalid tag part: %s", part))
+		}
+
+		split := strings.SplitN(part, ":", 2)
+		k, v := split[0], split[1]
+
+		switch k {
+		case "in":
+			p.In = v
+			if v == InPath {
+				p.Required = true
+			}
+		case "name":
+			p.Alias = v
+		case "type":
+			p.AliasType = v
+		case "required":
+			p.Required = v == "true"
+		default:
+			panic(fmt.Errorf("invalid tag part: %s", part))
 		}
 	}
 
+	if p.In == "" {
+		p.In = InBody
+	}
+
+	if p.In == InRequest && p.Alias != "RemoteAddr" {
+		panic(fmt.Errorf("param %q tries to extract value from `request.%s`, but only `request.RemoteAddr` is available", p.Name, p.Alias))
+	}
+
+	if strings.Contains(p.Name, ".") && p.In == InBody {
+		panic(fmt.Errorf("sub param %q must be in `path`, `query`, `header` or `request`", p.Name))
+	}
+
+	return p
+}
+
+func (o *Operation) addParam(p *Param) *Operation {
 	o.Request.Params = append(o.Request.Params, p)
 	return o
 }

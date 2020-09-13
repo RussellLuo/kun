@@ -52,7 +52,7 @@ kokgen [flags] source-file interface-name
 
 ## HTTP API
 
-### API annotations
+### API annotation (v1 -- Deprecated)
 
 <details>
   <summary> Define the HTTP request operation </summary>
@@ -144,9 +144,113 @@ kokgen [flags] source-file interface-name
 
 </details>
 
+### API annotation (v2)
+
+<details>
+  <summary> Define the HTTP request operation </summary>
+
+- Key: `@kok2(op)`
+- Value: `<method> <pattern>`
+    + **method**: The request method
+    + **pattern**: The request URL
+- Example:
+
+    ```go
+    type Service interface {
+        // @kok2(op): POST /users
+        CreateUser(ctx context.Context) (err error)
+    }
+    ```
+
+</details>
+
+<details>
+  <summary> Define the HTTP request parameters </summary>
+
+- Key: `@kok2(param)`
+- Value: `<argName> < in:<in>,name:<name>,type:<type>`
+    + **argName**: The name of the method argument.
+        - *Argument aggregation*: By specifying the same **argName**, multiple request parameters (each one is of basic type) can be aggregated into one method argument (of any type).
+            + You do not need to repeat the **argName**, only the first one is required.
+    + **in**:
+        - **path**: The method argument is sourced from a [path parameter](https://swagger.io/docs/specification/describing-parameters/#path-parameters).
+        - **query**: The method argument is sourced from a [query parameter](https://swagger.io/docs/specification/describing-parameters/#query-parameters).
+        - **header**: The method argument is sourced from a [header parameter](https://swagger.io/docs/specification/describing-parameters/#header-parameters).
+        - **cookie**: The method argument is sourced from a [cookie parameter](https://swagger.io/docs/specification/describing-parameters/#cookie-parameters).
+            + Not supported yet.
+        - **body**: The method argument is sourced from the [request body](https://swagger.io/docs/specification/describing-request-body/).
+            + Optional: All method arguments, unless otherwise specified, are in **body**.
+        - **request**: The method argument is sourced from a property of Go's [http.Request](https://golang.org/pkg/net/http/#Request).
+            + This is a special case, and only one property `RemoteAddr` is available now.
+            + Note that parameters located in **request** have no relationship with OAS.
+    + **name**: The name of the corresponding request parameter.
+        - Optional: Defaults to **argName** if not specified.
+    + **type**: The type of the corresponding request parameter.
+        - Optional: Defaults to the type of the method argument, if not specified.
+        - **Required** for *Argument aggregation* for generating correct OAS documentation.
+- Example:
+    + Simple argument:
+
+        ```go
+        type Service interface {
+            // @kok2(op): DELETE /users/{id}
+            // @kok2(param): id < in:path
+            DeleteUser(ctx context.Context, id int) (err error)
+        }
+
+        // HTTP request: DELETE /users/101
+        ```
+    + Argument aggregation:
+
+        ```go
+        type User struct {
+            Name string `kok:"query.name"`
+            Age  int    `kok:"query.age"`
+        }
+
+        type Service interface {
+            // @kok2(op): POST /users
+            // @kok2(param): user < in:query,name:name,type:string
+            // @kok2(param): user < in:query,name:age,type:int
+            CreateUser(ctx context.Context, user User) (err error)
+        }
+
+        // The equivalent annotations.
+        type Service interface {
+            // @kok2(op): POST /users
+            // @kok2(param): user < in:query,name:name,type:string
+            // @kok2(param):      < in:query,name:age,type:int
+            CreateUser(ctx context.Context, user User) (err error)
+        }
+
+        // HTTP request: POST /users?name=tracey&age=1
+        ```
+
+</details>
+
+<details>
+  <summary> Define the status code of the success HTTP response </summary>
+
+
+- Key: `@kok2(success)`
+- Value: `statusCode:<statusCode>`
+    + **statusCode**: The status code of the success HTTP response.
+        - Optional: Defaults to 200 if not specified.
+- Example:
+
+    ```go
+    type Service interface {
+        // @kok2(op): POST /users
+        // @kok2(success): statusCode:201
+        CreateUser(ctx context.Context) (err error)
+    }
+    ```
+
+</details>
+
 ### Encoding and decoding
 
-See the [HTTP Codec](https://github.com/RussellLuo/kok/blob/master/pkg/codec/httpv2/codec.go) interfaces.
+See the [HTTP Codec](https://github.com/RussellLuo/kok/blob/master/pkg/codec/httpv2/codec.go#L8-L22) interface.
 
 ### OAS Schema
 
