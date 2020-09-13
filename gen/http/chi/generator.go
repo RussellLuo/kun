@@ -101,52 +101,22 @@ func decode{{.Name}}Request(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 		{{- range $nonBodyParamsGroupByName}}
 
 		{{- if .Aggregation}}
-		{{$properties := propertiesGroupByIn .Properties}}
-		{{.Name}} := codec.Params{
-			{{- if $properties.Path}}
-			Path: map[string]string{
-				{{- range $properties.Path}}
-				"{{.Alias}}": {{extractParam .}},
-				{{- end}}
-			},
-			{{- end}} {{/* if $properties.Path */}}
-
-			{{- if $properties.Query}}
-			Query: map[string]string{
-				{{- range $properties.Query}}
-				"{{.Alias}}": {{extractParam .}},
-				{{- end}}
-			},
-			{{- end}} {{/* if $properties.Query */}}
-
-			{{- if $properties.Header}}
-			Header: map[string]string{
-				{{- range $properties.Header}}
-				"{{.Alias}}": {{extractParam .}},
-				{{- end}}
-			},
-			{{- end}} {{/* if $properties.Header */}}
-
-			{{- if $properties.Request}}
-			Request: map[string]string{
-				{{- range $properties.Request}}
-				"{{.Alias}}": {{extractParam .}},
-				{{- end}}
-			},
-			{{- end}} {{/* if $properties.Request */}}
+		{{.Name}} := map[string]string{
+			{{- range .Properties}}
+			"{{.In}}.{{.Alias}}": {{extractParam .}},
+			{{- end}}
 		}
 		if err := codec.DecodeRequestParams("{{.Name}}", {{.Name}}, &req.{{title .Name}}); err != nil {
 			return nil, err
 		}
-
 		{{- else}}
 		{{.Name}} := {{index .Properties 0 | extractParam}}
 		if err := codec.DecodeRequestParam("{{.Name}}", {{.Name}}, &req.{{title .Name}}); err != nil {
 			return nil, err
 		}
-
 		{{- end}} {{/* if .Aggregation */}}
-		{{end -}} {{/* End of range $nonBodyParamsGroupByName */}}
+
+		{{end -}} {{/* range $nonBodyParamsGroupByName */}}
 
 		{{- if $nonCtxParams}}
 
@@ -216,13 +186,6 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 		Properties  []ParamProperty
 	}
 
-	type PropertiesGroupByIn struct {
-		Path    []ParamProperty
-		Query   []ParamProperty
-		Header  []ParamProperty
-		Request []ParamProperty
-	}
-
 	return generator.Generate(template, data, generator.Options{
 		Funcs: map[string]interface{}{
 			"title":      strings.Title,
@@ -273,21 +236,6 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 						p.Aggregation = true
 					}
 					out = append(out, p)
-				}
-				return
-			},
-			"propertiesGroupByIn": func(in []ParamProperty) (out PropertiesGroupByIn) {
-				for _, p := range in {
-					switch p.In {
-					case openapi.InPath:
-						out.Path = append(out.Path, p)
-					case openapi.InHeader:
-						out.Header = append(out.Header, p)
-					case openapi.InQuery:
-						out.Query = append(out.Query, p)
-					case openapi.InRequest:
-						out.Request = append(out.Request, p)
-					}
 				}
 				return
 			},

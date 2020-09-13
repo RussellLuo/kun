@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"reflect"
 
 	"github.com/RussellLuo/kok/pkg/werror"
 	"github.com/RussellLuo/kok/pkg/werror/googlecode"
@@ -60,8 +61,16 @@ func (jc JSONCodec) DecodeRequestParam(name, value string, out interface{}) erro
 	return nil
 }
 
-func (jc JSONCodec) DecodeRequestParams(name string, params Params, out interface{}) error {
-	panic(fmt.Errorf("DecodeRequestParams not implemented for %q", name))
+func (jc JSONCodec) DecodeRequestParams(name string, values map[string]string, out interface{}) error {
+	v := reflect.ValueOf(out)
+	switch k := v.Kind(); {
+	case k == reflect.Ptr && v.Elem().Kind() == reflect.Struct:
+		// TODO: decode map[string]string into the struct pointer out.
+		fallthrough
+	default:
+		// Panic since this is a programming error.
+		panic(fmt.Errorf("DecodeRequestParams not implemented for %q (of type %T)", name, v))
+	}
 }
 
 func (jc JSONCodec) DecodeRequestBody(body io.ReadCloser, out interface{}) error {
@@ -96,8 +105,21 @@ func (jc JSONCodec) EncodeRequestParam(name string, value interface{}) string {
 	return pc.Encode(name, value)
 }
 
-func (jc JSONCodec) EncodeRequestParams(name string, value interface{}) Params {
-	panic(fmt.Errorf("EncodeRequestParams not implemented for %q", name))
+func (jc JSONCodec) EncodeRequestParams(name string, value interface{}) map[string]string {
+	v := reflect.ValueOf(value)
+	if v.Kind() == reflect.Ptr && v.Elem().Kind() == reflect.Struct {
+		// Convert v from *struct to struct implicitly.
+		v = v.Elem()
+	}
+
+	switch v.Kind() {
+	case reflect.Struct:
+		// TODO: encode struct (or struct pointer) value into map[string]string.
+		fallthrough
+	default:
+		// Panic since this is a programming error.
+		panic(fmt.Errorf("EncodeRequestParams not implemented for %q (of type %T)", name, v))
+	}
 }
 
 func (jc JSONCodec) EncodeRequestBody(body interface{}) (io.Reader, map[string]string, error) {
