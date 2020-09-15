@@ -100,21 +100,21 @@ kokgen [flags] source-file interface-name
 
     ```bash
     $ go run cmd/main.go
+    2020/09/15 18:06:22 transport=HTTP addr=:8080
     ```
 
     Consume by [HTTPie](https://github.com/jakubroztocil/httpie):
 
     ```bash
-    $ http :8080/messages name=Tracey
+    $ http POST :8080/messages name=Tracey
     HTTP/1.1 200 OK
     Content-Length: 27
     Content-Type: application/json; charset=utf-8
-    Date: Tue, 15 Sep 2020 08:24:57 GMT
+    Date: Tue, 15 Sep 2020 10:06:34 GMT
 
     {
         "message": "Hello Tracey"
     }
-
     ```
 
 6. See the OAS documentation
@@ -123,11 +123,11 @@ kokgen [flags] source-file interface-name
       <summary> (Click to show details) </summary>
 
     ```bash
-    $ http :8080/api
+    $ http GET :8080/api
     HTTP/1.1 200 OK
     Content-Length: 848
     Content-Type: text/plain; charset=utf-8
-    Date: Tue, 15 Sep 2020 08:48:55 GMT
+    Date: Tue, 15 Sep 2020 10:08:24 GMT
 
     swagger: "2.0"
     info:
@@ -176,7 +176,6 @@ kokgen [flags] source-file interface-name
         properties:
           message:
             type: string
-
     ```
 
     </details>
@@ -186,7 +185,7 @@ See more examples [here](examples).
 
 ## HTTP
 
-### Annotation (v1 -- Deprecated)
+### Annotations (v1 -- Deprecated)
 
 <details>
   <summary> Define the HTTP request operation </summary>
@@ -278,7 +277,7 @@ See more examples [here](examples).
 
 </details>
 
-### Annotation (v2)
+### Annotations (v2)
 
 <details>
   <summary> Define the HTTP request operation </summary>
@@ -363,7 +362,7 @@ See more examples [here](examples).
 </details>
 
 <details>
-  <summary> Define the status code of the success HTTP response </summary>
+  <summary> Define the success HTTP response </summary>
 
 
 - Key: `@kok2(success)`
