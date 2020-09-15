@@ -3,6 +3,12 @@
 The toolkit of [Go kit][1].
 
 
+## Zen
+
+- Just write code for your business logic, generate everything else.
+- Implement the service once, consume it in various ways.
+
+
 ## Features
 
 1. Code Generation Tool
@@ -50,9 +56,9 @@ kokgen [flags] source-file interface-name
 </details>
 
 
-## HTTP API
+## HTTP
 
-### API annotation (v1 -- Deprecated)
+### Annotation (v1 -- Deprecated)
 
 <details>
   <summary> Define the HTTP request operation </summary>
@@ -144,7 +150,7 @@ kokgen [flags] source-file interface-name
 
 </details>
 
-### API annotation (v2)
+### Annotation (v2)
 
 <details>
   <summary> Define the HTTP request operation </summary>
