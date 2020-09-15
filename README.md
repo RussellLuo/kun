@@ -56,6 +56,134 @@ kokgen [flags] source-file interface-name
 </details>
 
 
+## Quick Start
+
+**NOTE**: The following code is located in [helloworld](examples/helloworld).
+
+1. Define the interface
+
+    ```go
+    type Service interface {
+        SayHello(ctx context.Context, name string) (message string, err error)
+    }
+    ```
+
+2. Implement the service
+
+    ```go
+    type Greeter struct{}
+
+    func (g *Greeter) SayHello(ctx context.Context, name string) (string, error) {
+        return "Hello " + name, nil
+    }
+    ```
+
+3. Add HTTP annotations
+
+    ```go
+    type Service interface {
+        // @kok2(op): POST /messages
+        SayHello(ctx context.Context, name string) (message string, err error)
+    }
+    ```
+
+4. Generate the HTTP code
+
+    ```bash
+    $ cd examples/helloworld
+    $ kokgen ./service.go Service
+    ```
+
+5. Consume the service
+
+    Run the HTTP server:
+
+    ```bash
+    $ go run cmd/main.go
+    ```
+
+    Consume by [HTTPie](https://github.com/jakubroztocil/httpie):
+
+    ```bash
+    $ http :8080/messages name=Tracey
+    HTTP/1.1 200 OK
+    Content-Length: 27
+    Content-Type: application/json; charset=utf-8
+    Date: Tue, 15 Sep 2020 08:24:57 GMT
+
+    {
+        "message": "Hello Tracey"
+    }
+
+    ```
+
+6. See the OAS documentation
+
+    <details>
+      <summary> (Click to show details) </summary>
+
+    ```bash
+    $ http :8080/api
+    HTTP/1.1 200 OK
+    Content-Length: 848
+    Content-Type: text/plain; charset=utf-8
+    Date: Tue, 15 Sep 2020 08:48:55 GMT
+
+    swagger: "2.0"
+    info:
+      version: "1.0.0"
+      title: "Swagger Example"
+      description: ""
+      license:
+        name: "MIT"
+    host: "example.com"
+    basePath: "/api"
+    schemes:
+      - "https"
+    consumes:
+      - "application/json"
+    produces:
+      - "application/json"
+
+    paths:
+      /messages:
+        post:
+          description: ""
+          operationId: "SayHello"
+          parameters:
+            - name: body
+              in: body
+              schema:
+                $ref: "#/definitions/SayHelloRequestBody"
+
+          produces:
+            - application/json; charset=utf-8
+          responses:
+            200:
+              description: ""
+              schema:
+                $ref: "#/definitions/SayHelloResponse"
+
+
+    definitions:
+      SayHelloRequestBody:
+        type: object
+        properties:
+          name:
+            type: string
+      SayHelloResponse:
+        type: object
+        properties:
+          message:
+            type: string
+
+    ```
+
+    </details>
+
+See more examples [here](examples).
+
+
 ## HTTP
 
 ### Annotation (v1 -- Deprecated)
@@ -261,11 +389,6 @@ See the [HTTP Codec](https://github.com/RussellLuo/kok/blob/master/pkg/codec/htt
 ### OAS Schema
 
 See the [OAS Schema](https://github.com/RussellLuo/kok/blob/master/pkg/oasv2/schema.go#L18-L21) interface.
-
-
-## Examples
-
-See [examples/profilesvc](examples/profilesvc).
 
 
 ## Documentation
