@@ -6,7 +6,7 @@ The toolkit of [Go kit][1].
 ## Zen
 
 - Just write code for your business logic, generate everything else.
-- Implement the service once, consume it in various ways.
+- Implement the service once, consume it in various ways (in-process function call or RPC).
 
 
 ## Features
@@ -24,8 +24,9 @@ The toolkit of [Go kit][1].
 
 2. Useful Packages
 
-    - [appx](pkg/appx): Application framework for HTTP and CRON applications.
+    - [appx](pkg/appx): Application framework for HTTP and CRON applications (a wrapper of [appx][3]).
     - [prometheus](pkg/prometheus): Prometheus metrics utilities.
+    - [trace](pkg/trace): A thin wrapper of [x/net/trace][4] for Go kit.
     - [werror](pkg/werror): Classified business errors.
 
 
@@ -392,7 +393,7 @@ See the [OAS Schema](https://github.com/RussellLuo/kok/blob/master/pkg/oasv2/sch
 
 ## Documentation
 
-Checkout the [Godoc][3].
+Checkout the [Godoc][5].
 
 
 ## License
@@ -402,4 +403,6 @@ Checkout the [Godoc][3].
 
 [1]: https://github.com/go-kit/kit
 [2]: https://swagger.io/specification/v2/
-[3]: https://pkg.go.dev/github.com/RussellLuo/kok
+[3]: https://github.com/RussellLuo/appx
+[4]: https://pkg.go.dev/golang.org/x/net/trace
+[5]: https://pkg.go.dev/github.com/RussellLuo/kok
