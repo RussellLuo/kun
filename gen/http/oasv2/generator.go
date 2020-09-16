@@ -107,7 +107,7 @@ func getDefinitions(schema oasv2.Schema) map[string]oasv2.Definition {
 	{{- if $bodyParams}}
 	oasv2.AddDefinition(defs, "{{.Name}}RequestBody", reflect.ValueOf(&struct{
 		{{- range $bodyParams}}
-		{{title .Name}} {{.Type}} {{addTag .Name .Type}}
+		{{title .Name}} {{.Type}} {{addTag .Alias .Type}}
 		{{- end}} {{/* range $bodyParams */}}
 	}{}))
 	{{- end}} {{/* if $bodyParams */}}

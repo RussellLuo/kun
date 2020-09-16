@@ -90,7 +90,7 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 	{{if $bodyParams -}}
 	reqBody := struct {
 		{{- range $bodyParams}}
-		{{title .Name}} {{.Type}} {{addTag .Name .Type}}
+		{{title .Name}} {{.Type}} {{addTag .Alias .Type}}
 		{{- end}}
 	}{
 		{{- range $bodyParams}}

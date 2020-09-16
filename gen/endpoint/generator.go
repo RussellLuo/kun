@@ -28,13 +28,13 @@ import (
 
 {{- range .DocMethods}}
 
-{{- $params := nonCtxParams .Params}}
+{{- $params := nonCtxParams .Params .Op.Request.Params}}
 {{- $hasCtxParam := hasCtxParam .Params}}
 
 {{- if $params}}
 type {{.Name}}Request struct {
 	{{- range $params}}
-	{{title .Name}} {{.Type}} {{addTag .Name .Type}}
+	{{title .Name}} {{.Type}} {{addTag .Alias .Type}}
 	{{- end}}
 }
 {{- end}}
@@ -113,16 +113,29 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 		operationMap[op.Name] = op
 	}
 
-	var docMethods []*reflector.Method
+	type MethodWithOp struct {
+		*reflector.Method
+		Op *openapi.Operation
+	}
+
+	type ParamWithAlias struct {
+		*reflector.Param
+		Alias string
+	}
+
+	var docMethods []MethodWithOp
 	for _, m := range result.Interface.Methods {
-		if _, ok := operationMap[m.Name]; ok {
-			docMethods = append(docMethods, m)
+		if op, ok := operationMap[m.Name]; ok {
+			docMethods = append(docMethods, MethodWithOp{
+				Method: m,
+				Op:     op,
+			})
 		}
 	}
 
 	data := struct {
 		Result     *reflector.Result
-		DocMethods []*reflector.Method
+		DocMethods []MethodWithOp
 	}{
 		Result:     result,
 		DocMethods: docMethods,
@@ -131,10 +144,21 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 	return generator.Generate(template, data, generator.Options{
 		Funcs: map[string]interface{}{
 			"title": strings.Title,
-			"nonCtxParams": func(params []*reflector.Param) (out []*reflector.Param) {
+			"nonCtxParams": func(params []*reflector.Param, reqParams []*openapi.Param) (out []ParamWithAlias) {
+				nameToAlias := make(map[string]string)
+				for _, p := range reqParams {
+					if p.In == openapi.InBody {
+						// Only parameters in body are supported for changing tag-name by alias.
+						nameToAlias[p.Name] = p.Alias
+					}
+				}
+
 				for _, p := range params {
 					if p.Type != "context.Context" {
-						out = append(out, p)
+						out = append(out, ParamWithAlias{
+							Param: p,
+							Alias: nameToAlias[p.Name],
+						})
 					}
 				}
 				return
