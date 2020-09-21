@@ -50,7 +50,7 @@ func manipulateByCommentsV2(op *Operation, params map[string]*Param, comments []
 				op.addParam(&copied)
 			}
 		case "success":
-			op.SuccessResponse, _ = buildSuccessResponse(value)
+			op.SuccessResponse = buildSuccessResponse(value)
 		default:
 			return fmt.Errorf(`unrecognized kok key "%s" in comment: %s`, key, comment)
 		}

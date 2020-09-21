@@ -106,9 +106,7 @@ func manipulateByComments(op *Operation, params map[string]*Param, comments []st
 				op.addParam(&copied)
 			}
 		case "success":
-			op.SuccessResponse, op.Options.ResponseEncoder.Success = buildSuccessResponse(value)
-		case "failure":
-			op.Options.ResponseEncoder.Failure = getFailureResponseEncoder(value)
+			op.SuccessResponse = buildSuccessResponse(value)
 		default:
 			return fmt.Errorf(`unrecognized kok key "%s" in comment: %s`, key, comment)
 		}

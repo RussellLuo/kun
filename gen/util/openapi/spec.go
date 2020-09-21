@@ -47,14 +47,6 @@ type Param struct {
 	AliasType string // Request parameter name
 	Required  bool
 
-	// The name of the decoder function, which is used to convert the value
-	// from string to another type (e.g. integer, boolean, time or struct).
-	Decoder string
-
-	// The name of the encoder function, which is used to convert the value
-	// from non-string type (e.g. integer, boolean, time or struct) to string.
-	Encoder string
-
 	inUse bool // Indicates this parameter already has a corresponding @kok(param).
 }
 
@@ -79,8 +71,6 @@ func (p *Param) Set(o *Param) {
 		p.AliasType = o.AliasType
 	}
 	p.Required = o.Required
-	p.Decoder = o.Decoder
-	p.Encoder = o.Encoder
 
 	p.inUse = true
 }
@@ -96,21 +86,6 @@ type Response struct {
 	Schema     interface{}
 }
 
-type Options struct {
-	/*RequestDecoder struct {
-		// The name of the decoder function, which is used to extract the parameters
-		// in body by decoding the request body.
-		Body string
-	}*/
-
-	ResponseEncoder struct {
-		// The name of the encoder function for the successful response.
-		Success string
-		// The name of the encoder function for the error response.
-		Failure string
-	}
-}
-
 type Operation struct {
 	Name             string
 	Method           string
@@ -118,7 +93,6 @@ type Operation struct {
 	Request          Request
 	SuccessResponse  *Response
 	FailureResponses []*Response
-	Options          Options
 }
 
 func GET() *Operation {
@@ -187,10 +161,6 @@ func (o *Operation) buildParam(text, name, typ string) *Param {
 			p.SetName(value)
 		case "alias":
 			p.Alias = value
-		case "decoder":
-			p.Decoder = value
-		case "encoder":
-			p.Encoder = value
 		default:
 			panic(fmt.Errorf("invalid tag part: %s", part))
 		}
