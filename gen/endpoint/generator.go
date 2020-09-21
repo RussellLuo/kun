@@ -203,7 +203,7 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 					return ""
 				}
 
-				if typ == "error" {
+				if name == "" || typ == "error" {
 					name = "-"
 				} else if g.opts.TagKeyToSnakeCase {
 					name = misc.ToSnakeCase(name)

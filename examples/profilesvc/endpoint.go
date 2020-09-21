@@ -10,8 +10,8 @@ import (
 )
 
 type DeleteAddressRequest struct {
-	ProfileID string `json:"profile_id"`
-	AddressID string `json:"address_id"`
+	ProfileID string `json:"-"`
+	AddressID string `json:"-"`
 }
 
 type DeleteAddressResponse struct {
@@ -37,7 +37,7 @@ func MakeEndpointOfDeleteAddress(s Service) endpoint.Endpoint {
 }
 
 type DeleteProfileRequest struct {
-	Id string `json:"id"`
+	Id string `json:"-"`
 }
 
 type DeleteProfileResponse struct {
@@ -62,8 +62,8 @@ func MakeEndpointOfDeleteProfile(s Service) endpoint.Endpoint {
 }
 
 type GetAddressRequest struct {
-	ProfileID string `json:"profile_id"`
-	AddressID string `json:"address_id"`
+	ProfileID string `json:"-"`
+	AddressID string `json:"-"`
 }
 
 type GetAddressResponse struct {
@@ -91,7 +91,7 @@ func MakeEndpointOfGetAddress(s Service) endpoint.Endpoint {
 }
 
 type GetAddressesRequest struct {
-	Id string `json:"id"`
+	Id string `json:"-"`
 }
 
 type GetAddressesResponse struct {
@@ -118,7 +118,7 @@ func MakeEndpointOfGetAddresses(s Service) endpoint.Endpoint {
 }
 
 type GetProfileRequest struct {
-	Id string `json:"id"`
+	Id string `json:"-"`
 }
 
 type GetProfileResponse struct {
@@ -145,7 +145,7 @@ func MakeEndpointOfGetProfile(s Service) endpoint.Endpoint {
 }
 
 type PatchProfileRequest struct {
-	Id      string  `json:"id"`
+	Id      string  `json:"-"`
 	Profile Profile `json:"profile"`
 }
 
@@ -172,7 +172,7 @@ func MakeEndpointOfPatchProfile(s Service) endpoint.Endpoint {
 }
 
 type PostAddressRequest struct {
-	ProfileID string  `json:"profile_id"`
+	ProfileID string  `json:"-"`
 	Address   Address `json:"address"`
 }
 
@@ -224,7 +224,7 @@ func MakeEndpointOfPostProfile(s Service) endpoint.Endpoint {
 }
 
 type PutProfileRequest struct {
-	Id      string  `json:"id"`
+	Id      string  `json:"-"`
 	Profile Profile `json:"profile"`
 }
 
