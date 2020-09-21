@@ -55,8 +55,6 @@ type Param struct {
 	// from non-string type (e.g. integer, boolean, time or struct) to string.
 	Encoder string
 
-	Sub []*Param
-
 	inUse bool // Indicates this parameter already has a corresponding @kok(param).
 }
 
@@ -71,10 +69,6 @@ func (p *Param) SetName(name string) {
 
 // Set sets properties according to the values hold by o.
 func (p *Param) Set(o *Param) {
-	if len(p.Sub) != 0 {
-		panic(fmt.Errorf("parent param %q can not be used alone", p.Name))
-	}
-
 	/*if !isPrimitiveType(p.Type) && o.In != InBody {
 		panic(fmt.Errorf("non-primitive param %q must be in `body`", p.Name))
 	}*/
@@ -89,20 +83,6 @@ func (p *Param) Set(o *Param) {
 	p.Encoder = o.Encoder
 
 	p.inUse = true
-}
-
-// Add adds o as a sub parameter of the current parameter.
-func (p *Param) Add(o *Param) {
-	if isPrimitiveType(p.Type) {
-		panic(fmt.Errorf("primitive param %q can not has sub parameters", p.Name))
-	}
-
-	p.Sub = append(p.Sub, o)
-
-	// Clear the properties that are meaningless for the parent parameter.
-	p.In = ""
-	p.Alias = ""
-	p.Required = false
 }
 
 type Request struct {

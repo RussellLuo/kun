@@ -61,16 +61,16 @@ paths:
     {{lower .Method}}:
       description: ""
       operationId: "{{.Name}}"
-      {{- $nonCtxNonBodyFlatParams := nonBodyFlatParams $nonCtxParams}}
+      {{- $nonCtxNonBodyParams := nonBodyParams $nonCtxParams}}
       {{- if $nonCtxParams}}
       parameters:
-        {{- range $nonCtxNonBodyFlatParams}}
+        {{- range $nonCtxNonBodyParams}}
         - name: {{.Alias}}
           in: {{.In}}
           required: {{.Required}}
           {{paramSchema .AliasType}}
           description: ""
-        {{- end}} {{/* range $nonCtxNonBodyFlatParams */}}
+        {{- end}} {{/* range $nonCtxNonBodyParams */}}
 
         {{- $bodyParams := bodyParams $nonCtxParams}}
         {{- if $bodyParams}}
@@ -205,15 +205,10 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 				}
 				return
 			},
-			"nonBodyFlatParams": func(in []*openapi.Param) (out []*openapi.Param) {
+			"nonBodyParams": func(in []*openapi.Param) (out []*openapi.Param) {
 				for _, p := range in {
 					if p.In != openapi.InBody {
-						if len(p.Sub) == 0 {
-							out = append(out, p)
-						} else {
-							// Only one nested level is supported.
-							out = append(out, p.Sub...)
-						}
+						out = append(out, p)
 					}
 				}
 				return
