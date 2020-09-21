@@ -212,10 +212,8 @@ See more examples [here](examples).
 - Key: `@kok(param)`
 - Value: `"name:<name>,type:<type>,in:<in>,alias:<alias>"`
     + **name**: The name of the method argument.
-        - *Argument group*: By using `.` in **name**, multiple request parameters (each one is of basic type) can be grouped into one method argument (of struct type).
     + **type**: The type of the method argument.
         - Optional: Default will infer from the method declaration.
-        - **Required** for arguments in *Argument group*.
     + **in**:
         - **path**: The method argument is passed via the request path.
         - **query**: The method argument is passed via the request query string.
@@ -237,23 +235,6 @@ See more examples [here](examples).
         }
 
         // HTTP request: DELETE /users/101
-        ```
-    + Argument group:
-
-        ```go
-        type User struct {
-            Name string
-            Age  int
-        }
-
-        type Service interface {
-            // @kok(op): "POST /users"
-            // @kok(param): "name:user.Name,type:string,in:query,alias:name"
-            // @kok(param): "name:user.Age,type:int,in:query,alias:age"
-            CreateUser(ctx context.Context, user User) (err error)
-        }
-
-        // HTTP request: POST /users?name=tracey&age=1
         ```
 
 </details>
