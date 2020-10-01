@@ -1,7 +1,6 @@
 package cronapp
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/RussellLuo/appx"
@@ -34,35 +33,34 @@ func (a *App) Require(names ...string) *App {
 	return a
 }
 
-func (a *App) Init(initFunc appx.InitFunc) *appx.App {
+func (a *App) InitFunc(initFunc appx.InitFuncV2) *appx.App {
 	init := initFunc
 	if a.scheduler != "" {
 		init = a.scheduledBy(initFunc)
 	}
 
-	a.App.Init2(init)
+	a.App.InitFunc(init)
 	return a.App // Return the wrapped *appx.App
 }
 
-func (a *App) scheduledBy(initFunc appx.InitFunc) appx.InitFunc {
-	return func(ctx context.Context, lc appx.Lifecycle, apps map[string]*appx.App) (appx.Value, appx.CleanFunc, error) {
-		value, clean, err := initFunc(ctx, lc, apps)
-		if err != nil {
-			return nil, nil, err
+func (a *App) scheduledBy(initFunc appx.InitFuncV2) appx.InitFuncV2 {
+	return func(ctx appx.Context) error {
+		if err := initFunc(ctx); err != nil {
+			return err
 		}
 
-		job, ok := value.(Job)
+		job, ok := ctx.App.Value.(Job)
 		if !ok {
-			return nil, nil, fmt.Errorf("value %#v does not implement cronapp.Job", value)
+			return fmt.Errorf("value %#v does not implement cronapp.Job", ctx.App.Value)
 		}
 
-		schedulerValue := apps[a.scheduler].Value
+		schedulerValue := ctx.Required[a.scheduler].Value
 		scheduler, ok := schedulerValue.(Scheduler)
 		if !ok {
-			return nil, nil, fmt.Errorf("value %#v does not implement cronapp.Scheduler", schedulerValue)
+			return fmt.Errorf("value %#v does not implement cronapp.Scheduler", schedulerValue)
 		}
 
 		scheduler.Add(a.Name, a.expression, job.Task) // nolint:errcheck
-		return value, clean, nil
+		return nil
 	}
 }

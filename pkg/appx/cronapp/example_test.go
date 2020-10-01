@@ -37,45 +37,56 @@ func Example() {
 	}
 
 	// Typically located in `func init()` of package hi.
-	appx.MustRegister(cronapp.New("hi").
-		ScheduledBy("greeter").Expression("*/1 * * * * * *").
-		Init(func(ctx context.Context, lc appx.Lifecycle, apps map[string]*appx.App) (appx.Value, appx.CleanFunc, error) {
-			return task(func() {
-				words <- "hi"
-			}), nil, nil
-		}))
+	appx.MustRegister(
+		cronapp.New("hi").
+			ScheduledBy("greeter").Expression("*/1 * * * * * *").
+			InitFunc(func(ctx appx.Context) error {
+				ctx.App.Value = task(func() {
+					words <- "hi"
+				})
+				return nil
+			}),
+	)
 
 	// Typically located in `func init()` of package bye.
-	appx.MustRegister(cronapp.New("bye").
-		ScheduledBy("greeter").Expression("*/2 * * * * * *").
-		Init(func(ctx context.Context, lc appx.Lifecycle, apps map[string]*appx.App) (appx.Value, appx.CleanFunc, error) {
-			return task(func() {
-				words <- "bye"
-			}), nil, nil
-		}))
+	appx.MustRegister(
+		cronapp.New("bye").
+			ScheduledBy("greeter").Expression("*/2 * * * * * *").
+			InitFunc(func(ctx appx.Context) error {
+				ctx.App.Value = task(func() {
+					words <- "bye"
+				})
+				return nil
+			}),
+	)
 
 	// Typically located in `func init()` of package greeter.
-	appx.MustRegister(cronapp.New("greeter").
-		Init(func(ctx context.Context, lc appx.Lifecycle, apps map[string]*appx.App) (appx.Value, appx.CleanFunc, error) {
-			c := cron.New(nillocker.New(), nil)
-			lc.Append(appx.Hook{
-				OnStart: func(context.Context) error {
-					fmt.Println("Starting CRON scheduler")
-					c.Start()
-					return nil
-				},
-				OnStop: func(ctx context.Context) error {
-					fmt.Println("Stopping CRON scheduler")
-					c.Stop()
-					return nil
-				},
-			})
-			return c, nil, nil
-		}))
+	appx.MustRegister(
+		cronapp.New("greeter").
+			InitFunc(func(ctx appx.Context) error {
+				c := cron.New(nillocker.New(), nil)
+				ctx.Lifecycle.Append(appx.Hook{
+					OnStart: func(context.Context) error {
+						fmt.Println("Starting CRON scheduler")
+						c.Start()
+						return nil
+					},
+					OnStop: func(ctx context.Context) error {
+						fmt.Println("Stopping CRON scheduler")
+						c.Stop()
+						return nil
+					},
+				})
+				ctx.App.Value = c
+				return nil
+			}),
+	)
 
 	// Typically located in `func main()` of package main.
-	appx.ErrorHandler(func(err error) {
-		fmt.Printf("err: %v\n", err)
+	appx.SetConfig(appx.Config{
+		ErrorHandler: func(err error) {
+			fmt.Printf("err: %v\n", err)
+		},
 	})
 
 	// Installs the applications.

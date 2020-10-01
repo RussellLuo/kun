@@ -3,7 +3,7 @@ module github.com/RussellLuo/kok
 go 1.14
 
 require (
-	github.com/RussellLuo/appx v0.0.0-20200802131858-d385db0b9715
+	github.com/RussellLuo/appx v0.0.0-20201001151629-b99e3d6a78fb
 	github.com/RussellLuo/micron v0.0.0-20200517141348-ec849ba60d74
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-kit/kit v0.10.0

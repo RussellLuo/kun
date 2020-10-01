@@ -1,8 +1,6 @@
 package httpapp
 
 import (
-	"context"
-
 	"github.com/RussellLuo/appx"
 )
 
@@ -33,34 +31,33 @@ func (a *App) Require(names ...string) *App {
 	return a
 }
 
-func (a *App) Init(initFunc appx.InitFunc) *appx.App {
+func (a *App) InitFunc(initFunc appx.InitFuncV2) *appx.App {
 	init := initFunc
 	if a.parent != "" {
 		init = a.mountOnParent(initFunc)
 	}
 
-	a.App.Init2(init)
+	a.App.InitFunc(init)
 	return a.App // Return the wrapped *appx.App
 }
 
-func (a *App) mountOnParent(initFunc appx.InitFunc) appx.InitFunc {
-	return func(ctx context.Context, lc appx.Lifecycle, apps map[string]*appx.App) (appx.Value, appx.CleanFunc, error) {
-		value, clean, err := initFunc(ctx, lc, apps)
-		if err != nil {
-			return nil, nil, err
+func (a *App) mountOnParent(initFunc appx.InitFuncV2) appx.InitFuncV2 {
+	return func(ctx appx.Context) error {
+		if err := initFunc(ctx); err != nil {
+			return err
 		}
 
-		parent, err := GetRouter(apps[a.parent].Value)
+		parent, err := GetRouter(ctx.Required[a.parent].Value)
 		if err != nil {
-			return nil, nil, err
+			return err
 		}
 
-		r, err := GetRouter(value)
+		r, err := GetRouter(ctx.App.Value)
 		if err != nil {
-			return nil, nil, err
+			return err
 		}
 
 		MountRouter(parent, a.pattern, r)
-		return value, clean, nil
+		return nil
 	}
 }
