@@ -3,6 +3,7 @@ package httpapp
 import (
 	"fmt"
 
+	"github.com/RussellLuo/appx"
 	"github.com/go-chi/chi"
 )
 
@@ -43,4 +44,18 @@ func extendRouter(parent chi.Router, r chi.Router) {
 			parent.Method(method, route.Pattern, handler)
 		}
 	}
+}
+
+// RequiredServiceGetter is a helper that makes it easy to get the service
+// from a required application, which is bound to a context.
+type RequiredServiceGetter struct {
+	ctx appx.Context
+}
+
+func R(ctx appx.Context) *RequiredServiceGetter {
+	return &RequiredServiceGetter{ctx: ctx}
+}
+
+func (g *RequiredServiceGetter) MustGet(name string) interface{} {
+	return MustGetService(g.ctx.Required[name].Value)
 }
