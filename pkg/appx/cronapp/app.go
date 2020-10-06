@@ -1,8 +1,6 @@
 package cronapp
 
 import (
-	"fmt"
-
 	"github.com/RussellLuo/appx"
 )
 
@@ -49,15 +47,14 @@ func (a *App) scheduledBy(initFunc appx.InitFuncV2) appx.InitFuncV2 {
 			return err
 		}
 
-		job, ok := ctx.App.Value.(Job)
-		if !ok {
-			return fmt.Errorf("value %#v does not implement cronapp.Job", ctx.App.Value)
+		scheduler, err := GetScheduler(ctx.Required[a.scheduler].Value)
+		if err != nil {
+			return err
 		}
 
-		schedulerValue := ctx.Required[a.scheduler].Value
-		scheduler, ok := schedulerValue.(Scheduler)
-		if !ok {
-			return fmt.Errorf("value %#v does not implement cronapp.Scheduler", schedulerValue)
+		job, err := GetJob(ctx.App.Value)
+		if err != nil {
+			return err
 		}
 
 		scheduler.Add(a.Name, a.expression, job.Task) // nolint:errcheck
