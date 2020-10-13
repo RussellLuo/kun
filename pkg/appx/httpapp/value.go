@@ -13,8 +13,17 @@ type Value struct {
 	Router  chi.Router  // The HTTP router.
 }
 
-func MustGetService(value interface{}) interface{} {
-	return value.(*Value).Service
+func GetService(value interface{}) (interface{}, error) {
+	val, ok := value.(*Value)
+	if !ok {
+		return nil, fmt.Errorf("value %#v cannot be converted to *httpapp.Value", value)
+	}
+
+	if val == nil || val.Service == nil {
+		return nil, fmt.Errorf("value %#v holds no service", val)
+	}
+
+	return val.Service, nil
 }
 
 func GetRouter(value interface{}) (chi.Router, error) {
@@ -57,5 +66,15 @@ func R(ctx appx.Context) *RequiredServiceGetter {
 }
 
 func (g *RequiredServiceGetter) MustGet(name string) interface{} {
-	return MustGetService(g.ctx.Required[name].Value)
+	app, ok := g.ctx.Required[name]
+	if !ok {
+		panic(fmt.Errorf("app %q is not a required application", name))
+	}
+
+	svc, err := GetService(app.Value)
+	if err != nil {
+		panic(err)
+	}
+
+	return svc
 }
