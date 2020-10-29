@@ -8,7 +8,7 @@ require (
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-kit/kit v0.10.0
 	github.com/prometheus/client_golang v1.3.0
-	golang.org/x/net v0.0.0-20200226121028-0de0cce0169b
-	golang.org/x/tools v0.0.0-20200501205727-542909fd9944
+	golang.org/x/net v0.0.0-20201021035429-f5854403a974
+	golang.org/x/tools v0.0.0-20201029135353-690a3c245f28
 	gopkg.in/yaml.v2 v2.2.2
 )
