@@ -217,9 +217,6 @@ func (o *Operation) buildParamV2(text, prevParamName string) *Param {
 		switch k {
 		case "in":
 			p.In = v
-			if v == InPath {
-				p.Required = true
-			}
 		case "name":
 			p.Alias = v
 		case "type":
@@ -233,6 +230,11 @@ func (o *Operation) buildParamV2(text, prevParamName string) *Param {
 
 	if p.In == "" {
 		p.In = InBody
+	}
+
+	if p.In == InPath {
+		// Parameters located in path must be required.
+		p.Required = true
 	}
 
 	if p.In == InRequest && p.Alias != "RemoteAddr" {

@@ -231,8 +231,8 @@ See more examples [here](examples).
         - Optional: Defaults to the type of the method argument, if not specified.
         - **Required** for *Argument aggregation* for generating correct OAS documentation.
     + **required**: Determines whether this parameter is mandatory.
-        - Optional: Defaults to false, if not specified.
-        - If the parameter location is **path**, this property will be set to true internally, whether it's specified or not.
+        - Optional: Defaults to `false`, if not specified.
+        - If the parameter location is **path**, this property will be set to `true` internally, whether it's specified or not.
 - Example:
     + Simple argument:
 
