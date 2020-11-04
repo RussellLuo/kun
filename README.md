@@ -210,7 +210,7 @@ See more examples [here](examples).
   <summary> Define the HTTP request parameters </summary>
 
 - Key: `@kok(param)`
-- Value: `<argName> < in:<in>,name:<name>,type:<type>`
+- Value: `<argName> < in:<in>,name:<name>,type:<type>,required:<required>`
     + **argName**: The name of the method argument.
         - *Argument aggregation*: By specifying the same **argName**, multiple request parameters (each one is of basic type) can be aggregated into one method argument (of any type).
             + You do not need to repeat the **argName**, only the first one is required.
@@ -230,6 +230,9 @@ See more examples [here](examples).
     + **type**: The type of the corresponding request parameter.
         - Optional: Defaults to the type of the method argument, if not specified.
         - **Required** for *Argument aggregation* for generating correct OAS documentation.
+    + **required**: Determines whether this parameter is mandatory.
+        - Optional: Defaults to false, if not specified.
+        - If the parameter location is **path**, this property will be set to true internally, whether it's specified or not.
 - Example:
     + Simple argument:
 
