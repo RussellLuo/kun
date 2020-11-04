@@ -109,11 +109,22 @@ func decode{{.Name}}Request(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 		if err := codec.DecodeRequestParams("{{.Name}}", {{.Name}}, &req.{{title .Name}}); err != nil {
 			return nil, err
 		}
-		{{- else}}
-		{{.Name}} := {{index .Properties 0 | extractParam}}
+
+		{{- else}} {{/* if .Aggregation */}}
+		{{- $property := index .Properties 0}}
+		{{.Name}} := {{$property | extractParam}}
+		{{- if $property.Required}}
 		if err := codec.DecodeRequestParam("{{.Name}}", {{.Name}}, &req.{{title .Name}}); err != nil {
 			return nil, err
 		}
+		{{- else}} {{/* if $property.Required */}}
+		if {{.Name}} != "" {
+			if err := codec.DecodeRequestParam("{{.Name}}", {{.Name}}, &req.{{title .Name}}); err != nil {
+				return nil, err
+			}
+		}
+		{{- end}} {{/* if $property.Required */}}
+
 		{{- end}} {{/* if .Aggregation */}}
 
 		{{end -}} {{/* range $nonBodyParamsGroupByName */}}
@@ -176,8 +187,9 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 	}
 
 	type ParamProperty struct {
-		In    string
-		Alias string
+		In       string
+		Alias    string
+		Required bool
 	}
 
 	type ParamsGroupByName struct {
@@ -224,8 +236,9 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 							params[p.Name] = grouped
 						}
 						grouped.Properties = append(grouped.Properties, ParamProperty{
-							In:    p.In,
-							Alias: p.Alias,
+							In:       p.In,
+							Alias:    p.Alias,
+							Required: p.Required,
 						})
 					}
 				}
