@@ -83,7 +83,7 @@ kokgen [flags] source-file interface-name
 
     ```go
     type Service interface {
-        // @kok2(op): POST /messages
+        // @kok(op): POST /messages
         SayHello(ctx context.Context, name string) (message string, err error)
     }
     ```
@@ -186,20 +186,20 @@ See more examples [here](examples).
 
 ## HTTP
 
-### Annotations (v1 -- Deprecated)
+### Annotations
 
 <details>
   <summary> Define the HTTP request operation </summary>
 
 - Key: `@kok(op)`
-- Value: `"<method> <pattern>"`
+- Value: `<method> <pattern>`
     + **method**: The request method
     + **pattern**: The request URL
 - Example:
 
     ```go
     type Service interface {
-        // @kok(op): "POST /users"
+        // @kok(op): POST /users
         CreateUser(ctx context.Context) (err error)
     }
     ```
@@ -210,79 +210,6 @@ See more examples [here](examples).
   <summary> Define the HTTP request parameters </summary>
 
 - Key: `@kok(param)`
-- Value: `"name:<name>,type:<type>,in:<in>,alias:<alias>"`
-    + **name**: The name of the method argument.
-    + **type**: The type of the method argument.
-        - Optional: Default will infer from the method declaration.
-    + **in**:
-        - **path**: The method argument is passed via the request path.
-        - **query**: The method argument is passed via the request query string.
-        - **header**: The method argument is passed via the request headers.
-        - **cookie**: The method argument is passed via the request cookies.
-            + Not supported yet
-        - **body**: The method argument is passed via the request body.
-            + Optional: All method arguments, unless otherwise specified, are in **body**.
-    + **alias**: The name of the request parameter.
-        - Optional: Defaults to **name** if not specified.
-- Example:
-    + Simple argument:
-
-        ```go
-        type Service interface {
-            // @kok(op): "DELETE /users/{id}"
-            // @kok(param): "name:id,in:path"
-            DeleteUser(ctx context.Context, id int) (err error)
-        }
-
-        // HTTP request: DELETE /users/101
-        ```
-
-</details>
-
-<details>
-  <summary> Define the status code of the success HTTP response </summary>
-
-
-- Key: `@kok(success)`
-- Value: `"statusCode:<statusCode>"`
-    + **statusCode**: The status code of the success HTTP response.
-        - Optional: Defaults to 200 if not specified.
-- Example:
-
-    ```go
-    type Service interface {
-        // @kok(op): "POST /users"
-        // @kok(success): "statusCode:201"
-        CreateUser(ctx context.Context) (err error)
-    }
-    ```
-
-</details>
-
-### Annotations (v2)
-
-<details>
-  <summary> Define the HTTP request operation </summary>
-
-- Key: `@kok2(op)`
-- Value: `<method> <pattern>`
-    + **method**: The request method
-    + **pattern**: The request URL
-- Example:
-
-    ```go
-    type Service interface {
-        // @kok2(op): POST /users
-        CreateUser(ctx context.Context) (err error)
-    }
-    ```
-
-</details>
-
-<details>
-  <summary> Define the HTTP request parameters </summary>
-
-- Key: `@kok2(param)`
 - Value: `<argName> < in:<in>,name:<name>,type:<type>`
     + **argName**: The name of the method argument.
         - *Argument aggregation*: By specifying the same **argName**, multiple request parameters (each one is of basic type) can be aggregated into one method argument (of any type).
@@ -308,8 +235,8 @@ See more examples [here](examples).
 
         ```go
         type Service interface {
-            // @kok2(op): DELETE /users/{id}
-            // @kok2(param): id < in:path
+            // @kok(op): DELETE /users/{id}
+            // @kok(param): id < in:path
             DeleteUser(ctx context.Context, id int) (err error)
         }
 
@@ -324,17 +251,17 @@ See more examples [here](examples).
         }
 
         type Service interface {
-            // @kok2(op): POST /users
-            // @kok2(param): user < in:query,name:name,type:string
-            // @kok2(param): user < in:query,name:age,type:int
+            // @kok(op): POST /users
+            // @kok(param): user < in:query,name:name,type:string
+            // @kok(param): user < in:query,name:age,type:int
             CreateUser(ctx context.Context, user User) (err error)
         }
 
         // The equivalent annotations.
         type Service interface {
-            // @kok2(op): POST /users
-            // @kok2(param): user < in:query,name:name,type:string
-            // @kok2(param):      < in:query,name:age,type:int
+            // @kok(op): POST /users
+            // @kok(param): user < in:query,name:name,type:string
+            // @kok(param):      < in:query,name:age,type:int
             CreateUser(ctx context.Context, user User) (err error)
         }
 
@@ -347,7 +274,7 @@ See more examples [here](examples).
   <summary> Define the success HTTP response </summary>
 
 
-- Key: `@kok2(success)`
+- Key: `@kok(success)`
 - Value: `statusCode:<statusCode>`
     + **statusCode**: The status code of the success HTTP response.
         - Optional: Defaults to 200 if not specified.
@@ -355,8 +282,8 @@ See more examples [here](examples).
 
     ```go
     type Service interface {
-        // @kok2(op): POST /users
-        // @kok2(success): statusCode:201
+        // @kok(op): POST /users
+        // @kok(success): statusCode:201
         CreateUser(ctx context.Context) (err error)
     }
     ```
