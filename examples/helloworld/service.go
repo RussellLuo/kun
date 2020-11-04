@@ -7,7 +7,7 @@ import (
 //go:generate kokgen ./service.go Service
 
 type Service interface {
-	// @kok2(op): POST /messages
+	// @kok(op): POST /messages
 	SayHello(ctx context.Context, name string) (message string, err error)
 }
 

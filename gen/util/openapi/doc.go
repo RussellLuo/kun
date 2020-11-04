@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	reKok = regexp.MustCompile(`@kok\((\w+)\):\s*"(.+)"`)
+	reKok = regexp.MustCompile(`@kok2?\((\w+)\):\s*(.+)$`)
 )
 
 func FromDoc(result *reflector.Result, doc map[string][]string) (*Specification, error) {
@@ -42,7 +42,7 @@ func FromDoc(result *reflector.Result, doc map[string][]string) (*Specification,
 		// Set a default success response.
 		op.Resp(http.StatusOK, MediaTypeJSON, nil)
 
-		if err := manipulateOp(op, params, comments); err != nil {
+		if err := manipulateByComments(op, params, comments); err != nil {
 			return nil, err
 		}
 
@@ -52,25 +52,11 @@ func FromDoc(result *reflector.Result, doc map[string][]string) (*Specification,
 	return spec, nil
 }
 
-func manipulateOp(op *Operation, params map[string]*Param, comments []string) error {
-	if err := manipulateByComments(op, params, comments); err != nil {
-		return err
-	}
-
-	if err := manipulateByCommentsV2(op, params, comments); err != nil {
-		return err
-	}
-
-	if op.Method == "" && op.Pattern == "" {
-		return fmt.Errorf("method %s has no comment about @kok2(op)", op.Name)
-	}
-
-	return nil
-}
-
 func manipulateByComments(op *Operation, params map[string]*Param, comments []string) error {
+	var prevParamName string
+
 	for _, comment := range comments {
-		if !strings.Contains(comment, "@kok(") {
+		if !strings.Contains(comment, "@kok") {
 			continue
 		}
 
@@ -79,16 +65,17 @@ func manipulateByComments(op *Operation, params map[string]*Param, comments []st
 			return fmt.Errorf("invalid kok comment: %s", comment)
 		}
 
-		key, value := result[1], result[2]
+		key, value := result[1], strings.TrimSpace(result[2])
 		switch key {
 		case "op":
 			fields := strings.Fields(value)
 			if len(fields) != 2 {
-				return fmt.Errorf(`%q does not match the expected format: "<METHOD> <PATH>"`, value)
+				return fmt.Errorf(`%q does not match the expected format: <METHOD> <PATTERN>`, value)
 			}
 			op.Method, op.Pattern = fields[0], fields[1]
 		case "param":
-			p := op.buildParam(value, "", "") // no default name and type
+			p := op.buildParamV2(value, prevParamName)
+			prevParamName = p.Name
 
 			param, ok := params[p.Name]
 			if !ok {
@@ -98,7 +85,6 @@ func manipulateByComments(op *Operation, params map[string]*Param, comments []st
 			if !param.inUse {
 				param.Set(p)
 			} else {
-
 				copied := *param
 				param.Set(p)
 
@@ -110,6 +96,10 @@ func manipulateByComments(op *Operation, params map[string]*Param, comments []st
 		default:
 			return fmt.Errorf(`unrecognized kok key "%s" in comment: %s`, key, comment)
 		}
+	}
+
+	if op.Method == "" && op.Pattern == "" {
+		return fmt.Errorf("method %s has no comment about @kok2(op)", op.Name)
 	}
 
 	return nil
