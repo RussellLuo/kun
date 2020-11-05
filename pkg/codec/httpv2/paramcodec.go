@@ -39,6 +39,8 @@ func (pc ParamCodec) Decode(name, value string, out interface{}) error {
 		return pc.decodeString(name, value, v)
 	case *time.Time:
 		return pc.decodeTime(name, value, v)
+	case *time.Duration:
+		return pc.decodeDuration(name, value, v)
 	default:
 		// Panic since this is a programming error.
 		panic(fmt.Errorf("unsupported out type: %T", v))
@@ -77,6 +79,8 @@ func (pc ParamCodec) Encode(name string, value interface{}) string {
 		return v
 	case time.Time:
 		return v.Format(time.RFC3339)
+	case time.Duration:
+		return v.String()
 	default:
 		return fmt.Sprintf("%v", value)
 	}
@@ -397,6 +401,31 @@ func (pc ParamCodec) decodeTime(name, value string, out *time.Time) error {
 	if !ok {
 		// Panic since this is a programming error.
 		panic(fmt.Errorf("decoder of %q returns %v (want time.Time)", name, result))
+	}
+
+	*out = v
+	return nil
+}
+
+func (pc ParamCodec) decodeDuration(name, value string, out *time.Duration) error {
+	if pc.OnDecode == nil {
+		v, err := time.ParseDuration(value)
+		if err != nil {
+			return err
+		}
+		*out = v
+		return nil
+	}
+
+	result, err := pc.OnDecode(value)
+	if err != nil {
+		return err
+	}
+
+	v, ok := result.(time.Duration)
+	if !ok {
+		// Panic since this is a programming error.
+		panic(fmt.Errorf("decoder of %q returns %v (want time.Duration)", name, result))
 	}
 
 	*out = v
