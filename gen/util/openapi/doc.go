@@ -39,10 +39,15 @@ func FromDoc(result *reflector.Result, doc map[string][]string) (*Specification,
 			params[p.Name] = p
 		}
 
+		results := make(map[string]*reflector.Param)
+		for _, mr := range m.Returns {
+			results[mr.Name] = mr
+		}
+
 		// Set a default success response.
 		op.Resp(http.StatusOK, MediaTypeJSON, nil)
 
-		if err := manipulateByComments(op, params, comments); err != nil {
+		if err := manipulateByComments(op, params, results, comments); err != nil {
 			return nil, err
 		}
 
@@ -52,7 +57,7 @@ func FromDoc(result *reflector.Result, doc map[string][]string) (*Specification,
 	return spec, nil
 }
 
-func manipulateByComments(op *Operation, params map[string]*Param, comments []string) error {
+func manipulateByComments(op *Operation, params map[string]*Param, results map[string]*reflector.Param, comments []string) error {
 	var prevParamName string
 
 	for _, comment := range comments {
@@ -91,15 +96,20 @@ func manipulateByComments(op *Operation, params map[string]*Param, comments []st
 				// Add a new parameter with the same name.
 				op.addParam(&copied)
 			}
+		case "body":
+			if _, ok := params[value]; !ok {
+				return fmt.Errorf("no param `%s` declared in the method %s", value, op.Name)
+			}
+			op.Request.BodyField = value
 		case "success":
-			op.SuccessResponse = buildSuccessResponse(value)
+			op.SuccessResponse = buildSuccessResponse(value, results, op.Name)
 		default:
 			return fmt.Errorf(`unrecognized kok key "%s" in comment: %s`, key, comment)
 		}
 	}
 
 	if op.Method == "" && op.Pattern == "" {
-		return fmt.Errorf("method %s has no comment about @kok2(op)", op.Name)
+		return fmt.Errorf("method %s has no comment about @kok(op)", op.Name)
 	}
 
 	return nil

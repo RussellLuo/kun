@@ -47,6 +47,13 @@ type {{.Name}}Response struct {
 }
 {{- end}}
 
+{{- $respBodyField := .Op.SuccessResponse.BodyField}}
+{{- if $respBodyField}}
+func (r {{addAsterisks .Name}}Response) Body() interface{} { return r.{{title $respBodyField}} }
+{{- else}}
+func (r {{addAsterisks .Name}}Response) Body() interface{} { return r }
+{{- end}}
+
 {{- $errParamName := getErrParamName .Returns}}
 {{- if $errParamName}}
 // Failed implements endpoint.Failer.

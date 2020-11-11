@@ -22,7 +22,7 @@ type Method struct {
 	Returns []*Param
 }
 
-func (m *Method) Arglist() string {
+func (m *Method) ParamList() string {
 	params := make([]string, len(m.Params))
 	for i, p := range m.Params {
 		params[i] = p.String()
@@ -30,7 +30,7 @@ func (m *Method) Arglist() string {
 	return strings.Join(params, ", ")
 }
 
-func (m *Method) ArgCallList() string {
+func (m *Method) CallParamList() string {
 	params := make([]string, len(m.Params))
 	for i, p := range m.Params {
 		params[i] = p.CallName()
@@ -38,7 +38,7 @@ func (m *Method) ArgCallList() string {
 	return strings.Join(params, ", ")
 }
 
-func (m *Method) ReturnArglist() string {
+func (m *Method) ResultList() string {
 	params := make([]string, len(m.Returns))
 	for i, p := range m.Returns {
 		params[i] = p.TypeString()
@@ -52,6 +52,7 @@ func (m *Method) ReturnArglist() string {
 type Param struct {
 	Name     string
 	Type     string
+	RawType  types.Type
 	Variadic bool
 }
 
@@ -187,18 +188,22 @@ func GetPkgInfo(srcDir, pkgName string) (*types.Package, string, string) {
 func extractArgs(qf types.Qualifier, sig *types.Signature, list *types.Tuple, nameFormat string) []*Param {
 	var params []*Param
 	listLen := list.Len()
-	for ii := 0; ii < listLen; ii++ {
-		p := list.At(ii)
+	for i := 0; i < listLen; i++ {
+		p := list.At(i)
+
 		name := p.Name()
 		if name == "" {
-			name = fmt.Sprintf(nameFormat, ii+1)
+			name = fmt.Sprintf(nameFormat, i+1)
 		}
-		typename := types.TypeString(p.Type(), qf)
+		typ := p.Type()
+		typename := types.TypeString(typ, qf)
 		// check for final variadic argument
-		variadic := sig.Variadic() && ii == listLen-1 && typename[0:2] == "[]"
+		variadic := sig.Variadic() && i == listLen-1 && typename[0:2] == "[]"
+
 		param := &Param{
 			Name:     name,
 			Type:     typename,
+			RawType:  typ,
 			Variadic: variadic,
 		}
 		params = append(params, param)

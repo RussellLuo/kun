@@ -27,7 +27,6 @@ import (
 	"text/template"
 
 	chimiddleware "github.com/go-chi/chi/middleware"
-	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv2"
 	"github.com/RussellLuo/kok/pkg/oasv2"
 )
 
@@ -104,14 +103,17 @@ func getDefinitions(schema oasv2.Schema) map[string]oasv2.Definition {
 
     {{- $nonCtxParams := nonCtxParams .Request.Params}}
     {{- $bodyParams := bodyParams $nonCtxParams}}
-	{{- if $bodyParams}}
+	{{- if .Request.BodyField}}
+	req := {{addAmpersand .Name}}Request{}
+	oasv2.AddDefinition(defs, "{{.Name}}RequestBody", reflect.ValueOf(req.{{title .Request.BodyField}}))
+	{{- else if $bodyParams}}
 	oasv2.AddDefinition(defs, "{{.Name}}RequestBody", reflect.ValueOf(&struct{
 		{{- range $bodyParams}}
 		{{title .Name}} {{.Type}} {{addTag .Alias .Type}}
 		{{- end}} {{/* range $bodyParams */}}
 	}{}))
-	{{- end}} {{/* if $bodyParams */}}
-	oasv2.AddResponseDefinitions(defs, schema, "{{.Name}}", {{.SuccessResponse.StatusCode}}, {{addAmpersand .Name}}Response{})
+	{{- end}} {{/* if .Request.BodyField */}}
+	oasv2.AddResponseDefinitions(defs, schema, "{{.Name}}", {{.SuccessResponse.StatusCode}}, ({{addAmpersand .Name}}Response{}).Body())
 
     {{end -}} {{/* range .Spec.Operations */}}
 

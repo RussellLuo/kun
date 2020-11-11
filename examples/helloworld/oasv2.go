@@ -54,7 +54,7 @@ func getDefinitions(schema oasv2.Schema) map[string]oasv2.Definition {
 	oasv2.AddDefinition(defs, "SayHelloRequestBody", reflect.ValueOf(&struct {
 		Name string `json:"name"`
 	}{}))
-	oasv2.AddResponseDefinitions(defs, schema, "SayHello", 200, &SayHelloResponse{})
+	oasv2.AddResponseDefinitions(defs, schema, "SayHello", 200, (&SayHelloResponse{}).Body())
 
 	return defs
 }

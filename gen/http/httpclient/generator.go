@@ -88,6 +88,9 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 	{{- end}}
 
 	{{if $bodyParams -}}
+	{{if $op.Request.BodyField}}
+	reqBody := {{$op.Request.BodyField}}
+	{{- else}}
 	reqBody := struct {
 		{{- range $bodyParams}}
 		{{title .Name}} {{.Type}} {{addTag .Alias .Type}}
@@ -97,6 +100,7 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 		{{title .Name}}: {{.Name}},
 		{{- end}}
 	}
+	{{- end}}
 	reqBodyReader, headers, err := codec.EncodeRequestBody(&reqBody)
 	if err != nil {
 		return {{returnErr .Returns}}
@@ -133,12 +137,8 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 
 	if resp.StatusCode >= http.StatusOK && resp.StatusCode <= http.StatusNoContent {
 		{{- if $nonErrReturns}}
-			var respBody struct {
-				{{- range $nonErrReturns}}
-				{{title .Name}} {{.Type}} {{addTag .Name .Type}}
-				{{- end}}
-			}
-			err := codec.DecodeSuccessResponse(resp.Body, &respBody)
+			respBody := {{addAmpersand .Name}}Response{}
+			err := codec.DecodeSuccessResponse(resp.Body, respBody.Body())
 			if err != nil {
 				return {{returnErr .Returns}}
 			}
