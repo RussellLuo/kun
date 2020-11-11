@@ -18,6 +18,8 @@ type SayHelloResponse struct {
 	Err     error  `json:"-"`
 }
 
+func (r *SayHelloResponse) Body() interface{} { return r }
+
 // Failed implements endpoint.Failer.
 func (r *SayHelloResponse) Failed() error { return r.Err }
 

@@ -8,6 +8,10 @@ import (
 	kithttp "github.com/go-kit/kit/transport/http"
 )
 
+type Bodier interface {
+	Body() interface{}
+}
+
 func MakeResponseEncoder(codec Codec, statusCode int) kithttp.EncodeResponseFunc {
 	return func(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 		if f, ok := response.(endpoint.Failer); ok && f.Failed() != nil {
@@ -20,6 +24,10 @@ func MakeResponseEncoder(codec Codec, statusCode int) kithttp.EncodeResponseFunc
 			return nil
 		}
 
+		body, ok := response.(Bodier)
+		if ok {
+			return codec.EncodeSuccessResponse(w, statusCode, body.Body())
+		}
 		return codec.EncodeSuccessResponse(w, statusCode, response)
 	}
 }

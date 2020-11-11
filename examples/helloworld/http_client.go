@@ -70,10 +70,8 @@ func (c *HTTPClient) SayHello(ctx context.Context, name string) (message string,
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= http.StatusOK && resp.StatusCode <= http.StatusNoContent {
-		var respBody struct {
-			Message string `json:"message"`
-		}
-		err := codec.DecodeSuccessResponse(resp.Body, &respBody)
+		respBody := &SayHelloResponse{}
+		err := codec.DecodeSuccessResponse(resp.Body, respBody.Body())
 		if err != nil {
 			return "", err
 		}

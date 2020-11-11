@@ -137,12 +137,8 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 
 	if resp.StatusCode >= http.StatusOK && resp.StatusCode <= http.StatusNoContent {
 		{{- if $nonErrReturns}}
-			var respBody struct {
-				{{- range $nonErrReturns}}
-				{{title .Name}} {{.Type}} {{addTag .Name .Type}}
-				{{- end}}
-			}
-			err := codec.DecodeSuccessResponse(resp.Body, &respBody)
+			respBody := {{addAmpersand .Name}}Response{}
+			err := codec.DecodeSuccessResponse(resp.Body, respBody.Body())
 			if err != nil {
 				return {{returnErr .Returns}}
 			}

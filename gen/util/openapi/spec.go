@@ -79,6 +79,7 @@ type Request struct {
 	MediaType string
 
 	// The name of the request field whose value is mapped to the HTTP request body.
+	// Otherwise, all fields not located in path/query/header will be mapped to the HTTP body
 	BodyField string
 
 	Params []*Param
@@ -88,6 +89,10 @@ type Response struct {
 	StatusCode int
 	MediaType  string
 	Schema     interface{}
+
+	// The name of the response field whose value is mapped to the HTTP response body.
+	// When omitted, the entire response struct will be used as the HTTP response body.
+	BodyField string
 }
 
 type Operation struct {
