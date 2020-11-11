@@ -44,7 +44,7 @@ type Param struct {
 	Type      string // Method argument type
 	In        string
 	Alias     string // Request parameter name
-	AliasType string // Request parameter name
+	AliasType string // Request parameter type
 	Required  bool
 
 	inUse bool // Indicates this parameter already has a corresponding @kok(param).
@@ -77,7 +77,11 @@ func (p *Param) Set(o *Param) {
 
 type Request struct {
 	MediaType string
-	Params    []*Param
+
+	// The name of the request field whose value is mapped to the HTTP request body.
+	BodyField string
+
+	Params []*Param
 }
 
 type Response struct {

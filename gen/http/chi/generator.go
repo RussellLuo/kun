@@ -83,7 +83,7 @@ func NewHTTPRouterWithOAS(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}
 
 {{- $nonCtxParams := nonCtxParams .Request.Params}}
 {{- $nonBodyParamsGroupByName := nonBodyParamsGroupByName $nonCtxParams}}
-{{- $bodyParams := bodyParams $nonCtxParams}}
+{{- $hasBodyParams := hasBodyParams $nonCtxParams}}
 
 func decode{{.Name}}Request(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
@@ -92,7 +92,11 @@ func decode{{.Name}}Request(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 
 		{{end -}}
 
-		{{if $bodyParams -}}
+		{{if .Request.BodyField -}}
+		if err := codec.DecodeRequestBody(r.Body, &req.{{title .Request.BodyField}}); err != nil {
+			return nil, err
+		}
+		{{else if $hasBodyParams -}}
 		if err := codec.DecodeRequestBody(r.Body, &req); err != nil {
 			return nil, err
 		}
@@ -252,13 +256,13 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 				}
 				return
 			},
-			"bodyParams": func(in []*openapi.Param) (out []*openapi.Param) {
+			"hasBodyParams": func(in []*openapi.Param) bool {
 				for _, p := range in {
 					if p.In == openapi.InBody {
-						out = append(out, p)
+						return true
 					}
 				}
-				return
+				return false
 			},
 			"nonCtxParams": func(params []*openapi.Param) (out []*openapi.Param) {
 				for _, p := range params {

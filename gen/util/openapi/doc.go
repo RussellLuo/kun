@@ -91,6 +91,11 @@ func manipulateByComments(op *Operation, params map[string]*Param, comments []st
 				// Add a new parameter with the same name.
 				op.addParam(&copied)
 			}
+		case "body":
+			if _, ok := params[value]; !ok {
+				return fmt.Errorf("no param `%s` declared in the method %s", value, op.Name)
+			}
+			op.Request.BodyField = value
 		case "success":
 			op.SuccessResponse = buildSuccessResponse(value)
 		default:
@@ -99,7 +104,7 @@ func manipulateByComments(op *Operation, params map[string]*Param, comments []st
 	}
 
 	if op.Method == "" && op.Pattern == "" {
-		return fmt.Errorf("method %s has no comment about @kok2(op)", op.Name)
+		return fmt.Errorf("method %s has no comment about @kok(op)", op.Name)
 	}
 
 	return nil
