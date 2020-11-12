@@ -104,8 +104,7 @@ func getDefinitions(schema oasv2.Schema) map[string]oasv2.Definition {
     {{- $nonCtxParams := nonCtxParams .Request.Params}}
     {{- $bodyParams := bodyParams $nonCtxParams}}
 	{{- if .Request.BodyField}}
-	req := {{addAmpersand .Name}}Request{}
-	oasv2.AddDefinition(defs, "{{.Name}}RequestBody", reflect.ValueOf(req.{{title .Request.BodyField}}))
+	oasv2.AddDefinition(defs, "{{.Name}}RequestBody", reflect.ValueOf(({{addAmpersand .Name}}Request{}).{{title .Request.BodyField}}))
 	{{- else if $bodyParams}}
 	oasv2.AddDefinition(defs, "{{.Name}}RequestBody", reflect.ValueOf(&struct{
 		{{- range $bodyParams}}
