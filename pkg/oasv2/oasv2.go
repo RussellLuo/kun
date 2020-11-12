@@ -35,7 +35,17 @@ var (
         {{- end}}
 `))
 
-	tmplDefinitions = template.Must(template.New("definitions").Parse(`
+	funcs = map[string]interface{}{
+		"isBasic": func(typ string) bool {
+			switch typ {
+			case "boolean", "integer", "number", "string":
+				return true
+			default:
+				return false
+			}
+		},
+	}
+	tmplDefinitions = template.Must(template.New("definitions").Funcs(funcs).Parse(`
 definitions:
 {{- range $name, $definition := .Definitions}}
   {{$name}}:
@@ -59,8 +69,12 @@ definitions:
         {{- else if eq .Type.Kind "array"}}
         type: array
         items:
+          {{- if isBasic .Type.Type}}
+          type: "{{.Type.Type}}"
+          {{- else}}
           $ref: "#/definitions/{{.Type.Type}}"
-        {{- end}} {{/*if eq .Type.Kind "basic" */}}
+          {{- end}} {{/* if isBasic .Type.Type */}}
+        {{- end}} {{/* if eq .Type.Kind "basic" */}}
 
       {{- end}} {{/* range $definition.ItemTypeOrProperties */}}
     {{- end}} {{/* if $definition.ItemTypeOrProperties */}}
