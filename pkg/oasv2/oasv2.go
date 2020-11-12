@@ -164,19 +164,25 @@ func AddDefinition(defs map[string]Definition, name string, value reflect.Value)
 		}
 	case reflect.Slice, reflect.Array:
 		elemType := value.Type().Elem()
-		elemName := elemType.String()
+
 		if elemType.Kind() != reflect.Struct {
-			panic(fmt.Errorf("only struct slice or array is supported, but got %v", value))
+			panic(fmt.Errorf("only struct slice or array is supported, but got %v", elemType.String()))
 		}
 
-		structValue := reflect.New(elemType)
-		AddDefinition(defs, elemName, structValue)
+		structValue := reflect.New(elemType).Elem()
+		AddDefinition(defs, elemType.Name(), structValue)
 
 	case reflect.Ptr:
-		if value.Elem().Kind() != reflect.Struct {
-			panic(fmt.Errorf("only struct pointer is supported, but got %v", value))
+		elemType := value.Type().Elem()
+		if elemType.Kind() != reflect.Struct {
+			panic(fmt.Errorf("only struct pointer is supported, but got %v", elemType.String()))
 		}
-		AddDefinition(defs, name, value.Elem())
+
+		elem := value.Elem()
+		if !elem.IsValid() {
+			elem = reflect.New(elemType).Elem()
+		}
+		AddDefinition(defs, elemType.Name(), elem)
 
 	default:
 		panic(fmt.Errorf("unsupported type %s", value.Kind()))
