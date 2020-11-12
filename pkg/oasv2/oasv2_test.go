@@ -14,15 +14,17 @@ func TestAddDefinition(t *testing.T) {
 		{
 			name: "struct",
 			inBody: struct {
-				Name  string          `json:"name"`
-				Male  bool            `json:"male"`
-				Age   int             `json:"age"`
-				Other map[string]bool `json:"other"`
+				Name    string          `json:"name"`
+				Male    bool            `json:"male"`
+				Age     int             `json:"age"`
+				Hobbies []string        `json:"hobbies"`
+				Other   map[string]bool `json:"other"`
 			}{
-				Name:  "xxx",
-				Male:  true,
-				Age:   10,
-				Other: map[string]bool{"married": true},
+				Name:    "xxx",
+				Male:    true,
+				Age:     10,
+				Hobbies: []string{"music"},
+				Other:   map[string]bool{"married": true},
 			},
 			wantDefs: map[string]Definition{
 				"Response": {
@@ -48,6 +50,13 @@ func TestAddDefinition(t *testing.T) {
 								Kind:   "basic",
 								Type:   "integer",
 								Format: "int64",
+							},
+						},
+						{
+							Name: "hobbies",
+							Type: JSONType{
+								Kind: "array",
+								Type: "string",
 							},
 						},
 						{

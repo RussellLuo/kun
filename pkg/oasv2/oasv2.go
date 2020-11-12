@@ -164,13 +164,13 @@ func AddDefinition(defs map[string]Definition, name string, value reflect.Value)
 		}
 	case reflect.Slice, reflect.Array:
 		elemType := value.Type().Elem()
-		elemTName := elemType.String()
+		elemName := elemType.String()
 		if elemType.Kind() != reflect.Struct {
-			panic(fmt.Errorf("only struct slice or arry is supported, but got %v", value))
+			panic(fmt.Errorf("only struct slice or array is supported, but got %v", value))
 		}
 
 		structValue := reflect.New(elemType)
-		AddDefinition(defs, elemTName, structValue)
+		AddDefinition(defs, elemName, structValue)
 
 	case reflect.Ptr:
 		if value.Elem().Kind() != reflect.Struct {
@@ -190,8 +190,24 @@ func addSubDefinition(defs map[string]Definition, name string, value reflect.Val
 	}
 
 	switch value.Kind() {
-	case reflect.Map, reflect.Ptr, reflect.Slice, reflect.Array:
+	case reflect.Map:
 		AddDefinition(defs, typeName, value)
+	case reflect.Slice, reflect.Array:
+		switch value.Type().Elem().Kind() {
+		case reflect.Bool, reflect.String,
+			reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		default:
+			AddDefinition(defs, typeName, value)
+		}
+	case reflect.Ptr:
+		switch value.Elem().Kind() {
+		case reflect.Bool, reflect.String,
+			reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		default:
+			AddDefinition(defs, typeName, value)
+		}
 	case reflect.Struct:
 		AddDefinition(defs, typeName, value)
 	case reflect.Interface:
