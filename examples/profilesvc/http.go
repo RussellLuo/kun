@@ -151,8 +151,8 @@ func decodeDeleteAddressRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var req DeleteAddressRequest
 
-		profileID := chi.URLParam(r, "id")
-		if err := codec.DecodeRequestParam("profileID", profileID, &req.ProfileID); err != nil {
+		id := chi.URLParam(r, "id")
+		if err := codec.DecodeRequestParam("id", id, &req.Id); err != nil {
 			return nil, err
 		}
 
@@ -182,8 +182,8 @@ func decodeGetAddressRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var req GetAddressRequest
 
-		profileID := chi.URLParam(r, "id")
-		if err := codec.DecodeRequestParam("profileID", profileID, &req.ProfileID); err != nil {
+		id := chi.URLParam(r, "id")
+		if err := codec.DecodeRequestParam("id", id, &req.Id); err != nil {
 			return nil, err
 		}
 
@@ -247,8 +247,8 @@ func decodePostAddressRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 			return nil, err
 		}
 
-		profileID := chi.URLParam(r, "id")
-		if err := codec.DecodeRequestParam("profileID", profileID, &req.ProfileID); err != nil {
+		id := chi.URLParam(r, "id")
+		if err := codec.DecodeRequestParam("id", id, &req.Id); err != nil {
 			return nil, err
 		}
 

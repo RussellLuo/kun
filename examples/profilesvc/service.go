@@ -14,38 +14,28 @@ type Service interface {
 	PostProfile(ctx context.Context, profile Profile) (err error)
 
 	// @kok(op): GET /profiles/{id}
-	// @kok(param): id < in:path
 	GetProfile(ctx context.Context, id string) (profile Profile, err error)
 
 	// @kok(op): PUT /profiles/{id}
-	// @kok(param): id < in:path
 	PutProfile(ctx context.Context, id string, profile Profile) (err error)
 
 	// @kok(op): PATCH /profiles/{id}
-	// @kok(param): id < in:path
 	PatchProfile(ctx context.Context, id string, profile Profile) (err error)
 
 	// @kok(op): DELETE /profiles/{id}
-	// @kok(param): id < in:path
 	DeleteProfile(ctx context.Context, id string) (err error)
 
 	// @kok(op): GET /profiles/{id}/addresses
-	// @kok(param): id < in:path
 	GetAddresses(ctx context.Context, id string) (addresses []Address, err error)
 
 	// @kok(op): GET /profiles/{id}/addresses/{addressID}
-	// @kok(param): profileID < in:path,name:id
-	// @kok(param): addressID < in:path
-	GetAddress(ctx context.Context, profileID string, addressID string) (address Address, err error)
+	GetAddress(ctx context.Context, id string, addressID string) (address Address, err error)
 
 	// @kok(op): POST /profiles/{id}/addresses
-	// @kok(param): profileID < in:path,name:id
-	PostAddress(ctx context.Context, profileID string, address Address) (err error)
+	PostAddress(ctx context.Context, id string, address Address) (err error)
 
 	// @kok(op): DELETE /profiles/{id}/addresses/{addressID}
-	// @kok(param): profileID < in:path,name:id
-	// @kok(param): addressID < in:path
-	DeleteAddress(ctx context.Context, profileID string, addressID string) (err error)
+	DeleteAddress(ctx context.Context, id string, addressID string) (err error)
 }
 
 // Profile represents a single user profile.

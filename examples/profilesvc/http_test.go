@@ -18,22 +18,22 @@ import (
 var _ Service = &ServiceMock{}
 
 type ServiceMock struct {
-	DeleteAddressFunc func(ctx context.Context, profileID string, addressID string) (err error)
+	DeleteAddressFunc func(ctx context.Context, id string, addressID string) (err error)
 	DeleteProfileFunc func(ctx context.Context, id string) (err error)
-	GetAddressFunc    func(ctx context.Context, profileID string, addressID string) (address Address, err error)
+	GetAddressFunc    func(ctx context.Context, id string, addressID string) (address Address, err error)
 	GetAddressesFunc  func(ctx context.Context, id string) (addresses []Address, err error)
 	GetProfileFunc    func(ctx context.Context, id string) (profile Profile, err error)
 	PatchProfileFunc  func(ctx context.Context, id string, profile Profile) (err error)
-	PostAddressFunc   func(ctx context.Context, profileID string, address Address) (err error)
+	PostAddressFunc   func(ctx context.Context, id string, address Address) (err error)
 	PostProfileFunc   func(ctx context.Context, profile Profile) (err error)
 	PutProfileFunc    func(ctx context.Context, id string, profile Profile) (err error)
 }
 
-func (mock *ServiceMock) DeleteAddress(ctx context.Context, profileID string, addressID string) (err error) {
+func (mock *ServiceMock) DeleteAddress(ctx context.Context, id string, addressID string) (err error) {
 	if mock.DeleteAddressFunc == nil {
 		panic("ServiceMock.DeleteAddressFunc: not implemented")
 	}
-	return mock.DeleteAddressFunc(ctx, profileID, addressID)
+	return mock.DeleteAddressFunc(ctx, id, addressID)
 }
 
 func (mock *ServiceMock) DeleteProfile(ctx context.Context, id string) (err error) {
@@ -43,11 +43,11 @@ func (mock *ServiceMock) DeleteProfile(ctx context.Context, id string) (err erro
 	return mock.DeleteProfileFunc(ctx, id)
 }
 
-func (mock *ServiceMock) GetAddress(ctx context.Context, profileID string, addressID string) (address Address, err error) {
+func (mock *ServiceMock) GetAddress(ctx context.Context, id string, addressID string) (address Address, err error) {
 	if mock.GetAddressFunc == nil {
 		panic("ServiceMock.GetAddressFunc: not implemented")
 	}
-	return mock.GetAddressFunc(ctx, profileID, addressID)
+	return mock.GetAddressFunc(ctx, id, addressID)
 }
 
 func (mock *ServiceMock) GetAddresses(ctx context.Context, id string) (addresses []Address, err error) {
@@ -71,11 +71,11 @@ func (mock *ServiceMock) PatchProfile(ctx context.Context, id string, profile Pr
 	return mock.PatchProfileFunc(ctx, id, profile)
 }
 
-func (mock *ServiceMock) PostAddress(ctx context.Context, profileID string, address Address) (err error) {
+func (mock *ServiceMock) PostAddress(ctx context.Context, id string, address Address) (err error) {
 	if mock.PostAddressFunc == nil {
 		panic("ServiceMock.PostAddressFunc: not implemented")
 	}
-	return mock.PostAddressFunc(ctx, profileID, address)
+	return mock.PostAddressFunc(ctx, id, address)
 }
 
 func (mock *ServiceMock) PostProfile(ctx context.Context, profile Profile) (err error) {
@@ -698,7 +698,7 @@ func TestHTTP_GetAddresses(t *testing.T) {
 func TestHTTP_GetAddress(t *testing.T) {
 	// in contains all the input parameters (except ctx) of GetAddress.
 	type in struct {
-		profileID string
+		id        string
 		addressID string
 	}
 
@@ -722,7 +722,7 @@ func TestHTTP_GetAddress(t *testing.T) {
 				path:   "/profiles/1234/addresses/0",
 			},
 			wantIn: in{
-				profileID: "1234",
+				id:        "1234",
 				addressID: "0",
 			},
 			out: out{
@@ -744,7 +744,7 @@ func TestHTTP_GetAddress(t *testing.T) {
 				path:   "/profiles/1234/addresses/9",
 			},
 			wantIn: in{
-				profileID: "1234",
+				id:        "1234",
 				addressID: "9",
 			},
 			out: out{
@@ -763,9 +763,9 @@ func TestHTTP_GetAddress(t *testing.T) {
 			var gotIn in
 			w := c.request.ServedBy(NewHTTPRouter(
 				&ServiceMock{
-					GetAddressFunc: func(ctx context.Context, profileID string, addressID string) (address Address, err error) {
+					GetAddressFunc: func(ctx context.Context, id string, addressID string) (address Address, err error) {
 						gotIn = in{
-							profileID: profileID,
+							id:        id,
 							addressID: addressID,
 						}
 						return c.out.address, c.out.err
@@ -788,8 +788,8 @@ func TestHTTP_GetAddress(t *testing.T) {
 func TestHTTP_PostAddress(t *testing.T) {
 	// in contains all the input parameters (except ctx) of PostAddress.
 	type in struct {
-		profileID string
-		address   Address
+		id      string
+		address Address
 	}
 
 	// out contains all the output parameters of PostAddress.
@@ -812,7 +812,7 @@ func TestHTTP_PostAddress(t *testing.T) {
 				body:   `{"address": {"id": "0", "location": "here"}}`,
 			},
 			wantIn: in{
-				profileID: "1234",
+				id: "1234",
 				address: Address{
 					ID:       "0",
 					Location: "here",
@@ -834,7 +834,7 @@ func TestHTTP_PostAddress(t *testing.T) {
 				body:   `{"address": {"id": "0", "location": "here"}}`,
 			},
 			wantIn: in{
-				profileID: "1234",
+				id: "1234",
 				address: Address{
 					ID:       "0",
 					Location: "here",
@@ -855,10 +855,10 @@ func TestHTTP_PostAddress(t *testing.T) {
 			var gotIn in
 			w := c.request.ServedBy(NewHTTPRouter(
 				&ServiceMock{
-					PostAddressFunc: func(ctx context.Context, profileID string, address Address) (err error) {
+					PostAddressFunc: func(ctx context.Context, id string, address Address) (err error) {
 						gotIn = in{
-							profileID: profileID,
-							address:   address,
+							id:      id,
+							address: address,
 						}
 						return c.out.err
 					},
@@ -880,7 +880,7 @@ func TestHTTP_PostAddress(t *testing.T) {
 func TestHTTP_DeleteAddress(t *testing.T) {
 	// in contains all the input parameters (except ctx) of DeleteAddress.
 	type in struct {
-		profileID string
+		id        string
 		addressID string
 	}
 
@@ -903,7 +903,7 @@ func TestHTTP_DeleteAddress(t *testing.T) {
 				path:   "/profiles/1234/addresses/0",
 			},
 			wantIn: in{
-				profileID: "1234",
+				id:        "1234",
 				addressID: "0",
 			},
 			out: out{
@@ -921,7 +921,7 @@ func TestHTTP_DeleteAddress(t *testing.T) {
 				path:   "/profiles/1234/addresses/9",
 			},
 			wantIn: in{
-				profileID: "1234",
+				id:        "1234",
 				addressID: "9",
 			},
 			out: out{
@@ -939,9 +939,9 @@ func TestHTTP_DeleteAddress(t *testing.T) {
 			var gotIn in
 			w := c.request.ServedBy(NewHTTPRouter(
 				&ServiceMock{
-					DeleteAddressFunc: func(ctx context.Context, profileID string, addressID string) (err error) {
+					DeleteAddressFunc: func(ctx context.Context, id string, addressID string) (err error) {
 						gotIn = in{
-							profileID: profileID,
+							id:        id,
 							addressID: addressID,
 						}
 						return c.out.err

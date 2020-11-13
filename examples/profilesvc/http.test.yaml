@@ -209,7 +209,7 @@ tests:
           method: 'GET'
           path: '/profiles/1234/addresses/0'
         wantIn: |
-          profileID: "1234",
+          id: "1234",
           addressID: "0",
         out: |
           address: Address{
@@ -225,7 +225,7 @@ tests:
           method: 'GET'
           path: '/profiles/1234/addresses/9'
         wantIn: |
-          profileID: "1234",
+          id: "1234",
           addressID: "9",
         out: |
           address: Address{},
@@ -241,7 +241,7 @@ tests:
           path: '/profiles/1234/addresses'
           body: '{"address": {"id": "0", "location": "here"}}'
         wantIn: |
-          profileID: "1234",
+          id: "1234",
           address: Address{
             ID:       "0",
             Location: "here",
@@ -257,7 +257,7 @@ tests:
           path: '/profiles/1234/addresses'
           body: '{"address": {"id": "0", "location": "here"}}'
         wantIn: |
-          profileID: "1234",
+          id: "1234",
           address: Address{
             ID:       "0",
             Location: "here",
@@ -274,7 +274,7 @@ tests:
           method: 'DELETE'
           path: '/profiles/1234/addresses/0'
         wantIn: |
-          profileID: "1234",
+          id: "1234",
           addressID: "0",
         out: |
           err: nil,
@@ -286,7 +286,7 @@ tests:
           method: 'DELETE'
           path: '/profiles/1234/addresses/9'
         wantIn: |
-          profileID: "1234",
+          id: "1234",
           addressID: "9",
         out: |
           err: ErrNotFound,

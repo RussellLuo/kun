@@ -11,6 +11,8 @@ import (
 
 var (
 	reKok = regexp.MustCompile(`@kok2?\((\w+)\):\s*(.+)$`)
+
+	rePathVarName = regexp.MustCompile(`{(\w+)}`)
 )
 
 func FromDoc(result *reflector.Result, doc map[string][]string) (*Specification, error) {
@@ -60,6 +62,27 @@ func FromDoc(result *reflector.Result, doc map[string][]string) (*Specification,
 func manipulateByComments(op *Operation, params map[string]*Param, results map[string]*reflector.Param, comments []string) error {
 	var prevParamName string
 
+	setParam := func(value, prevName string) (string, error) {
+		p := op.buildParamV2(value, prevName)
+
+		param, ok := params[p.Name]
+		if !ok {
+			return "", fmt.Errorf("no param `%s` declared in the method %s", p.Name, op.Name)
+		}
+
+		if !param.inUse {
+			param.Set(p)
+		} else {
+			copied := *param
+			param.Set(p)
+
+			// Add a new parameter with the same name.
+			op.addParam(&copied)
+		}
+
+		return p.Name, nil
+	}
+
 	for _, comment := range comments {
 		if !strings.Contains(comment, "@kok") {
 			continue
@@ -78,31 +101,23 @@ func manipulateByComments(op *Operation, params map[string]*Param, results map[s
 				return fmt.Errorf(`%q does not match the expected format: <METHOD> <PATTERN>`, value)
 			}
 			op.Method, op.Pattern = fields[0], fields[1]
+
 		case "param":
-			p := op.buildParamV2(value, prevParamName)
-			prevParamName = p.Name
-
-			param, ok := params[p.Name]
-			if !ok {
-				return fmt.Errorf("no param `%s` declared in the method %s", p.Name, op.Name)
+			name, err := setParam(value, prevParamName)
+			if err != nil {
+				return err
 			}
+			prevParamName = name
 
-			if !param.inUse {
-				param.Set(p)
-			} else {
-				copied := *param
-				param.Set(p)
-
-				// Add a new parameter with the same name.
-				op.addParam(&copied)
-			}
 		case "body":
 			if _, ok := params[value]; !ok {
 				return fmt.Errorf("no param `%s` declared in the method %s", value, op.Name)
 			}
 			op.Request.BodyField = value
+
 		case "success":
 			op.SuccessResponse = buildSuccessResponse(value, results, op.Name)
+
 		default:
 			return fmt.Errorf(`unrecognized kok key "%s" in comment: %s`, key, comment)
 		}
@@ -112,5 +127,43 @@ func manipulateByComments(op *Operation, params map[string]*Param, results map[s
 		return fmt.Errorf("method %s has no comment about @kok(op)", op.Name)
 	}
 
+	// Add path parameters according to the path pattern.
+	for _, name := range extractPathVarNames(op.Pattern) {
+		// If name is already bound to a path parameter that is specified in
+		// @kok(param), do not reset it.
+		if isAlreadyPathParam(name, op.Request.Params) {
+			continue
+		}
+
+		// Build the @kok(param) value according to the path variable name.
+		text := fmt.Sprintf("%s < in:path", name)
+
+		// Add this path parameter.
+		if _, err := setParam(text, ""); err != nil {
+			return err
+		}
+	}
+
 	return nil
+}
+
+func extractPathVarNames(pattern string) (names []string) {
+	result := rePathVarName.FindAllStringSubmatch(pattern, -1)
+	if len(result) == 0 {
+		return
+	}
+
+	for _, s := range result {
+		names = append(names, s[1])
+	}
+	return
+}
+
+func isAlreadyPathParam(name string, params []*Param) bool {
+	for _, param := range params {
+		if param.In == InPath && param.Alias == name {
+			return true
+		}
+	}
+	return false
 }

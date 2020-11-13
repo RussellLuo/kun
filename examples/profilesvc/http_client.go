@@ -35,11 +35,11 @@ func NewHTTPClient(codecs httpcodec.Codecs, httpClient *http.Client, baseURL str
 	}, nil
 }
 
-func (c *HTTPClient) DeleteAddress(ctx context.Context, profileID string, addressID string) (err error) {
+func (c *HTTPClient) DeleteAddress(ctx context.Context, id string, addressID string) (err error) {
 	codec := c.codecs.EncodeDecoder("DeleteAddress")
 
 	path := fmt.Sprintf("/profiles/%s/addresses/%s",
-		codec.EncodeRequestParam("profileID", profileID),
+		codec.EncodeRequestParam("id", id),
 		codec.EncodeRequestParam("addressID", addressID),
 	)
 	u := &url.URL{
@@ -106,11 +106,11 @@ func (c *HTTPClient) DeleteProfile(ctx context.Context, id string) (err error) {
 	}
 }
 
-func (c *HTTPClient) GetAddress(ctx context.Context, profileID string, addressID string) (address Address, err error) {
+func (c *HTTPClient) GetAddress(ctx context.Context, id string, addressID string) (address Address, err error) {
 	codec := c.codecs.EncodeDecoder("GetAddress")
 
 	path := fmt.Sprintf("/profiles/%s/addresses/%s",
-		codec.EncodeRequestParam("profileID", profileID),
+		codec.EncodeRequestParam("id", id),
 		codec.EncodeRequestParam("addressID", addressID),
 	)
 	u := &url.URL{
@@ -131,10 +131,8 @@ func (c *HTTPClient) GetAddress(ctx context.Context, profileID string, addressID
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= http.StatusOK && resp.StatusCode <= http.StatusNoContent {
-		var respBody struct {
-			Address Address `json:"address"`
-		}
-		err := codec.DecodeSuccessResponse(resp.Body, &respBody)
+		respBody := &GetAddressResponse{}
+		err := codec.DecodeSuccessResponse(resp.Body, respBody.Body())
 		if err != nil {
 			return Address{}, err
 		}
@@ -173,10 +171,8 @@ func (c *HTTPClient) GetAddresses(ctx context.Context, id string) (addresses []A
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= http.StatusOK && resp.StatusCode <= http.StatusNoContent {
-		var respBody struct {
-			Addresses []Address `json:"addresses"`
-		}
-		err := codec.DecodeSuccessResponse(resp.Body, &respBody)
+		respBody := &GetAddressesResponse{}
+		err := codec.DecodeSuccessResponse(resp.Body, respBody.Body())
 		if err != nil {
 			return nil, err
 		}
@@ -215,10 +211,8 @@ func (c *HTTPClient) GetProfile(ctx context.Context, id string) (profile Profile
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= http.StatusOK && resp.StatusCode <= http.StatusNoContent {
-		var respBody struct {
-			Profile Profile `json:"profile"`
-		}
-		err := codec.DecodeSuccessResponse(resp.Body, &respBody)
+		respBody := &GetProfileResponse{}
+		err := codec.DecodeSuccessResponse(resp.Body, respBody.Body())
 		if err != nil {
 			return Profile{}, err
 		}
@@ -282,11 +276,11 @@ func (c *HTTPClient) PatchProfile(ctx context.Context, id string, profile Profil
 	}
 }
 
-func (c *HTTPClient) PostAddress(ctx context.Context, profileID string, address Address) (err error) {
+func (c *HTTPClient) PostAddress(ctx context.Context, id string, address Address) (err error) {
 	codec := c.codecs.EncodeDecoder("PostAddress")
 
 	path := fmt.Sprintf("/profiles/%s/addresses",
-		codec.EncodeRequestParam("profileID", profileID),
+		codec.EncodeRequestParam("id", id),
 	)
 	u := &url.URL{
 		Scheme: c.scheme,
