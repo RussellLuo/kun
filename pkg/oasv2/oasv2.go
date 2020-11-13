@@ -36,12 +36,19 @@ var (
 `))
 
 	funcs = map[string]interface{}{
-		"isBasic": func(typ string) bool {
+		"basicJSONType": func(typ string) string {
 			switch typ {
-			case "boolean", "integer", "number", "string":
-				return true
+			case "bool":
+				return "boolean"
+			case "string":
+				return "string"
+			case "int", "int8", "int16", "int32", "int64",
+				"uint", "uint8", "uint16", "uint32", "uint64":
+				return "integer"
+			case "float32", "float64":
+				return "number"
 			default:
-				return false
+				return ""
 			}
 		},
 	}
@@ -69,8 +76,9 @@ definitions:
         {{- else if eq .Type.Kind "array"}}
         type: array
         items:
-          {{- if isBasic .Type.Type}}
-          type: "{{.Type.Type}}"
+          {{- $basicJSONType := basicJSONType .Type.Type}}
+          {{- if $basicJSONType}}
+          type: {{$basicJSONType}}
           {{- else}}
           $ref: "#/definitions/{{.Type.Type}}"
           {{- end}} {{/* if isBasic .Type.Type */}}
@@ -179,24 +187,33 @@ func AddDefinition(defs map[string]Definition, name string, value reflect.Value)
 	case reflect.Slice, reflect.Array:
 		elemType := value.Type().Elem()
 
-		if elemType.Kind() != reflect.Struct {
+		switch elemType.Kind() {
+		case reflect.Bool, reflect.String,
+			reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		case reflect.Struct:
+			elem := reflect.New(elemType).Elem()
+			AddDefinition(defs, elemType.Name(), elem)
+		case reflect.Ptr:
+			elemType = elemType.Elem()
+			for elemType.Kind() == reflect.Ptr {
+				elemType = elemType.Elem()
+			}
+			elem := reflect.New(elemType).Elem()
+			AddDefinition(defs, elemType.Name(), elem)
+		default:
 			panic(fmt.Errorf("only struct slice or array is supported, but got %v", elemType.String()))
 		}
 
-		structValue := reflect.New(elemType).Elem()
-		AddDefinition(defs, elemType.Name(), structValue)
+		/*defs[name] = Definition{
+			Type:                 "array",
+			ItemTypeOrProperties: getJSONType(elemType, elemType.Name()),
+		}*/
 
 	case reflect.Ptr:
 		elemType := value.Type().Elem()
-		if elemType.Kind() != reflect.Struct {
-			panic(fmt.Errorf("only struct pointer is supported, but got %v", elemType.String()))
-		}
-
-		elem := value.Elem()
-		if !elem.IsValid() {
-			elem = reflect.New(elemType).Elem()
-		}
-		AddDefinition(defs, elemType.Name(), elem)
+		elem := reflect.New(elemType).Elem()
+		AddDefinition(defs, name, elem) // Always use the input name
 
 	default:
 		panic(fmt.Errorf("unsupported type %s", value.Kind()))
@@ -213,21 +230,12 @@ func addSubDefinition(defs map[string]Definition, name string, value reflect.Val
 	case reflect.Map:
 		AddDefinition(defs, typeName, value)
 	case reflect.Slice, reflect.Array:
-		switch value.Type().Elem().Kind() {
-		case reflect.Bool, reflect.String,
-			reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		default:
-			AddDefinition(defs, typeName, value)
-		}
+		AddDefinition(defs, typeName, value)
 	case reflect.Ptr:
-		switch value.Elem().Kind() {
-		case reflect.Bool, reflect.String,
-			reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		default:
-			AddDefinition(defs, typeName, value)
-		}
+		elemType := value.Type().Elem()
+		elemName := elemType.Name()
+		elem := reflect.New(elemType).Elem()
+		AddDefinition(defs, elemName, elem)
 	case reflect.Struct:
 		AddDefinition(defs, typeName, value)
 	case reflect.Interface:
@@ -258,12 +266,13 @@ func getJSONType(typ reflect.Type, name string) JSONType {
 	case reflect.Map:
 		return JSONType{Kind: "object", Type: strings.Title(name)}
 	case reflect.Ptr:
-		if typ.Elem().Kind() != reflect.Struct {
-			panic(fmt.Errorf("only struct pointer is supported, but got %v", typ))
-		}
 		return getJSONType(typ.Elem(), name)
 	case reflect.Slice, reflect.Array:
-		return JSONType{Kind: "array", Type: typ.Elem().Name()}
+		elemType := typ.Elem()
+		for elemType.Kind() == reflect.Ptr {
+			elemType = elemType.Elem()
+		}
+		return JSONType{Kind: "array", Type: elemType.Name()}
 	default:
 		panic(fmt.Errorf("unsupported type %s", typ.Kind()))
 	}
