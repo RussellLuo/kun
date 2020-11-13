@@ -100,7 +100,7 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 		{{title .Name}}: {{.Name}},
 		{{- end}}
 	}
-	{{- end}}
+	{{- end}} {{/* if $op.Request.BodyField */}}
 	reqBodyReader, headers, err := codec.EncodeRequestBody(&reqBody)
 	if err != nil {
 		return {{returnErr .Returns}}
@@ -118,16 +118,16 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 	_req.Header.Set("{{.Alias}}", codec.EncodeRequestParam("{{.Name}}", {{.Name}}))
 	{{end}}
 
-	{{- else -}}
+	{{- else -}} {{/* if $bodyParams */}}
 
 	_req, err := http.NewRequest("{{$op.Method}}", u.String(), nil)
 	if err != nil {
 		return {{returnErr .Returns}}
 	}
 	{{- range $headerParams}}
-	_req.Header.Set("{{.Alias}}", {{.Name}})
+	_req.Header.Set("{{.Alias}}", codec.EncodeRequestParam("{{.Name}}", {{.Name}}))
 	{{end}}
-	{{- end}}
+	{{- end}} {{/* if $bodyParams */}}
 
 	resp, err := c.httpClient.Do(_req)
 	if err != nil {
@@ -155,7 +155,7 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 		return {{returnErr .Returns}}
 	}
 }
-{{- end}}
+{{- end}} {{/* range .DocMethods */}}
 `
 )
 
