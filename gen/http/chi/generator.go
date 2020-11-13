@@ -88,16 +88,16 @@ func NewHTTPRouterWithOAS(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}
 func decode{{.Name}}Request(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		{{- if $nonCtxParams}}
-		var req {{.Name}}Request
+		var _req {{.Name}}Request
 
 		{{end -}}
 
 		{{if .Request.BodyField -}}
-		if err := codec.DecodeRequestBody(r.Body, &req.{{title .Request.BodyField}}); err != nil {
+		if err := codec.DecodeRequestBody(r.Body, &_req.{{title .Request.BodyField}}); err != nil {
 			return nil, err
 		}
 		{{else if $hasBodyParams -}}
-		if err := codec.DecodeRequestBody(r.Body, &req); err != nil {
+		if err := codec.DecodeRequestBody(r.Body, &_req); err != nil {
 			return nil, err
 		}
 		{{end -}}
@@ -110,7 +110,7 @@ func decode{{.Name}}Request(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 			"{{.In}}.{{.Alias}}": {{extractParam .}},
 			{{- end}}
 		}
-		if err := codec.DecodeRequestParams("{{.Name}}", {{.Name}}, &req.{{title .Name}}); err != nil {
+		if err := codec.DecodeRequestParams("{{.Name}}", {{.Name}}, &_req.{{title .Name}}); err != nil {
 			return nil, err
 		}
 
@@ -118,12 +118,12 @@ func decode{{.Name}}Request(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 		{{- $property := index .Properties 0}}
 		{{.Name}} := {{$property | extractParam}}
 		{{- if $property.Required}}
-		if err := codec.DecodeRequestParam("{{.Name}}", {{.Name}}, &req.{{title .Name}}); err != nil {
+		if err := codec.DecodeRequestParam("{{.Name}}", {{.Name}}, &_req.{{title .Name}}); err != nil {
 			return nil, err
 		}
 		{{- else}} {{/* if $property.Required */}}
 		if {{.Name}} != "" {
-			if err := codec.DecodeRequestParam("{{.Name}}", {{.Name}}, &req.{{title .Name}}); err != nil {
+			if err := codec.DecodeRequestParam("{{.Name}}", {{.Name}}, &_req.{{title .Name}}); err != nil {
 				return nil, err
 			}
 		}
@@ -135,7 +135,7 @@ func decode{{.Name}}Request(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 
 		{{- if $nonCtxParams}}
 
-		return {{addAmpersand "req"}}, nil
+		return {{addAmpersand "_req"}}, nil
 		{{- else -}}
 		return nil, nil
 		{{- end}} {{/* End of if $nonCtxParams */}}

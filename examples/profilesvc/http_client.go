@@ -48,12 +48,12 @@ func (c *HTTPClient) DeleteAddress(ctx context.Context, id string, addressID str
 		Path:   c.pathPrefix + path,
 	}
 
-	req, err := http.NewRequest("DELETE", u.String(), nil)
+	_req, err := http.NewRequest("DELETE", u.String(), nil)
 	if err != nil {
 		return err
 	}
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.httpClient.Do(_req)
 	if err != nil {
 		return err
 	}
@@ -83,12 +83,12 @@ func (c *HTTPClient) DeleteProfile(ctx context.Context, id string) (err error) {
 		Path:   c.pathPrefix + path,
 	}
 
-	req, err := http.NewRequest("DELETE", u.String(), nil)
+	_req, err := http.NewRequest("DELETE", u.String(), nil)
 	if err != nil {
 		return err
 	}
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.httpClient.Do(_req)
 	if err != nil {
 		return err
 	}
@@ -119,12 +119,12 @@ func (c *HTTPClient) GetAddress(ctx context.Context, id string, addressID string
 		Path:   c.pathPrefix + path,
 	}
 
-	req, err := http.NewRequest("GET", u.String(), nil)
+	_req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
 		return Address{}, err
 	}
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.httpClient.Do(_req)
 	if err != nil {
 		return Address{}, err
 	}
@@ -159,12 +159,12 @@ func (c *HTTPClient) GetAddresses(ctx context.Context, id string) (addresses []A
 		Path:   c.pathPrefix + path,
 	}
 
-	req, err := http.NewRequest("GET", u.String(), nil)
+	_req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.httpClient.Do(_req)
 	if err != nil {
 		return nil, err
 	}
@@ -199,12 +199,12 @@ func (c *HTTPClient) GetProfile(ctx context.Context, id string) (profile Profile
 		Path:   c.pathPrefix + path,
 	}
 
-	req, err := http.NewRequest("GET", u.String(), nil)
+	_req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
 		return Profile{}, err
 	}
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.httpClient.Do(_req)
 	if err != nil {
 		return Profile{}, err
 	}
@@ -249,16 +249,16 @@ func (c *HTTPClient) PatchProfile(ctx context.Context, id string, profile Profil
 		return err
 	}
 
-	req, err := http.NewRequest("PATCH", u.String(), reqBodyReader)
+	_req, err := http.NewRequest("PATCH", u.String(), reqBodyReader)
 	if err != nil {
 		return err
 	}
 
 	for k, v := range headers {
-		req.Header.Set(k, v)
+		_req.Header.Set(k, v)
 	}
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.httpClient.Do(_req)
 	if err != nil {
 		return err
 	}
@@ -298,16 +298,16 @@ func (c *HTTPClient) PostAddress(ctx context.Context, id string, address Address
 		return err
 	}
 
-	req, err := http.NewRequest("POST", u.String(), reqBodyReader)
+	_req, err := http.NewRequest("POST", u.String(), reqBodyReader)
 	if err != nil {
 		return err
 	}
 
 	for k, v := range headers {
-		req.Header.Set(k, v)
+		_req.Header.Set(k, v)
 	}
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.httpClient.Do(_req)
 	if err != nil {
 		return err
 	}
@@ -345,16 +345,16 @@ func (c *HTTPClient) PostProfile(ctx context.Context, profile Profile) (err erro
 		return err
 	}
 
-	req, err := http.NewRequest("POST", u.String(), reqBodyReader)
+	_req, err := http.NewRequest("POST", u.String(), reqBodyReader)
 	if err != nil {
 		return err
 	}
 
 	for k, v := range headers {
-		req.Header.Set(k, v)
+		_req.Header.Set(k, v)
 	}
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.httpClient.Do(_req)
 	if err != nil {
 		return err
 	}
@@ -394,16 +394,16 @@ func (c *HTTPClient) PutProfile(ctx context.Context, id string, profile Profile)
 		return err
 	}
 
-	req, err := http.NewRequest("PUT", u.String(), reqBodyReader)
+	_req, err := http.NewRequest("PUT", u.String(), reqBodyReader)
 	if err != nil {
 		return err
 	}
 
 	for k, v := range headers {
-		req.Header.Set(k, v)
+		_req.Header.Set(k, v)
 	}
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.httpClient.Do(_req)
 	if err != nil {
 		return err
 	}

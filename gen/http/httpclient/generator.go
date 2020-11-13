@@ -106,30 +106,30 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 		return {{returnErr .Returns}}
 	}
 
-	req, err := http.NewRequest("{{$op.Method}}", u.String(), reqBodyReader)
+	_req, err := http.NewRequest("{{$op.Method}}", u.String(), reqBodyReader)
 	if err != nil {
 		return {{returnErr .Returns}}
 	}
 
 	for k, v := range headers {
-		req.Header.Set(k, v)
+		_req.Header.Set(k, v)
 	}
 	{{- range $headerParams}}
-	req.Header.Set("{{.Alias}}", codec.EncodeRequestParam("{{.Name}}", {{.Name}}))
+	_req.Header.Set("{{.Alias}}", codec.EncodeRequestParam("{{.Name}}", {{.Name}}))
 	{{end}}
 
 	{{- else -}}
 
-	req, err := http.NewRequest("{{$op.Method}}", u.String(), nil)
+	_req, err := http.NewRequest("{{$op.Method}}", u.String(), nil)
 	if err != nil {
 		return {{returnErr .Returns}}
 	}
 	{{- range $headerParams}}
-	req.Header.Set("{{.Alias}}", {{.Name}})
+	_req.Header.Set("{{.Alias}}", {{.Name}})
 	{{end}}
 	{{- end}}
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.httpClient.Do(_req)
 	if err != nil {
 		return {{returnErr .Returns}}
 	}
