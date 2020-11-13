@@ -195,13 +195,17 @@ See more examples [here](examples).
 - Value: `<method> <pattern>`
     + **method**: The request method
     + **pattern**: The request URL
+        - NOTE: All variables in **pattern** will be automatically bound to their corresponding method arguments (matches by name), as **path** parameters, if the variables are not specified as path parameters explicitly by `@kok(param)`.
 - Example:
 
     ```go
     type Service interface {
-        // @kok(op): POST /users
-        CreateUser(ctx context.Context) (err error)
+        // @kok(op): DELETE /users/{id}
+        DeleteUser(ctx context.Context, id int) (err error)
     }
+
+    // HTTP request:
+    // $ http DELETE /users/101
     ```
 
 </details>
@@ -216,6 +220,7 @@ See more examples [here](examples).
             + You do not need to repeat the **argName**, only the first one is required.
     + **in**:
         - **path**: The method argument is sourced from a [path parameter](https://swagger.io/docs/specification/describing-parameters/#path-parameters).
+            + Optional: All variables in **pattern** will be automatically bound to their corresponding method arguments (matches by name), as **path** parameters.
         - **query**: The method argument is sourced from a [query parameter](https://swagger.io/docs/specification/describing-parameters/#query-parameters).
         - **header**: The method argument is sourced from a [header parameter](https://swagger.io/docs/specification/describing-parameters/#header-parameters).
         - **cookie**: The method argument is sourced from a [cookie parameter](https://swagger.io/docs/specification/describing-parameters/#cookie-parameters).
@@ -238,12 +243,12 @@ See more examples [here](examples).
 
         ```go
         type Service interface {
-            // @kok(op): DELETE /users/{id}
-            // @kok(param): id < in:path
-            DeleteUser(ctx context.Context, id int) (err error)
+            // @kok(op): POST /users
+            CreateUser(ctx context.Context, name string, age int) (err error)
         }
 
-        // HTTP request: DELETE /users/101
+        // HTTP request:
+        // $ http POST /users name=tracey age=1
         ```
     + Argument aggregation:
 
@@ -268,8 +273,36 @@ See more examples [here](examples).
             CreateUser(ctx context.Context, user User) (err error)
         }
 
-        // HTTP request: POST /users?name=tracey&age=1
+        // HTTP request:
+        // $ http POST /users?name=tracey&age=1
         ```
+
+</details>
+
+<details>
+  <summary> Define the HTTP request body field </summary>
+
+- Key: `@kok(body)`
+- Value: `<field>`
+    + **field**: The name of the request field whose value is mapped to the HTTP request body.
+        - Optional: When omitted, a struct containing all the arguments (not located in **path**/**query**/**header**) will be used as the HTTP request body.
+- Example:
+
+    ```go
+    type User struct {
+        Name string `json:"name"`
+        Age  int    `json:"age"`
+    }
+
+    type Service interface {
+        // @kok(op): POST /users
+        // @kok(body): user
+        CreateUser(ctx context.Context, user User) (err error)
+    }
+
+    // HTTP request:
+    // $ http POST /users name=tracey age=1
+    ```
 
 </details>
 
@@ -278,16 +311,23 @@ See more examples [here](examples).
 
 
 - Key: `@kok(success)`
-- Value: `statusCode:<statusCode>`
+- Value: `statusCode:<statusCode>,body:<body>`
     + **statusCode**: The status code of the success HTTP response.
         - Optional: Defaults to 200 if not specified.
+    + **body**: The name of the response field whose value is mapped to the HTTP response body.
+        - Optional: When omitted, a struct containing all the results (except error) will be used as the HTTP response body.
 - Example:
 
     ```go
+    type User struct {
+        Name string `json:"name"`
+        Age  int    `json:"age"`
+    }
+
     type Service interface {
         // @kok(op): POST /users
-        // @kok(success): statusCode:201
-        CreateUser(ctx context.Context) (err error)
+        // @kok(success): statusCode:201,body:user
+        CreateUser(ctx context.Context) (user User, err error)
     }
     ```
 
