@@ -40,12 +40,12 @@ type {{.Name}}Request struct {
 {{- end}}
 
 {{if .Returns -}}
+
 type {{.Name}}Response struct {
 	{{- range .Returns}}
 	{{title .Name}} {{.Type}} {{addTag .Name .Type}}
 	{{- end}}
 }
-{{- end}}
 
 {{- $respBodyField := .Op.SuccessResponse.BodyField}}
 {{- if $respBodyField}}
@@ -53,6 +53,8 @@ func (r {{addAsterisks .Name}}Response) Body() interface{} { return r.{{title $r
 {{- else}}
 func (r {{addAsterisks .Name}}Response) Body() interface{} { return r }
 {{- end}}
+
+{{- end}} {{/* if .Returns */}}
 
 {{- $errParamName := getErrParamName .Returns}}
 {{- if $errParamName}}
