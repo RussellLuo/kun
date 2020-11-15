@@ -195,7 +195,7 @@ See more examples [here](examples).
 - Value: `<method> <pattern>`
     + **method**: The request method
     + **pattern**: The request URL
-        - NOTE: All variables in **pattern** will be automatically bound to their corresponding method arguments (matches by name), as **path** parameters, if the variables are not specified as path parameters explicitly by `@kok(param)`.
+        - NOTE: All variables (snake-case or camel-case) in **pattern** will be automatically bound to their corresponding method arguments (matches by name), as **path** parameters, if the variables are not specified as path parameters explicitly by `@kok(param)`.
 - Example:
 
     ```go
@@ -220,7 +220,7 @@ See more examples [here](examples).
             + You do not need to repeat the **argName**, only the first one is required.
     + **in**:
         - **path**: The method argument is sourced from a [path parameter](https://swagger.io/docs/specification/describing-parameters/#path-parameters).
-            + Optional: All variables in **pattern** will be automatically bound to their corresponding method arguments (matches by name), as **path** parameters.
+            + Optional: All variables (snake-case or camel-case) in **pattern** will be automatically bound to their corresponding method arguments (matches by name), as **path** parameters.
         - **query**: The method argument is sourced from a [query parameter](https://swagger.io/docs/specification/describing-parameters/#query-parameters).
         - **header**: The method argument is sourced from a [header parameter](https://swagger.io/docs/specification/describing-parameters/#header-parameters).
         - **cookie**: The method argument is sourced from a [cookie parameter](https://swagger.io/docs/specification/describing-parameters/#cookie-parameters).
