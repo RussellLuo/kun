@@ -21,10 +21,28 @@ func TestDecodeMapToStruct(t *testing.T) {
 		String string `kok:"string"`
 	}
 
+	testValue := value{
+		Int:    1,
+		Int8:   2,
+		Int16:  3,
+		Int32:  4,
+		Int64:  5,
+		Uint:   6,
+		Uint8:  7,
+		Uint16: 8,
+		Uint32: 9,
+		Uint64: 10,
+		Bool:   true,
+		String: "hello",
+	}
+
+	ptrToValue := &value{}
+	var nilPtrToValue *value = nil
+
 	cases := []struct {
 		name    string
 		in      map[string]string
-		out     interface{}
+		outPtr  interface{}
 		wantOut interface{}
 		wantErr error
 	}{
@@ -44,21 +62,57 @@ func TestDecodeMapToStruct(t *testing.T) {
 				"bool":   "true",
 				"string": "hello",
 			},
-			out: new(value),
-			wantOut: &value{
-				Int:    1,
-				Int8:   2,
-				Int16:  3,
-				Int32:  4,
-				Int64:  5,
-				Uint:   6,
-				Uint8:  7,
-				Uint16: 8,
-				Uint32: 9,
-				Uint64: 10,
-				Bool:   true,
-				String: "hello",
+			outPtr:  ptrToValue,
+			wantOut: testValue,
+		},
+		{
+			name: "pointer of struct pointer",
+			in: map[string]string{
+				"int":    "1",
+				"int8":   "2",
+				"int16":  "3",
+				"int32":  "4",
+				"int64":  "5",
+				"uint":   "6",
+				"uint8":  "7",
+				"uint16": "8",
+				"uint32": "9",
+				"uint64": "10",
+				"bool":   "true",
+				"string": "hello",
 			},
+			outPtr:  &ptrToValue,
+			wantOut: &testValue,
+		},
+		{
+			name: "pointer of nil struct pointer",
+			in: map[string]string{
+				"int":    "1",
+				"int8":   "2",
+				"int16":  "3",
+				"int32":  "4",
+				"int64":  "5",
+				"uint":   "6",
+				"uint8":  "7",
+				"uint16": "8",
+				"uint32": "9",
+				"uint64": "10",
+				"bool":   "true",
+				"string": "hello",
+			},
+			outPtr:  &nilPtrToValue,
+			wantOut: &testValue,
+		},
+		{
+			name: "nil",
+			in: map[string]string{
+				"int":    "1",
+				"uint":   "6",
+				"bool":   "true",
+				"string": "hello",
+			},
+			outPtr:  nil,
+			wantErr: errUnsupportedType,
 		},
 		{
 			name: "struct",
@@ -68,7 +122,7 @@ func TestDecodeMapToStruct(t *testing.T) {
 				"bool":   "true",
 				"string": "hello",
 			},
-			out:     value{},
+			outPtr:  value{},
 			wantErr: errUnsupportedType,
 		},
 		{
@@ -79,18 +133,21 @@ func TestDecodeMapToStruct(t *testing.T) {
 				"bool":   "true",
 				"string": "hello",
 			},
-			out:     new(string),
+			outPtr:  new(string),
 			wantErr: errUnsupportedType,
 		},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			err := DecodeMapToStruct(c.in, c.out)
+			err := DecodeMapToStruct(c.in, c.outPtr)
 			if err != c.wantErr {
 				t.Fatalf("Err: got (%#v), want (%#v)", err, c.wantErr)
 			}
-			if err == nil && !reflect.DeepEqual(c.out, c.wantOut) {
-				t.Fatalf("Out: got (%#v), want (%#v)", c.out, c.wantOut)
+			if err == nil {
+				out := reflect.ValueOf(c.outPtr).Elem().Interface()
+				if !reflect.DeepEqual(out, c.wantOut) {
+					t.Fatalf("Out: got (%#v), want (%#v)", out, c.wantOut)
+				}
 			}
 		})
 	}

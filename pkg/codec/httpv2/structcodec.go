@@ -30,20 +30,36 @@ func getFieldName(field reflect.StructField) (string, bool) {
 	}
 }
 
-// DecodeMapToStruct decodes a value from map[string]string to *struct.
+// DecodeMapToStruct decodes a value from map[string]string to struct (or *struct).
 func DecodeMapToStruct(in map[string]string, out interface{}) error {
 	outValue := reflect.ValueOf(out)
-	switch k := outValue.Kind(); {
-	case k == reflect.Ptr && outValue.Elem().Kind() == reflect.Struct:
-		outValue = outValue.Elem()
+	if outValue.Kind() != reflect.Ptr || outValue.IsNil() {
+		return errUnsupportedType
+	}
+
+	elemValue := outValue.Elem()
+	elemType := elemValue.Type()
+
+	var structValue reflect.Value
+
+	switch k := elemValue.Kind(); {
+	case k == reflect.Struct:
+		structValue = elemValue
+	case k == reflect.Ptr && elemType.Elem().Kind() == reflect.Struct:
+		// To handle possible nil pointer, always create a pointer
+		// to a new zero struct.
+		structValuePtr := reflect.New(elemType.Elem())
+		outValue.Elem().Set(structValuePtr)
+
+		structValue = structValuePtr.Elem()
 	default:
 		return errUnsupportedType
 	}
 
-	structType := outValue.Type()
+	structType := structValue.Type()
 	for i := 0; i < structType.NumField(); i++ {
 		field := structType.Field(i)
-		fieldValue := outValue.Field(i)
+		fieldValue := structValue.Field(i)
 
 		fieldName, omitted := getFieldName(field)
 		if omitted {
