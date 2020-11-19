@@ -13,28 +13,36 @@ const (
 )
 
 var (
-	errUnsupportedType = errors.New("unsupported type")
+	ErrUnsupportedType = errors.New("unsupported type")
+	ErrMissingRequired = errors.New("missing required field")
 )
 
-func getFieldName(field reflect.StructField) (string, bool) {
+func getFieldName(field reflect.StructField) (name string, required, omitted bool) {
 	kokTag := field.Tag.Get(tagName)
-	kokName := strings.SplitN(kokTag, ",", 2)[0]
+	parts := strings.SplitN(kokTag, ",", 2)
+
+	kokName := parts[0]
+	if len(parts) == 2 && parts[1] == "required" {
+		required = true
+	}
 
 	switch kokName {
 	case "":
-		return field.Name, false
+		name = field.Name
 	case "-":
-		return "", true
+		omitted = true
 	default:
-		return kokName, false
+		name = kokName
 	}
+
+	return
 }
 
 // DecodeMapToStruct decodes a value from map[string]string to struct (or *struct).
 func DecodeMapToStruct(in map[string]string, out interface{}) error {
 	outValue := reflect.ValueOf(out)
 	if outValue.Kind() != reflect.Ptr || outValue.IsNil() {
-		return errUnsupportedType
+		return ErrUnsupportedType
 	}
 
 	elemValue := outValue.Elem()
@@ -53,7 +61,7 @@ func DecodeMapToStruct(in map[string]string, out interface{}) error {
 
 		structValue = structValuePtr.Elem()
 	default:
-		return errUnsupportedType
+		return ErrUnsupportedType
 	}
 
 	structType := structValue.Type()
@@ -61,14 +69,17 @@ func DecodeMapToStruct(in map[string]string, out interface{}) error {
 		field := structType.Field(i)
 		fieldValue := structValue.Field(i)
 
-		fieldName, omitted := getFieldName(field)
+		fieldName, required, omitted := getFieldName(field)
 		if omitted {
 			continue
 		}
 
-		value, ok := in[fieldName]
-		if !ok {
-			continue
+		value := in[fieldName]
+		if value == "" {
+			if !required {
+				continue
+			}
+			return ErrMissingRequired
 		}
 
 		switch fieldValue.Kind() {
@@ -109,7 +120,7 @@ func EncodeStructToMap(in interface{}, out *map[string]string) error {
 		inValue = inValue.Elem()
 	case k == reflect.Struct:
 	default:
-		return errUnsupportedType
+		return ErrUnsupportedType
 	}
 
 	if out == nil {
@@ -122,7 +133,7 @@ func EncodeStructToMap(in interface{}, out *map[string]string) error {
 		field := structType.Field(i)
 		fieldValue := inValue.Field(i)
 
-		fieldName, omitted := getFieldName(field)
+		fieldName, _, omitted := getFieldName(field)
 		if omitted {
 			continue
 		}

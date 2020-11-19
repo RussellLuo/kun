@@ -62,7 +62,7 @@ func (jc JSONCodec) DecodeRequestParam(name, value string, out interface{}) erro
 
 func (jc JSONCodec) DecodeRequestParams(name string, values map[string]string, out interface{}) error {
 	if err := DecodeMapToStruct(values, out); err != nil {
-		if err == errUnsupportedType {
+		if err == ErrUnsupportedType {
 			panic(fmt.Errorf("DecodeRequestParams not implemented for %q (of type %T)", name, out))
 		}
 		return werror.Wrap(googlecode.ErrInvalidArgument).SetError(err)
@@ -105,7 +105,7 @@ func (jc JSONCodec) EncodeRequestParam(name string, value interface{}) string {
 func (jc JSONCodec) EncodeRequestParams(name string, value interface{}) map[string]string {
 	out := make(map[string]string)
 	if err := EncodeStructToMap(value, &out); err != nil {
-		if err == errUnsupportedType {
+		if err == ErrUnsupportedType {
 			panic(fmt.Errorf("EncodeRequestParams not implemented for %q (of type %T)", name, out))
 		}
 		panic(err)

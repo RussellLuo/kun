@@ -7,33 +7,35 @@ import (
 
 func TestDecodeMapToStruct(t *testing.T) {
 	type value struct {
-		Int    int    `kok:"int"`
-		Int8   int8   `kok:"int8"`
-		Int16  int16  `kok:"int16"`
-		Int32  int32  `kok:"int32"`
-		Int64  int64  `kok:"int64"`
-		Uint   uint   `kok:"uint"`
-		Uint8  uint8  `kok:"uint8"`
-		Uint16 uint16 `kok:"uint16"`
-		Uint32 uint32 `kok:"uint32"`
-		Uint64 uint64 `kok:"uint64"`
-		Bool   bool   `kok:"bool"`
-		String string `kok:"string"`
+		Int      int    `kok:"int"`
+		Int8     int8   `kok:"int8"`
+		Int16    int16  `kok:"int16"`
+		Int32    int32  `kok:"int32"`
+		Int64    int64  `kok:"int64"`
+		Uint     uint   `kok:"uint"`
+		Uint8    uint8  `kok:"uint8"`
+		Uint16   uint16 `kok:"uint16"`
+		Uint32   uint32 `kok:"uint32"`
+		Uint64   uint64 `kok:"uint64"`
+		Bool     bool   `kok:"bool"`
+		String   string `kok:"string"`
+		Required string `kok:"required,required"`
 	}
 
 	testValue := value{
-		Int:    1,
-		Int8:   2,
-		Int16:  3,
-		Int32:  4,
-		Int64:  5,
-		Uint:   6,
-		Uint8:  7,
-		Uint16: 8,
-		Uint32: 9,
-		Uint64: 10,
-		Bool:   true,
-		String: "hello",
+		Int:      1,
+		Int8:     2,
+		Int16:    3,
+		Int32:    4,
+		Int64:    5,
+		Uint:     6,
+		Uint8:    7,
+		Uint16:   8,
+		Uint32:   9,
+		Uint64:   10,
+		Bool:     true,
+		String:   "hello",
+		Required: "wow",
 	}
 
 	ptrToValue := &value{}
@@ -47,20 +49,38 @@ func TestDecodeMapToStruct(t *testing.T) {
 		wantErr error
 	}{
 		{
+			name: "missing optional field",
+			in: map[string]string{
+				"string":   "",
+				"required": "wow",
+			},
+			outPtr:  ptrToValue,
+			wantOut: value{Required: "wow"},
+		},
+		{
+			name: "missing required field",
+			in: map[string]string{
+				"required": "",
+			},
+			outPtr:  ptrToValue,
+			wantErr: ErrMissingRequired,
+		},
+		{
 			name: "struct pointer",
 			in: map[string]string{
-				"int":    "1",
-				"int8":   "2",
-				"int16":  "3",
-				"int32":  "4",
-				"int64":  "5",
-				"uint":   "6",
-				"uint8":  "7",
-				"uint16": "8",
-				"uint32": "9",
-				"uint64": "10",
-				"bool":   "true",
-				"string": "hello",
+				"int":      "1",
+				"int8":     "2",
+				"int16":    "3",
+				"int32":    "4",
+				"int64":    "5",
+				"uint":     "6",
+				"uint8":    "7",
+				"uint16":   "8",
+				"uint32":   "9",
+				"uint64":   "10",
+				"bool":     "true",
+				"string":   "hello",
+				"required": "wow",
 			},
 			outPtr:  ptrToValue,
 			wantOut: testValue,
@@ -68,18 +88,19 @@ func TestDecodeMapToStruct(t *testing.T) {
 		{
 			name: "pointer of struct pointer",
 			in: map[string]string{
-				"int":    "1",
-				"int8":   "2",
-				"int16":  "3",
-				"int32":  "4",
-				"int64":  "5",
-				"uint":   "6",
-				"uint8":  "7",
-				"uint16": "8",
-				"uint32": "9",
-				"uint64": "10",
-				"bool":   "true",
-				"string": "hello",
+				"int":      "1",
+				"int8":     "2",
+				"int16":    "3",
+				"int32":    "4",
+				"int64":    "5",
+				"uint":     "6",
+				"uint8":    "7",
+				"uint16":   "8",
+				"uint32":   "9",
+				"uint64":   "10",
+				"bool":     "true",
+				"string":   "hello",
+				"required": "wow",
 			},
 			outPtr:  &ptrToValue,
 			wantOut: &testValue,
@@ -87,18 +108,19 @@ func TestDecodeMapToStruct(t *testing.T) {
 		{
 			name: "pointer of nil struct pointer",
 			in: map[string]string{
-				"int":    "1",
-				"int8":   "2",
-				"int16":  "3",
-				"int32":  "4",
-				"int64":  "5",
-				"uint":   "6",
-				"uint8":  "7",
-				"uint16": "8",
-				"uint32": "9",
-				"uint64": "10",
-				"bool":   "true",
-				"string": "hello",
+				"int":      "1",
+				"int8":     "2",
+				"int16":    "3",
+				"int32":    "4",
+				"int64":    "5",
+				"uint":     "6",
+				"uint8":    "7",
+				"uint16":   "8",
+				"uint32":   "9",
+				"uint64":   "10",
+				"bool":     "true",
+				"string":   "hello",
+				"required": "wow",
 			},
 			outPtr:  &nilPtrToValue,
 			wantOut: &testValue,
@@ -112,7 +134,7 @@ func TestDecodeMapToStruct(t *testing.T) {
 				"string": "hello",
 			},
 			outPtr:  nil,
-			wantErr: errUnsupportedType,
+			wantErr: ErrUnsupportedType,
 		},
 		{
 			name: "struct",
@@ -123,7 +145,7 @@ func TestDecodeMapToStruct(t *testing.T) {
 				"string": "hello",
 			},
 			outPtr:  value{},
-			wantErr: errUnsupportedType,
+			wantErr: ErrUnsupportedType,
 		},
 		{
 			name: "string",
@@ -134,7 +156,7 @@ func TestDecodeMapToStruct(t *testing.T) {
 				"string": "hello",
 			},
 			outPtr:  new(string),
-			wantErr: errUnsupportedType,
+			wantErr: ErrUnsupportedType,
 		},
 	}
 	for _, c := range cases {
@@ -240,7 +262,7 @@ func TestEncodeStructToMap(t *testing.T) {
 		{
 			name:    "string",
 			in:      "",
-			wantErr: errUnsupportedType,
+			wantErr: ErrUnsupportedType,
 		},
 	}
 	for _, c := range cases {
