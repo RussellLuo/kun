@@ -222,6 +222,7 @@ See more examples [here](examples).
         - **path**: The method argument is sourced from a [path parameter](https://swagger.io/docs/specification/describing-parameters/#path-parameters).
             + Optional: All variables (snake-case or camel-case) in **pattern** will be automatically bound to their corresponding method arguments (matches by name), as **path** parameters.
         - **query**: The method argument is sourced from a [query parameter](https://swagger.io/docs/specification/describing-parameters/#query-parameters).
+            + To receive multi-valued query parameter, the method argument can be defined as a slice of basic type.
         - **header**: The method argument is sourced from a [header parameter](https://swagger.io/docs/specification/describing-parameters/#header-parameters).
         - **cookie**: The method argument is sourced from a [cookie parameter](https://swagger.io/docs/specification/describing-parameters/#cookie-parameters).
             + Not supported yet.
@@ -254,14 +255,16 @@ See more examples [here](examples).
 
         ```go
         type User struct {
-            Name string `kok:"query.name"`
-            Age  int    `kok:"query.age"`
+            Name    string   `kok:"query.name"`
+            Age     int      `kok:"query.age"`
+            Hobbies []string `kok:"query.hobby"`
         }
 
         type Service interface {
             // @kok(op): POST /users
             // @kok(param): user < in:query,name:name,type:string
             // @kok(param): user < in:query,name:age,type:int
+            // @kok(param): user < in:query,name:hobby,type:[]string
             CreateUser(ctx context.Context, user User) (err error)
         }
 
@@ -270,11 +273,12 @@ See more examples [here](examples).
             // @kok(op): POST /users
             // @kok(param): user < in:query,name:name,type:string
             // @kok(param):      < in:query,name:age,type:int
+            // @kok(param):      < in:query,name:hobby,type:[]string
             CreateUser(ctx context.Context, user User) (err error)
         }
 
         // HTTP request:
-        // $ http POST /users?name=tracey&age=1
+        // $ http POST /users?name=tracey&age=1&hobby=music&hobby=sport
         ```
 
 </details>
