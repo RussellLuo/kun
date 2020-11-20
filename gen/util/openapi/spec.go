@@ -3,6 +3,7 @@ package openapi
 import (
 	"errors"
 	"fmt"
+	"go/types"
 	"net/http"
 	"reflect"
 	"strings"
@@ -40,8 +41,9 @@ func (s *Specification) Path(pattern string, operations ...*Operation) *Specific
 }
 
 type Param struct {
-	Name      string // Method argument name
-	Type      string // Method argument type
+	Name      string     // Method argument name
+	Type      string     // Method argument type
+	RawType   types.Type // The raw Go type of the method argument
 	In        string
 	Alias     string // Request parameter name
 	AliasType string // Request parameter type
@@ -226,6 +228,10 @@ func (o *Operation) buildParamV2(text, prevParamName string) *Param {
 		switch k {
 		case "in":
 			p.In = v
+
+			if p.In == InBody {
+				fmt.Println("WARNING: manually specifying `in:body` is depreated, and it will be suppressed by `@kok(body): -`")
+			}
 		case "name":
 			p.Alias = v
 		case "type":

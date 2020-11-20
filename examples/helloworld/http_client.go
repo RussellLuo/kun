@@ -54,16 +54,16 @@ func (c *HTTPClient) SayHello(ctx context.Context, name string) (message string,
 		return "", err
 	}
 
-	req, err := http.NewRequest("POST", u.String(), reqBodyReader)
+	_req, err := http.NewRequest("POST", u.String(), reqBodyReader)
 	if err != nil {
 		return "", err
 	}
 
 	for k, v := range headers {
-		req.Header.Set(k, v)
+		_req.Header.Set(k, v)
 	}
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.httpClient.Do(_req)
 	if err != nil {
 		return "", err
 	}

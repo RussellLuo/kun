@@ -17,7 +17,7 @@ var (
 	ErrMissingRequired = errors.New("missing required field")
 )
 
-func getFieldName(field reflect.StructField) (name string, required, omitted bool) {
+func GetFieldName(field reflect.StructField) (name string, required, omitted bool) {
 	kokTag := field.Tag.Get(tagName)
 	parts := strings.SplitN(kokTag, ",", 2)
 
@@ -69,7 +69,7 @@ func DecodeMapToStruct(in map[string]string, out interface{}) error {
 		field := structType.Field(i)
 		fieldValue := structValue.Field(i)
 
-		fieldName, required, omitted := getFieldName(field)
+		fieldName, required, omitted := GetFieldName(field)
 		if omitted {
 			continue
 		}
@@ -129,7 +129,7 @@ func EncodeStructToMap(in interface{}, out *map[string]string) error {
 		field := structType.Field(i)
 		fieldValue := inValue.Field(i)
 
-		fieldName, _, omitted := getFieldName(field)
+		fieldName, _, omitted := GetFieldName(field)
 		if omitted {
 			continue
 		}

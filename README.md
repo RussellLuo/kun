@@ -290,6 +290,7 @@ See more examples [here](examples).
 - Value: `<field>`
     + **field**: The name of the request field whose value is mapped to the HTTP request body.
         - Optional: When omitted, a struct containing all the arguments (not located in **path**/**query**/**header**) will be used as the HTTP request body.
+        - The special name `-` can be used in the body, to define that every argument (not located in **path**/**query**/**header**) will be mapped to a query parameter.
 - Example:
 
     ```go
@@ -306,6 +307,23 @@ See more examples [here](examples).
 
     // HTTP request:
     // $ http POST /users name=tracey age=1
+    ```
+
+    ```go
+    type User struct {
+        Name    string   `kok:"query.name"`
+        Age     int      `kok:"query.age"`
+        Hobbies []string `kok:"query.hobby"`
+    }
+
+    type Service interface {
+        // @kok(op): POST /users
+        // @kok(body): -
+        CreateUser(ctx context.Context, user User) (err error)
+    }
+
+    // HTTP request:
+    // $ http POST /users?name=tracey&age=1&hobby=music&hobby=sport
     ```
 
 </details>

@@ -101,17 +101,18 @@ func getDefinitions(schema oasv2.Schema) map[string]oasv2.Definition {
 
 	{{range .Spec.Operations -}}
 
-    {{- $nonCtxParams := nonCtxParams .Request.Params}}
-    {{- $bodyParams := bodyParams $nonCtxParams}}
-	{{- if .Request.BodyField}}
-	oasv2.AddDefinition(defs, "{{.Name}}RequestBody", reflect.ValueOf(({{addAmpersand .Name}}Request{}).{{title .Request.BodyField}}))
+	{{- $nonCtxParams := nonCtxParams .Request.Params}}
+	{{- $bodyParams := bodyParams $nonCtxParams}}
+	{{- $bodyField := getBodyField .Request.BodyField}}
+	{{- if $bodyField}}
+	oasv2.AddDefinition(defs, "{{.Name}}RequestBody", reflect.ValueOf(({{addAmpersand .Name}}Request{}).{{title $bodyField}}))
 	{{- else if $bodyParams}}
 	oasv2.AddDefinition(defs, "{{.Name}}RequestBody", reflect.ValueOf(&struct{
 		{{- range $bodyParams}}
 		{{title .Name}} {{.Type}} {{addTag .Alias .Type}}
 		{{- end}} {{/* range $bodyParams */}}
 	}{}))
-	{{- end}} {{/* if .Request.BodyField */}}
+	{{- end}} {{/* if $bodyField */}}
 	oasv2.AddResponseDefinitions(defs, schema, "{{.Name}}", {{.SuccessResponse.StatusCode}}, ({{addAmpersand .Name}}Response{}).Body())
 
     {{end -}} {{/* range .Spec.Operations */}}
@@ -240,6 +241,12 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 				}
 
 				return fmt.Sprintf("`%s:\"%s\"`", g.opts.SchemaTag, name)
+			},
+			"getBodyField": func(name string) string {
+				if name != "" && name != openapi.OptionNoBody {
+					return name
+				}
+				return ""
 			},
 		},
 		Formatted: g.opts.Formatted,

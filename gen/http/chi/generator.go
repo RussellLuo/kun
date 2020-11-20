@@ -84,6 +84,7 @@ func NewHTTPRouterWithOAS(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}
 {{- $nonCtxParams := nonCtxParams .Request.Params}}
 {{- $nonBodyParamsGroupByName := nonBodyParamsGroupByName $nonCtxParams}}
 {{- $hasBodyParams := hasBodyParams $nonCtxParams}}
+{{- $bodyField := getBodyField .Request.BodyField}}
 
 func decode{{.Name}}Request(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
@@ -92,8 +93,8 @@ func decode{{.Name}}Request(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 
 		{{end -}}
 
-		{{if .Request.BodyField -}}
-		if err := codec.DecodeRequestBody(r.Body, &_req.{{title .Request.BodyField}}); err != nil {
+		{{if $bodyField -}}
+		if err := codec.DecodeRequestBody(r.Body, &_req.{{title $bodyField}}); err != nil {
 			return nil, err
 		}
 		{{else if $hasBodyParams -}}
@@ -293,6 +294,12 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 					panic(fmt.Errorf("statusCode must be 204, since method %q returns no result", name))
 				}
 				return givenStatusCode
+			},
+			"getBodyField": func(name string) string {
+				if name != "" && name != openapi.OptionNoBody {
+					return name
+				}
+				return ""
 			},
 		},
 		Formatted: g.opts.Formatted,

@@ -2,12 +2,19 @@ package openapi
 
 import (
 	"fmt"
+	"go/types"
 	"net/http"
+	"reflect"
 	"regexp"
 	"strings"
 
 	"github.com/RussellLuo/kok/gen/util/misc"
 	"github.com/RussellLuo/kok/gen/util/reflector"
+	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv2"
+)
+
+const (
+	OptionNoBody = "-"
 )
 
 var (
@@ -33,6 +40,7 @@ func FromDoc(result *reflector.Result, doc map[string][]string) (*Specification,
 			p := &Param{
 				In:        InBody, // param is in body by default
 				Type:      mp.Type,
+				RawType:   mp.RawType, // used for adding query parameters later
 				AliasType: mp.Type,
 			}
 			p.SetName(mp.Name)
@@ -111,7 +119,7 @@ func manipulateByComments(op *Operation, params map[string]*Param, results map[s
 			prevParamName = name
 
 		case "body":
-			if _, ok := params[value]; !ok {
+			if _, ok := params[value]; value != OptionNoBody && !ok {
 				return fmt.Errorf("no param `%s` declared in the method %s", value, op.Name)
 			}
 			op.Request.BodyField = value
@@ -145,6 +153,15 @@ func manipulateByComments(op *Operation, params map[string]*Param, results map[s
 		}
 	}
 
+	// Add possible query parameters if no-request-body is specified.
+	if op.Request.BodyField == OptionNoBody {
+		for _, text := range makeKokQueryParamTextsFromBodyParams(params) {
+			if _, err := setParam(text, ""); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -169,4 +186,62 @@ func isAlreadyPathParam(name string, params []*Param) bool {
 		}
 	}
 	return false
+}
+
+func makeKokQueryParamTextsFromBodyParams(params map[string]*Param) (texts []string) {
+	for _, p := range params {
+		if p.In != InBody || p.Name == "ctx" {
+			// Ignore non-body parameters and the special context.Context parameter.
+			continue
+		}
+
+		nameTypes := make(map[string]string)
+
+		// Build the kok tag text.
+		switch t := p.RawType.Underlying().(type) {
+		case *types.Basic:
+			nameTypes[p.Alias] = t.Name()
+		case *types.Slice:
+			et, ok := t.Elem().(*types.Basic)
+			if !ok {
+				panic(fmt.Errorf("query parameter cannot be mapped to argument %q of type %v", p.Name, t))
+			}
+			nameTypes[p.Alias] = "[]" + et.Name()
+		case *types.Struct:
+			for i := 0; i < t.NumFields(); i++ {
+				var typeName string
+				switch ft := t.Field(i).Type().(type) {
+				case *types.Basic:
+					typeName = ft.Name()
+				case *types.Slice:
+					et, ok := ft.Elem().(*types.Basic)
+					if !ok {
+						panic(fmt.Errorf("query parameter cannot be mapped to struct field %q of type %v", t.Field(i).Name(), ft))
+					}
+					typeName = "[]" + et.Name()
+				default:
+					panic(fmt.Errorf("query parameter cannot be mapped to struct field %q of type %v", t.Field(i).Name(), ft))
+				}
+
+				field := reflect.StructField{
+					Tag:  reflect.StructTag(t.Tag(i)),
+					Name: t.Field(i).Name(),
+				}
+				name, _, _ := httpcodec.GetFieldName(field)
+				if strings.HasPrefix(name, "query.") {
+					// Only add the field that is mapped to a query parameter.
+					name = strings.TrimPrefix(name, "query.") // get the real query name
+					nameTypes[name] = typeName
+				}
+			}
+		default:
+			panic(fmt.Errorf("query parameter cannot be mapped to argument %q of type %v", p.Name, t))
+		}
+
+		for name, typ := range nameTypes {
+			texts = append(texts, fmt.Sprintf("%s < in:query,name:%s,type:%s", p.Name, name, typ))
+		}
+	}
+
+	return
 }

@@ -45,12 +45,12 @@ func NewHTTPRouterWithOAS(svc Service, codecs httpcodec.Codecs, schema oasv2.Sch
 
 func decodeSayHelloRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
-		var req SayHelloRequest
+		var _req SayHelloRequest
 
-		if err := codec.DecodeRequestBody(r.Body, &req); err != nil {
+		if err := codec.DecodeRequestBody(r.Body, &_req); err != nil {
 			return nil, err
 		}
 
-		return &req, nil
+		return &_req, nil
 	}
 }
