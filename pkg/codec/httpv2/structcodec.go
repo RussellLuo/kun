@@ -83,28 +83,24 @@ func DecodeMapToStruct(in map[string]string, out interface{}) error {
 		}
 
 		switch fieldValue.Kind() {
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			v, err := strconv.ParseInt(value, 10, 64)
-			if err != nil {
-				return err
+		case reflect.Slice, reflect.Array:
+			elemValue := reflect.New(fieldValue.Type().Elem()).Elem()
+			for _, s := range QueryStringToList(value) {
+				if err := decodeStringToBasic(elemValue, s); err != nil {
+					if err == ErrUnsupportedType {
+						return fmt.Errorf("unsupported field value: %v", fieldValue)
+					}
+					return err
+				}
+				fieldValue.Set(reflect.Append(fieldValue, elemValue))
 			}
-			fieldValue.SetInt(v)
-		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-			v, err := strconv.ParseUint(value, 10, 64)
-			if err != nil {
-				return err
-			}
-			fieldValue.SetUint(v)
-		case reflect.Bool:
-			v, err := strconv.ParseBool(value)
-			if err != nil {
-				return err
-			}
-			fieldValue.SetBool(v)
-		case reflect.String:
-			fieldValue.SetString(value)
 		default:
-			panic(fmt.Errorf("unsupported field value: %v", fieldValue))
+			if err := decodeStringToBasic(fieldValue, value); err != nil {
+				if err == ErrUnsupportedType {
+					return fmt.Errorf("unsupported field value: %v", fieldValue)
+				}
+				return err
+			}
 		}
 	}
 
@@ -139,21 +135,85 @@ func EncodeStructToMap(in interface{}, out *map[string]string) error {
 		}
 
 		switch fieldValue.Kind() {
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			v := fieldValue.Int()
-			outMap[fieldName] = strconv.FormatInt(v, 10)
-		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-			v := fieldValue.Uint()
-			outMap[fieldName] = strconv.FormatUint(v, 10)
-		case reflect.Bool:
-			v := fieldValue.Bool()
-			outMap[fieldName] = strconv.FormatBool(v)
-		case reflect.String:
-			outMap[fieldName] = fieldValue.String()
+		case reflect.Slice, reflect.Array:
+			var l []string
+			for i := 0; i < fieldValue.Len(); i++ {
+				elem := fieldValue.Index(i)
+				s, err := encodeBasicToString(elem)
+				if err != nil {
+					if err == ErrUnsupportedType {
+						return fmt.Errorf("unsupported field value: %v", fieldValue)
+					}
+					return err
+				}
+
+				if s != "" {
+					l = append(l, s)
+				}
+			}
+			qs := QueryListToString(l)
+			if qs != "" {
+				outMap[fieldName] = qs
+			}
 		default:
-			panic(fmt.Errorf("unsupported field value: %v", fieldValue))
+			s, err := encodeBasicToString(fieldValue)
+			if err != nil {
+				if err == ErrUnsupportedType {
+					return fmt.Errorf("unsupported field value: %v", fieldValue)
+				}
+				return err
+			}
+			if s != "" {
+				outMap[fieldName] = s
+			}
 		}
 	}
 
 	return nil
+}
+
+func decodeStringToBasic(field reflect.Value, value string) error {
+	switch field.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		v, err := strconv.ParseInt(value, 10, 64)
+		if err != nil {
+			return err
+		}
+		field.SetInt(v)
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		v, err := strconv.ParseUint(value, 10, 64)
+		if err != nil {
+			return err
+		}
+		field.SetUint(v)
+	case reflect.Bool:
+		v, err := strconv.ParseBool(value)
+		if err != nil {
+			return err
+		}
+		field.SetBool(v)
+	case reflect.String:
+		field.SetString(value)
+	default:
+		return ErrUnsupportedType
+	}
+	return nil
+}
+
+func encodeBasicToString(field reflect.Value) (string, error) {
+	switch field.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		v := field.Int()
+		return strconv.FormatInt(v, 10), nil
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		v := field.Uint()
+		return strconv.FormatUint(v, 10), nil
+	case reflect.Bool:
+		v := field.Bool()
+		return strconv.FormatBool(v), nil
+	case reflect.String:
+		return field.String(), nil
+	default:
+		return "", ErrUnsupportedType
+	}
 }

@@ -82,7 +82,9 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 	{{if $queryParams -}}
 	q := u.Query()
 	{{- range $queryParams}}
-	q.Set("{{.Alias}}", codec.EncodeRequestParam("{{.Name}}", {{.Name}}))
+	for _, v := range httpcodec.QueryStringToList(codec.EncodeRequestParam("{{.Name}}", {{.Name}})) {
+		q.Add("{{.Alias}}", v)
+	}
 	{{- end}}
 	u.RawQuery = q.Encode()
 	{{- end}}

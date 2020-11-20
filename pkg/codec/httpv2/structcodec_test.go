@@ -7,34 +7,85 @@ import (
 
 func TestDecodeMapToStruct(t *testing.T) {
 	type value struct {
-		Int      int    `kok:"int"`
-		Int8     int8   `kok:"int8"`
-		Int16    int16  `kok:"int16"`
-		Int32    int32  `kok:"int32"`
-		Int64    int64  `kok:"int64"`
-		Uint     uint   `kok:"uint"`
-		Uint8    uint8  `kok:"uint8"`
-		Uint16   uint16 `kok:"uint16"`
-		Uint32   uint32 `kok:"uint32"`
-		Uint64   uint64 `kok:"uint64"`
-		Bool     bool   `kok:"bool"`
-		String   string `kok:"string"`
-		Required string `kok:"required,required"`
+		Int      int      `kok:"int"`
+		Ints     []int    `kok:"ints"`
+		Int8     int8     `kok:"int8"`
+		Int8s    []int8   `kok:"int8s"`
+		Int16    int16    `kok:"int16"`
+		Int16s   []int16  `kok:"int16s"`
+		Int32    int32    `kok:"int32"`
+		Int32s   []int32  `kok:"int32s"`
+		Int64    int64    `kok:"int64"`
+		Int64s   []int64  `kok:"int64s"`
+		Uint     uint     `kok:"uint"`
+		Uints    []uint   `kok:"uints"`
+		Uint8    uint8    `kok:"uint8"`
+		Uint8s   []uint8  `kok:"uint8s"`
+		Uint16   uint16   `kok:"uint16"`
+		Uint16s  []uint16 `kok:"uint16s"`
+		Uint32   uint32   `kok:"uint32"`
+		Uint32s  []uint32 `kok:"uint32s"`
+		Uint64   uint64   `kok:"uint64"`
+		Uint64s  []uint64 `kok:"uint64s"`
+		Bool     bool     `kok:"bool"`
+		Bools    []bool   `kok:"bools"`
+		String   string   `kok:"string"`
+		Strings  []string `kok:"strings"`
+		Required string   `kok:"required,required"`
 	}
 
+	testIn := map[string]string{
+		"int":      "1",
+		"ints":     "1,2",
+		"int8":     "2",
+		"int8s":    "2,3",
+		"int16":    "3",
+		"int16s":   "3,4",
+		"int32":    "4",
+		"int32s":   "4,5",
+		"int64":    "5",
+		"int64s":   "5,6",
+		"uint":     "6",
+		"uints":    "6,7",
+		"uint8":    "7",
+		"uint8s":   "7,8",
+		"uint16":   "8",
+		"uint16s":  "8,9",
+		"uint32":   "9",
+		"uint32s":  "9,10",
+		"uint64":   "10",
+		"uint64s":  "10,11",
+		"bool":     "true",
+		"bools":    "true,false",
+		"string":   "hello",
+		"strings":  "hello,hi",
+		"required": "wow",
+	}
 	testValue := value{
 		Int:      1,
+		Ints:     []int{1, 2},
 		Int8:     2,
+		Int8s:    []int8{2, 3},
 		Int16:    3,
+		Int16s:   []int16{3, 4},
 		Int32:    4,
+		Int32s:   []int32{4, 5},
 		Int64:    5,
+		Int64s:   []int64{5, 6},
 		Uint:     6,
+		Uints:    []uint{6, 7},
 		Uint8:    7,
+		Uint8s:   []uint8{7, 8},
 		Uint16:   8,
+		Uint16s:  []uint16{8, 9},
 		Uint32:   9,
+		Uint32s:  []uint32{9, 10},
 		Uint64:   10,
+		Uint64s:  []uint64{10, 11},
 		Bool:     true,
+		Bools:    []bool{true, false},
 		String:   "hello",
+		Strings:  []string{"hello", "hi"},
 		Required: "wow",
 	}
 
@@ -66,62 +117,20 @@ func TestDecodeMapToStruct(t *testing.T) {
 			wantErr: ErrMissingRequired,
 		},
 		{
-			name: "struct pointer",
-			in: map[string]string{
-				"int":      "1",
-				"int8":     "2",
-				"int16":    "3",
-				"int32":    "4",
-				"int64":    "5",
-				"uint":     "6",
-				"uint8":    "7",
-				"uint16":   "8",
-				"uint32":   "9",
-				"uint64":   "10",
-				"bool":     "true",
-				"string":   "hello",
-				"required": "wow",
-			},
+			name:    "struct pointer",
+			in:      testIn,
 			outPtr:  ptrToValue,
 			wantOut: testValue,
 		},
 		{
-			name: "pointer of struct pointer",
-			in: map[string]string{
-				"int":      "1",
-				"int8":     "2",
-				"int16":    "3",
-				"int32":    "4",
-				"int64":    "5",
-				"uint":     "6",
-				"uint8":    "7",
-				"uint16":   "8",
-				"uint32":   "9",
-				"uint64":   "10",
-				"bool":     "true",
-				"string":   "hello",
-				"required": "wow",
-			},
+			name:    "pointer of struct pointer",
+			in:      testIn,
 			outPtr:  &ptrToValue,
 			wantOut: &testValue,
 		},
 		{
-			name: "pointer of nil struct pointer",
-			in: map[string]string{
-				"int":      "1",
-				"int8":     "2",
-				"int16":    "3",
-				"int32":    "4",
-				"int64":    "5",
-				"uint":     "6",
-				"uint8":    "7",
-				"uint16":   "8",
-				"uint32":   "9",
-				"uint64":   "10",
-				"bool":     "true",
-				"string":   "hello",
-				"required": "wow",
-			},
+			name:    "pointer of nil struct pointer",
+			in:      testIn,
 			outPtr:  &nilPtrToValue,
 			wantOut: &testValue,
 		},
@@ -177,18 +186,83 @@ func TestDecodeMapToStruct(t *testing.T) {
 
 func TestEncodeStructToMap(t *testing.T) {
 	type value struct {
-		Int    int    `kok:"int"`
-		Int8   int8   `kok:"int8"`
-		Int16  int16  `kok:"int16"`
-		Int32  int32  `kok:"int32"`
-		Int64  int64  `kok:"int64"`
-		Uint   uint   `kok:"uint"`
-		Uint8  uint8  `kok:"uint8"`
-		Uint16 uint16 `kok:"uint16"`
-		Uint32 uint32 `kok:"uint32"`
-		Uint64 uint64 `kok:"uint64"`
-		Bool   bool   `kok:"bool"`
-		String string `kok:"string"`
+		Int     int      `kok:"int"`
+		Ints    []int    `kok:"ints"`
+		Int8    int8     `kok:"int8"`
+		Int8s   []int8   `kok:"int8s"`
+		Int16   int16    `kok:"int16"`
+		Int16s  []int16  `kok:"int16s"`
+		Int32   int32    `kok:"int32"`
+		Int32s  []int32  `kok:"int32s"`
+		Int64   int64    `kok:"int64"`
+		Int64s  []int64  `kok:"int64s"`
+		Uint    uint     `kok:"uint"`
+		Uints   []uint   `kok:"uints"`
+		Uint8   uint8    `kok:"uint8"`
+		Uint8s  []uint8  `kok:"uint8s"`
+		Uint16  uint16   `kok:"uint16"`
+		Uint16s []uint16 `kok:"uint16s"`
+		Uint32  uint32   `kok:"uint32"`
+		Uint32s []uint32 `kok:"uint32s"`
+		Uint64  uint64   `kok:"uint64"`
+		Uint64s []uint64 `kok:"uint64s"`
+		Bool    bool     `kok:"bool"`
+		Bools   []bool   `kok:"bools"`
+		String  string   `kok:"string"`
+		Strings []string `kok:"strings"`
+	}
+
+	testIn := value{
+		Int:     1,
+		Ints:    []int{1, 2},
+		Int8:    2,
+		Int8s:   []int8{2, 3},
+		Int16:   3,
+		Int16s:  []int16{3, 4},
+		Int32:   4,
+		Int32s:  []int32{4, 5},
+		Int64:   5,
+		Int64s:  []int64{5, 6},
+		Uint:    6,
+		Uints:   []uint{6, 7},
+		Uint8:   7,
+		Uint8s:  []uint8{7, 8},
+		Uint16:  8,
+		Uint16s: []uint16{8, 9},
+		Uint32:  9,
+		Uint32s: []uint32{9, 10},
+		Uint64:  10,
+		Uint64s: []uint64{10, 11},
+		Bool:    true,
+		Bools:   []bool{true, false},
+		String:  "hello",
+		Strings: []string{"hello", "hi"},
+	}
+	testOut := map[string]string{
+		"int":     "1",
+		"ints":    "1,2",
+		"int8":    "2",
+		"int8s":   "2,3",
+		"int16":   "3",
+		"int16s":  "3,4",
+		"int32":   "4",
+		"int32s":  "4,5",
+		"int64":   "5",
+		"int64s":  "5,6",
+		"uint":    "6",
+		"uints":   "6,7",
+		"uint8":   "7",
+		"uint8s":  "7,8",
+		"uint16":  "8",
+		"uint16s": "8,9",
+		"uint32":  "9",
+		"uint32s": "9,10",
+		"uint64":  "10",
+		"uint64s": "10,11",
+		"bool":    "true",
+		"bools":   "true,false",
+		"string":  "hello",
+		"strings": "hello,hi",
 	}
 
 	cases := []struct {
@@ -198,66 +272,14 @@ func TestEncodeStructToMap(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "struct pointer",
-			in: &value{
-				Int:    1,
-				Int8:   2,
-				Int16:  3,
-				Int32:  4,
-				Int64:  5,
-				Uint:   6,
-				Uint8:  7,
-				Uint16: 8,
-				Uint32: 9,
-				Uint64: 10,
-				Bool:   true,
-				String: "hello",
-			},
-			wantOut: map[string]string{
-				"int":    "1",
-				"int8":   "2",
-				"int16":  "3",
-				"int32":  "4",
-				"int64":  "5",
-				"uint":   "6",
-				"uint8":  "7",
-				"uint16": "8",
-				"uint32": "9",
-				"uint64": "10",
-				"bool":   "true",
-				"string": "hello",
-			},
+			name:    "struct pointer",
+			in:      &testIn,
+			wantOut: testOut,
 		},
 		{
-			name: "struct",
-			in: value{
-				Int:    1,
-				Int8:   2,
-				Int16:  3,
-				Int32:  4,
-				Int64:  5,
-				Uint:   6,
-				Uint8:  7,
-				Uint16: 8,
-				Uint32: 9,
-				Uint64: 10,
-				Bool:   true,
-				String: "hello",
-			},
-			wantOut: map[string]string{
-				"int":    "1",
-				"int8":   "2",
-				"int16":  "3",
-				"int32":  "4",
-				"int64":  "5",
-				"uint":   "6",
-				"uint8":  "7",
-				"uint16": "8",
-				"uint32": "9",
-				"uint64": "10",
-				"bool":   "true",
-				"string": "hello",
-			},
+			name:    "struct",
+			in:      testIn,
+			wantOut: testOut,
 		},
 		{
 			name:    "string",
