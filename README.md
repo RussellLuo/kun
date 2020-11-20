@@ -290,7 +290,7 @@ See more examples [here](examples).
 - Value: `<field>`
     + **field**: The name of the request field whose value is mapped to the HTTP request body.
         - Optional: When omitted, a struct containing all the arguments (not located in **path**/**query**/**header**) will be used as the HTTP request body.
-        - The special name `-` can be used in the body, to define that every argument (not located in **path**/**query**/**header**) will be mapped to a query parameter.
+        - The special name `-` can be used, to define that there is no HTTP request body. As a result, every argument (not located in **path**/**query**/**header**) will automatically be mapped to one or more query parameters.
 - Example:
 
     ```go
