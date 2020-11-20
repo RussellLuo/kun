@@ -645,9 +645,7 @@ func (pc ParamCodec) decodeString(name, value string, out *string) error {
 func (pc ParamCodec) decodeStringSlice(name string, values []string, out *[]string) error {
 	// Do not support customized OnDecode for slice value.
 
-	for _, value := range values {
-		*out = append(*out, value)
-	}
+	*out = append(*out, values...)
 	return nil
 }
 
