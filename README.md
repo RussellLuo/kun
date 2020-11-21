@@ -244,12 +244,14 @@ See more examples [here](examples).
 
         ```go
         type Service interface {
-            // @kok(op): POST /users
-            CreateUser(ctx context.Context, name string, age int) (err error)
+            // @kok(op): PUT /users/{id}
+            // @kok(param): name < in:header,name:X-User-Name
+            // @kok(param): age < in:header,name:X-User-Age
+            UpdateUser(ctx context.Context, id int, name string, age int) (err error)
         }
 
         // HTTP request:
-        // $ http POST /users name=tracey age=1
+        // $ http PUT /users/101 X-User-Name:tracey X-User-Age:1
         ```
     + Argument aggregation:
 
