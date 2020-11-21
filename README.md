@@ -195,7 +195,7 @@ See more examples [here](examples).
 - Value: `<method> <pattern>`
     + **method**: The request method
     + **pattern**: The request URL
-        - NOTE: All variables (snake-case or camel-case) in **pattern** will be automatically bound to their corresponding method arguments (matches by name), as **path** parameters, if the variables are not specified as path parameters explicitly by `@kok(param)`.
+        - NOTE: All variables (snake-case or camel-case) in **pattern** will automatically be bound to their corresponding method arguments (matches by name), as **path** parameters, if the variables are not specified as path parameters explicitly by `@kok(param)`.
 - Example:
 
     ```go
@@ -216,18 +216,18 @@ See more examples [here](examples).
 - Key: `@kok(param)`
 - Value: `<argName> < in:<in>,name:<name>,type:<type>,required:<required>`
     + **argName**: The name of the method argument.
-        - *Argument aggregation*: By specifying the same **argName**, multiple request parameters (each one is of basic type) can be aggregated into one method argument (of any type).
+        - *Argument aggregation*: By specifying the same **argName**, multiple request parameters (each one is of basic type or repeated basic type) can be aggregated into one method argument (of any type).
             + You do not need to repeat the **argName**, only the first one is required.
     + **in**:
         - **path**: The method argument is sourced from a [path parameter](https://swagger.io/docs/specification/describing-parameters/#path-parameters).
-            + Optional: All variables (snake-case or camel-case) in **pattern** will be automatically bound to their corresponding method arguments (matches by name), as **path** parameters.
+            + Optional: All variables (snake-case or camel-case) in **pattern** will automatically be bound to their corresponding method arguments (matches by name), as **path** parameters.
         - **query**: The method argument is sourced from a [query parameter](https://swagger.io/docs/specification/describing-parameters/#query-parameters).
             + To receive values from a multi-valued query parameter, the method argument can be defined as a slice of basic type.
         - **header**: The method argument is sourced from a [header parameter](https://swagger.io/docs/specification/describing-parameters/#header-parameters).
         - **cookie**: The method argument is sourced from a [cookie parameter](https://swagger.io/docs/specification/describing-parameters/#cookie-parameters).
             + Not supported yet.
         - **body**: The method argument is sourced from the [request body](https://swagger.io/docs/specification/describing-request-body/).
-            + Optional: All method arguments, unless otherwise specified, are in **body**.
+            + Deprecated: Use `@kok(body)` instead.
         - **request**: The method argument is sourced from a property of Go's [http.Request](https://golang.org/pkg/net/http/#Request).
             + This is a special case, and only one property `RemoteAddr` is available now.
             + Note that parameters located in **request** have no relationship with OAS.
@@ -288,43 +288,58 @@ See more examples [here](examples).
 
 - Key: `@kok(body)`
 - Value: `<field>`
-    + **field**: The name of the request field whose value is mapped to the HTTP request body.
-        - Optional: When omitted, a struct containing all the arguments (not located in **path**/**query**/**header**) will be used as the HTTP request body.
-        - The special name `-` can be used, to define that there is no HTTP request body. As a result, every argument (not located in **path**/**query**/**header**) will automatically be mapped to one or more query parameters.
+    + **field**: The name of the method argument whose value is mapped to the HTTP request body.
+        - Optional: When omitted, a struct containing all the arguments, which are not located in **path**/**query**/**header**, will automatically be mapped to the HTTP request body.
+        - The special name `-` can be used, to define that there is no HTTP request body. As a result, every argument, which is not located in **path**/**query**/**header**, will automatically be mapped to one or more query parameters.
 - Example:
+    + Omitted:
 
-    ```go
-    type User struct {
-        Name string `json:"name"`
-        Age  int    `json:"age"`
-    }
+        ```go
+        type Service interface {
+            // @kok(op): POST /users
+            CreateUser(ctx context.Context, name string, age int) (err error)
+        }
 
-    type Service interface {
-        // @kok(op): POST /users
-        // @kok(body): user
-        CreateUser(ctx context.Context, user User) (err error)
-    }
+        // HTTP request:
+        // $ http POST /users name=tracey age=1
+        ```
 
-    // HTTP request:
-    // $ http POST /users name=tracey age=1
-    ```
+    + Specified as a normal argument:
 
-    ```go
-    type User struct {
-        Name    string   `kok:"query.name"`
-        Age     int      `kok:"query.age"`
-        Hobbies []string `kok:"query.hobby"`
-    }
+        ```go
+        type User struct {
+            Name string `json:"name"`
+            Age  int    `json:"age"`
+        }
 
-    type Service interface {
-        // @kok(op): POST /users
-        // @kok(body): -
-        CreateUser(ctx context.Context, user User) (err error)
-    }
+        type Service interface {
+            // @kok(op): POST /users
+            // @kok(body): user
+            CreateUser(ctx context.Context, user User) (err error)
+        }
 
-    // HTTP request:
-    // $ http POST /users?name=tracey&age=1&hobby=music&hobby=sport
-    ```
+        // HTTP request:
+        // $ http POST /users name=tracey age=1
+        ```
+
+    + Specified as `-`:
+
+        ```go
+        type User struct {
+            Name    string   `kok:"query.name"`
+            Age     int      `kok:"query.age"`
+            Hobbies []string `kok:"query.hobby"`
+        }
+
+        type Service interface {
+            // @kok(op): POST /users
+            // @kok(body): -
+            CreateUser(ctx context.Context, user User) (err error)
+        }
+
+        // HTTP request:
+        // $ http POST /users?name=tracey&age=1&hobby=music&hobby=sport
+        ```
 
 </details>
 
@@ -337,7 +352,7 @@ See more examples [here](examples).
     + **statusCode**: The status code of the success HTTP response.
         - Optional: Defaults to 200 if not specified.
     + **body**: The name of the response field whose value is mapped to the HTTP response body.
-        - Optional: When omitted, a struct containing all the results (except error) will be used as the HTTP response body.
+        - Optional: When omitted, a struct containing all the results (except error) will automatically be mapped to the HTTP response body.
 - Example:
 
     ```go
