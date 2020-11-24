@@ -89,6 +89,12 @@ func TestParamCodec_Decode(t *testing.T) {
 			wantOut: "yes",
 		},
 		{
+			name:    "empty value for string",
+			value:   "",
+			out:     &v.String,
+			wantOut: "",
+		},
+		{
 			name:    "[]string",
 			value:   "yes,no",
 			out:     &v.Strings,

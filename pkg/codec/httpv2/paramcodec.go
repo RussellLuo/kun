@@ -19,7 +19,10 @@ func (pc ParamCodec) Decode(name, value string, out interface{}) error {
 	// - path parameter
 	// - header parameter
 	// - single-valued query parameter
-	value = values[0]
+	value = ""
+	if len(values) > 0 { // For legacy generated code, values may be an empty slice even if the parameter is optional.
+		value = values[0]
+	}
 
 	switch v := out.(type) {
 	case *int:
