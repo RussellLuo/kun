@@ -58,6 +58,7 @@ func NewHTTPClient(codecs httpcodec.Codecs, httpClient *http.Client, baseURL str
 {{$headerParams := headerParams $op.Request.Params}}
 {{$nonCtxParams := nonCtxParams $op.Request.Params}}
 {{$bodyParams := bodyParams $nonCtxParams}}
+{{$bodyField := getBodyField $op.Request.BodyField}}
 {{$nonErrReturns := nonErrReturns .Returns}}
 
 func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joinParams .Returns "$Name $Type" ", "}}) {
@@ -90,8 +91,8 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 	{{- end}}
 
 	{{if $bodyParams -}}
-	{{if $op.Request.BodyField}}
-	reqBody := {{$op.Request.BodyField}}
+	{{if $bodyField}}
+	reqBody := {{$bodyField}}
 	{{- else}}
 	reqBody := struct {
 		{{- range $bodyParams}}
@@ -102,7 +103,7 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 		{{title .Name}}: {{.Name}},
 		{{- end}}
 	}
-	{{- end}} {{/* if $op.Request.BodyField */}}
+	{{- end}} {{/* if $bodyField */}}
 	reqBodyReader, headers, err := codec.EncodeRequestBody(&reqBody)
 	if err != nil {
 		return {{returnErr .Returns}}
@@ -304,6 +305,12 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 					}
 				}
 				return
+			},
+			"getBodyField": func(name string) string {
+				if name != "" && name != openapi.OptionNoBody {
+					return name
+				}
+				return ""
 			},
 			"pathParams": func(in []*openapi.Param) (out []*openapi.Param) {
 				for _, p := range in {
