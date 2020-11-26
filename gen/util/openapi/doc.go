@@ -155,7 +155,7 @@ func manipulateByComments(op *Operation, params map[string]*Param, results map[s
 
 	// Add possible query parameters if no-request-body is specified.
 	if op.Request.BodyField == OptionNoBody {
-		for _, text := range makeKokQueryParamTextsFromBodyParams(params) {
+		for _, text := range makeKokQueryParamTextsFromBodyParams(params, op.Name) {
 			if _, err := setParam(text, ""); err != nil {
 				return err
 			}
@@ -188,7 +188,7 @@ func isAlreadyPathParam(name string, params []*Param) bool {
 	return false
 }
 
-func makeKokQueryParamTextsFromBodyParams(params map[string]*Param) (texts []string) {
+func makeKokQueryParamTextsFromBodyParams(params map[string]*Param, methodName string) (texts []string) {
 	for _, p := range params {
 		if p.In != InBody || p.Name == "ctx" {
 			// Ignore non-body parameters and the special context.Context parameter.
@@ -204,7 +204,7 @@ func makeKokQueryParamTextsFromBodyParams(params map[string]*Param) (texts []str
 		case *types.Slice:
 			et, ok := t.Elem().(*types.Basic)
 			if !ok {
-				panic(fmt.Errorf("query parameter cannot be mapped to argument %q of type %v", p.Name, t))
+				panic(fmt.Errorf("query parameter cannot be mapped to argument `%s` (of type %v) in method %s", p.Name, t, methodName))
 			}
 			nameTypes[p.Alias] = "[]" + et.Name()
 		case *types.Struct:
@@ -216,11 +216,11 @@ func makeKokQueryParamTextsFromBodyParams(params map[string]*Param) (texts []str
 				case *types.Slice:
 					et, ok := ft.Elem().(*types.Basic)
 					if !ok {
-						panic(fmt.Errorf("query parameter cannot be mapped to struct field %q of type %v", t.Field(i).Name(), ft))
+						panic(fmt.Errorf("query parameter cannot be mapped to struct field %q (of type %v) from argument `%s` in method %s", t.Field(i).Name(), ft, p.Name, methodName))
 					}
 					typeName = "[]" + et.Name()
 				default:
-					panic(fmt.Errorf("query parameter cannot be mapped to struct field %q of type %v", t.Field(i).Name(), ft))
+					panic(fmt.Errorf("query parameter cannot be mapped to struct field %q (of type %v) from argument `%s` in method %s", t.Field(i).Name(), ft, p.Name, methodName))
 				}
 
 				field := reflect.StructField{
@@ -235,7 +235,7 @@ func makeKokQueryParamTextsFromBodyParams(params map[string]*Param) (texts []str
 				}
 			}
 		default:
-			panic(fmt.Errorf("query parameter cannot be mapped to argument %q of type %v", p.Name, t))
+			panic(fmt.Errorf("query parameter cannot be mapped to argument `%s` (of type %v) in method %s", p.Name, t, methodName))
 		}
 
 		for name, typ := range nameTypes {
