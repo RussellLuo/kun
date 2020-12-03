@@ -28,7 +28,7 @@ func FromDoc(result *reflector.Result, doc map[string][]string) (*Specification,
 
 	for _, m := range result.Interface.Methods {
 		comments, ok := doc[m.Name]
-		if !ok {
+		if !ok || !hasKokAnnotations(comments) {
 			continue
 		}
 
@@ -68,6 +68,21 @@ func FromDoc(result *reflector.Result, doc map[string][]string) (*Specification,
 	return spec, nil
 }
 
+func hasKokAnnotations(comments []string) bool {
+	for _, comment := range comments {
+		if isKokAnnotation(comment) {
+			return true
+		}
+	}
+	return false
+}
+
+func isKokAnnotation(comment string) bool {
+	content := strings.TrimPrefix(comment, "//")
+	trimmed := strings.TrimSpace(content)
+	return strings.HasPrefix(trimmed, "@kok")
+}
+
 func manipulateByComments(op *Operation, params map[string]*Param, results map[string]*reflector.Param, comments []string) error {
 	var prevParamName string
 
@@ -93,7 +108,7 @@ func manipulateByComments(op *Operation, params map[string]*Param, results map[s
 	}
 
 	for _, comment := range comments {
-		if !strings.Contains(comment, "@kok") {
+		if !isKokAnnotation(comment) {
 			continue
 		}
 
