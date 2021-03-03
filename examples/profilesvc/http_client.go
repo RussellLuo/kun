@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"strings"
 
-	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv2"
+	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv3"
 )
 
 type HTTPClient struct {
@@ -39,8 +39,8 @@ func (c *HTTPClient) DeleteAddress(ctx context.Context, id string, addressID str
 	codec := c.codecs.EncodeDecoder("DeleteAddress")
 
 	path := fmt.Sprintf("/profiles/%s/addresses/%s",
-		codec.EncodeRequestParam("id", id),
-		codec.EncodeRequestParam("addressID", addressID),
+		codec.EncodeRequestParam("id", id)[0],
+		codec.EncodeRequestParam("addressID", addressID)[0],
 	)
 	u := &url.URL{
 		Scheme: c.scheme,
@@ -75,7 +75,7 @@ func (c *HTTPClient) DeleteProfile(ctx context.Context, id string) (err error) {
 	codec := c.codecs.EncodeDecoder("DeleteProfile")
 
 	path := fmt.Sprintf("/profiles/%s",
-		codec.EncodeRequestParam("id", id),
+		codec.EncodeRequestParam("id", id)[0],
 	)
 	u := &url.URL{
 		Scheme: c.scheme,
@@ -110,8 +110,8 @@ func (c *HTTPClient) GetAddress(ctx context.Context, id string, addressID string
 	codec := c.codecs.EncodeDecoder("GetAddress")
 
 	path := fmt.Sprintf("/profiles/%s/addresses/%s",
-		codec.EncodeRequestParam("id", id),
-		codec.EncodeRequestParam("addressID", addressID),
+		codec.EncodeRequestParam("id", id)[0],
+		codec.EncodeRequestParam("addressID", addressID)[0],
 	)
 	u := &url.URL{
 		Scheme: c.scheme,
@@ -151,7 +151,7 @@ func (c *HTTPClient) GetAddresses(ctx context.Context, id string) (addresses []A
 	codec := c.codecs.EncodeDecoder("GetAddresses")
 
 	path := fmt.Sprintf("/profiles/%s/addresses",
-		codec.EncodeRequestParam("id", id),
+		codec.EncodeRequestParam("id", id)[0],
 	)
 	u := &url.URL{
 		Scheme: c.scheme,
@@ -191,7 +191,7 @@ func (c *HTTPClient) GetProfile(ctx context.Context, id string) (profile Profile
 	codec := c.codecs.EncodeDecoder("GetProfile")
 
 	path := fmt.Sprintf("/profiles/%s",
-		codec.EncodeRequestParam("id", id),
+		codec.EncodeRequestParam("id", id)[0],
 	)
 	u := &url.URL{
 		Scheme: c.scheme,
@@ -231,7 +231,7 @@ func (c *HTTPClient) PatchProfile(ctx context.Context, id string, profile Profil
 	codec := c.codecs.EncodeDecoder("PatchProfile")
 
 	path := fmt.Sprintf("/profiles/%s",
-		codec.EncodeRequestParam("id", id),
+		codec.EncodeRequestParam("id", id)[0],
 	)
 	u := &url.URL{
 		Scheme: c.scheme,
@@ -280,7 +280,7 @@ func (c *HTTPClient) PostAddress(ctx context.Context, id string, address Address
 	codec := c.codecs.EncodeDecoder("PostAddress")
 
 	path := fmt.Sprintf("/profiles/%s/addresses",
-		codec.EncodeRequestParam("id", id),
+		codec.EncodeRequestParam("id", id)[0],
 	)
 	u := &url.URL{
 		Scheme: c.scheme,
@@ -376,7 +376,7 @@ func (c *HTTPClient) PutProfile(ctx context.Context, id string, profile Profile)
 	codec := c.codecs.EncodeDecoder("PutProfile")
 
 	path := fmt.Sprintf("/profiles/%s",
-		codec.EncodeRequestParam("id", id),
+		codec.EncodeRequestParam("id", id)[0],
 	)
 	u := &url.URL{
 		Scheme: c.scheme,

@@ -21,7 +21,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv2"
+	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv3"
 
 	{{- range .Result.Imports}}
 	"{{.}}"
@@ -83,7 +83,7 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 	{{if $queryParams -}}
 	q := u.Query()
 	{{- range $queryParams}}
-	for _, v := range httpcodec.QueryStringToList(codec.EncodeRequestParam("{{.Name}}", {{.Name}})) {
+	for _, v := range codec.EncodeRequestParam("{{.Name}}", {{.Name}}) {
 		q.Add("{{.Alias}}", v)
 	}
 	{{- end}}
@@ -118,7 +118,9 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 		_req.Header.Set(k, v)
 	}
 	{{- range $headerParams}}
-	_req.Header.Set("{{.Alias}}", codec.EncodeRequestParam("{{.Name}}", {{.Name}}))
+	for _, v := range codec.EncodeRequestParam("{{.Name}}", {{.Name}}) {
+		_req.Header.Add("{{.Alias}}", v)
+	}
 	{{end}}
 
 	{{- else -}} {{/* if $bodyParams */}}
@@ -128,7 +130,9 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 		return {{returnErr .Returns}}
 	}
 	{{- range $headerParams}}
-	_req.Header.Set("{{.Alias}}", codec.EncodeRequestParam("{{.Name}}", {{.Name}}))
+	for _, v := range codec.EncodeRequestParam("{{.Name}}", {{.Name}}) {
+		_req.Header.Add("{{.Alias}}", v)
+	}
 	{{end}}
 	{{- end}} {{/* if $bodyParams */}}
 
@@ -291,7 +295,7 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 				var sortedNames []string
 				for _, ni := range nameIndices {
 					name := ni.NameType.Name
-					sortedNames = append(sortedNames, fmt.Sprintf("codec.EncodeRequestParam(%q, %s)", name, name))
+					sortedNames = append(sortedNames, fmt.Sprintf("codec.EncodeRequestParam(%q, %s)[0]", name, name))
 				}
 				return FmtPatternParams{
 					Pattern:      pattern,

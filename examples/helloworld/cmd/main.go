@@ -10,7 +10,7 @@ import (
 	"syscall"
 
 	"github.com/RussellLuo/kok/examples/helloworld"
-	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv2"
+	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv3"
 	"github.com/RussellLuo/kok/pkg/oasv2"
 )
 

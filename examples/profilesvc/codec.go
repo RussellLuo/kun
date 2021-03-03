@@ -3,16 +3,16 @@ package profilesvc
 import (
 	"net/http"
 
-	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv2"
+	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv3"
 	"github.com/RussellLuo/kok/pkg/oasv2"
 )
 
 type Codec struct {
-	httpcodec.JSONCodec
+	httpcodec.JSON
 }
 
 func (c Codec) EncodeFailureResponse(w http.ResponseWriter, err error) error {
-	return c.JSONCodec.EncodeSuccessResponse(w, codeFrom(err), map[string]string{
+	return c.JSON.EncodeSuccessResponse(w, codeFrom(err), map[string]string{
 		"error": err.Error(),
 	})
 }

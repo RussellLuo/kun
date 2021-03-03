@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"strings"
 
-	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv2"
+	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv3"
 )
 
 type Response struct {
@@ -94,7 +94,7 @@ func (rs *ResponseSchema) FailureResponses(name string) (resps []Response) {
 func decodePerContentType(contentType string, body io.ReadCloser) (out map[string]interface{}) {
 	switch {
 	case strings.HasPrefix(contentType, "application/json"):
-		_ = httpcodec.JSONCodec{}.DecodeSuccessResponse(body, &out)
+		_ = httpcodec.JSON{}.DecodeSuccessResponse(body, &out)
 	}
 	return
 }

@@ -7,7 +7,7 @@ import (
 	"context"
 	"net/http"
 
-	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv2"
+	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv3"
 	"github.com/RussellLuo/kok/pkg/oasv2"
 	"github.com/go-chi/chi"
 	kithttp "github.com/go-kit/kit/transport/http"
@@ -47,7 +47,7 @@ func decodeSayHelloRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req SayHelloRequest
 
-		if err := codec.DecodeRequestBody(r.Body, &_req); err != nil {
+		if err := codec.DecodeRequestBody(r, &_req); err != nil {
 			return nil, err
 		}
 

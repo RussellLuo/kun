@@ -30,7 +30,7 @@ import (
 	{{- end}}
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-kit/kit/endpoint"
-	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv2"
+	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv3"
 	"github.com/RussellLuo/kok/pkg/oasv2"
 
 	{{- range .Result.Imports}}
@@ -94,11 +94,11 @@ func decode{{.Name}}Request(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 		{{end -}}
 
 		{{if $bodyField -}}
-		if err := codec.DecodeRequestBody(r.Body, &_req.{{title $bodyField}}); err != nil {
+		if err := codec.DecodeRequestBody(r, &_req.{{title $bodyField}}); err != nil {
 			return nil, err
 		}
 		{{else if $hasBodyParams -}}
-		if err := codec.DecodeRequestBody(r.Body, &_req); err != nil {
+		if err := codec.DecodeRequestBody(r, &_req); err != nil {
 			return nil, err
 		}
 		{{end -}}
@@ -106,7 +106,7 @@ func decode{{.Name}}Request(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 		{{- range $nonBodyParamsGroupByName}}
 
 		{{- if .Aggregation}}
-		{{.Name}} := map[string]string{
+		{{.Name}} := map[string][]string{
 			{{- range .Properties}}
 			"{{.In}}.{{.Alias}}": {{extractParam .}},
 			{{- end}}
@@ -123,7 +123,7 @@ func decode{{.Name}}Request(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 			return nil, err
 		}
 		{{- else}} {{/* if $property.Required */}}
-		if {{.Name}} != "" {
+		if len({{.Name}}) > 0 {
 			if err := codec.DecodeRequestParam("{{.Name}}", {{.Name}}, &_req.{{title .Name}}); err != nil {
 				return nil, err
 			}
@@ -216,13 +216,13 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 			"extractParam": func(param *ParamProperty) string {
 				switch param.In {
 				case openapi.InPath:
-					return fmt.Sprintf(`chi.URLParam(r, "%s")`, param.Alias)
+					return fmt.Sprintf(`[]string{chi.URLParam(r, "%s")}`, param.Alias)
 				case openapi.InQuery:
-					return fmt.Sprintf(`httpcodec.QueryListToString(r.URL.Query()["%s"])`, param.Alias)
+					return fmt.Sprintf(`r.URL.Query()["%s"]`, param.Alias)
 				case openapi.InHeader:
-					return fmt.Sprintf(`r.Header.Get("%s")`, param.Alias)
+					return fmt.Sprintf(`r.Header.Values("%s")`, param.Alias)
 				case openapi.InRequest:
-					return fmt.Sprintf(`r.%s`, param.Alias)
+					return fmt.Sprintf(`[]string{r.%s}`, param.Alias)
 				default:
 					panic(fmt.Errorf("param.In `%s` not supported", param.In))
 				}

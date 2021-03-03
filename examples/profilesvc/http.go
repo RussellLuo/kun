@@ -7,7 +7,7 @@ import (
 	"context"
 	"net/http"
 
-	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv2"
+	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv3"
 	"github.com/RussellLuo/kok/pkg/oasv2"
 	"github.com/go-chi/chi"
 	kithttp "github.com/go-kit/kit/transport/http"
@@ -151,12 +151,12 @@ func decodeDeleteAddressRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req DeleteAddressRequest
 
-		id := chi.URLParam(r, "id")
+		id := []string{chi.URLParam(r, "id")}
 		if err := codec.DecodeRequestParam("id", id, &_req.Id); err != nil {
 			return nil, err
 		}
 
-		addressID := chi.URLParam(r, "addressID")
+		addressID := []string{chi.URLParam(r, "addressID")}
 		if err := codec.DecodeRequestParam("addressID", addressID, &_req.AddressID); err != nil {
 			return nil, err
 		}
@@ -169,7 +169,7 @@ func decodeDeleteProfileRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req DeleteProfileRequest
 
-		id := chi.URLParam(r, "id")
+		id := []string{chi.URLParam(r, "id")}
 		if err := codec.DecodeRequestParam("id", id, &_req.Id); err != nil {
 			return nil, err
 		}
@@ -182,12 +182,12 @@ func decodeGetAddressRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req GetAddressRequest
 
-		id := chi.URLParam(r, "id")
+		id := []string{chi.URLParam(r, "id")}
 		if err := codec.DecodeRequestParam("id", id, &_req.Id); err != nil {
 			return nil, err
 		}
 
-		addressID := chi.URLParam(r, "addressID")
+		addressID := []string{chi.URLParam(r, "addressID")}
 		if err := codec.DecodeRequestParam("addressID", addressID, &_req.AddressID); err != nil {
 			return nil, err
 		}
@@ -200,7 +200,7 @@ func decodeGetAddressesRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc 
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req GetAddressesRequest
 
-		id := chi.URLParam(r, "id")
+		id := []string{chi.URLParam(r, "id")}
 		if err := codec.DecodeRequestParam("id", id, &_req.Id); err != nil {
 			return nil, err
 		}
@@ -213,7 +213,7 @@ func decodeGetProfileRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req GetProfileRequest
 
-		id := chi.URLParam(r, "id")
+		id := []string{chi.URLParam(r, "id")}
 		if err := codec.DecodeRequestParam("id", id, &_req.Id); err != nil {
 			return nil, err
 		}
@@ -226,11 +226,11 @@ func decodePatchProfileRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc 
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req PatchProfileRequest
 
-		if err := codec.DecodeRequestBody(r.Body, &_req); err != nil {
+		if err := codec.DecodeRequestBody(r, &_req); err != nil {
 			return nil, err
 		}
 
-		id := chi.URLParam(r, "id")
+		id := []string{chi.URLParam(r, "id")}
 		if err := codec.DecodeRequestParam("id", id, &_req.Id); err != nil {
 			return nil, err
 		}
@@ -243,11 +243,11 @@ func decodePostAddressRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req PostAddressRequest
 
-		if err := codec.DecodeRequestBody(r.Body, &_req); err != nil {
+		if err := codec.DecodeRequestBody(r, &_req); err != nil {
 			return nil, err
 		}
 
-		id := chi.URLParam(r, "id")
+		id := []string{chi.URLParam(r, "id")}
 		if err := codec.DecodeRequestParam("id", id, &_req.Id); err != nil {
 			return nil, err
 		}
@@ -260,7 +260,7 @@ func decodePostProfileRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req PostProfileRequest
 
-		if err := codec.DecodeRequestBody(r.Body, &_req); err != nil {
+		if err := codec.DecodeRequestBody(r, &_req); err != nil {
 			return nil, err
 		}
 
@@ -272,11 +272,11 @@ func decodePutProfileRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req PutProfileRequest
 
-		if err := codec.DecodeRequestBody(r.Body, &_req); err != nil {
+		if err := codec.DecodeRequestBody(r, &_req); err != nil {
 			return nil, err
 		}
 
-		id := chi.URLParam(r, "id")
+		id := []string{chi.URLParam(r, "id")}
 		if err := codec.DecodeRequestParam("id", id, &_req.Id); err != nil {
 			return nil, err
 		}
