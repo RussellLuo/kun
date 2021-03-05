@@ -38,7 +38,7 @@ func GetFieldName(field reflect.StructField) (name string, required, omitted boo
 	return
 }
 
-// DecodeMapToStruct decodes a value from map[string]string to struct (or *struct).
+// DecodeMapToStruct decodes a value from map[string][]string to struct (or *struct).
 func DecodeMapToStruct(in map[string][]string, out interface{}) error {
 	outValue := reflect.ValueOf(out)
 	if outValue.Kind() != reflect.Ptr || outValue.IsNil() {
@@ -107,7 +107,7 @@ func DecodeMapToStruct(in map[string][]string, out interface{}) error {
 	return nil
 }
 
-// DecodeMapToStruct encode a value from struct (or *struct) to map[string]string.
+// DecodeMapToStruct encode a value from struct (or *struct) to map[string][]string.
 func EncodeStructToMap(in interface{}, out *map[string][]string) error {
 	inValue := reflect.ValueOf(in)
 	switch k := inValue.Kind(); {
