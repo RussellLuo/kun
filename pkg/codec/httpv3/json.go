@@ -39,7 +39,7 @@ type FailureResponse struct {
 type JSON struct{}
 
 func (j JSON) DecodeRequestParam(name string, values []string, out interface{}) error {
-	if err := Decode(values, out); err != nil {
+	if err := DecodeSliceToBasic(values, out); err != nil {
 		return werror.Wrap(googlecode.ErrInvalidArgument).SetError(err)
 	}
 	return nil
@@ -80,7 +80,7 @@ func (j JSON) EncodeFailureResponse(w http.ResponseWriter, err error) error {
 }
 
 func (j JSON) EncodeRequestParam(name string, value interface{}) []string {
-	return Encode(value)
+	return EncodeBasicToSlice(value)
 }
 
 func (j JSON) EncodeRequestParams(name string, value interface{}) map[string][]string {

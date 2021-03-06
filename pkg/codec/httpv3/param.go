@@ -1,12 +1,25 @@
 package codec
 
 import (
+	"errors"
 	"fmt"
+	"reflect"
 	"strconv"
+	"strings"
 	"time"
 )
 
-func Decode(values []string, out interface{}) error {
+const (
+	tagName = "kok"
+)
+
+var (
+	ErrUnsupportedType = errors.New("unsupported type")
+	ErrMissingRequired = errors.New("missing required field")
+)
+
+// DecodeSliceToBasic decodes a string slice to a basic value (or a slice of basic values).
+func DecodeSliceToBasic(values []string, out interface{}) error {
 	if len(values) == 0 {
 		return nil
 	}
@@ -206,7 +219,8 @@ func Decode(values []string, out interface{}) error {
 	return nil
 }
 
-func Encode(in interface{}) (values []string) {
+// EncodeBasicToSlice encodes a basic value (or a slice of basic values) to a string slice.
+func EncodeBasicToSlice(in interface{}) (values []string) {
 	switch v := in.(type) {
 	case int:
 		values = append(values, strconv.FormatInt(int64(v), 10))
@@ -293,5 +307,113 @@ func Encode(in interface{}) (values []string) {
 	default:
 		values = append(values, fmt.Sprintf("%v", in))
 	}
+	return
+}
+
+// DecodeMapToStruct decodes a string map to a struct (or a *struct).
+func DecodeMapToStruct(in map[string][]string, out interface{}) error {
+	outValue := reflect.ValueOf(out)
+	if outValue.Kind() != reflect.Ptr || outValue.IsNil() {
+		return ErrUnsupportedType
+	}
+
+	elemValue := outValue.Elem()
+	elemType := elemValue.Type()
+
+	var structValue reflect.Value
+
+	switch k := elemValue.Kind(); {
+	case k == reflect.Struct:
+		structValue = elemValue
+	case k == reflect.Ptr && elemType.Elem().Kind() == reflect.Struct:
+		// To handle possible nil pointer, always create a pointer
+		// to a new zero struct.
+		structValuePtr := reflect.New(elemType.Elem())
+		outValue.Elem().Set(structValuePtr)
+
+		structValue = structValuePtr.Elem()
+	default:
+		return ErrUnsupportedType
+	}
+
+	structType := structValue.Type()
+	for i := 0; i < structType.NumField(); i++ {
+		field := structType.Field(i)
+		fieldValue := structValue.Field(i)
+
+		fieldName, required, omitted := GetFieldName(field)
+		if omitted {
+			continue
+		}
+
+		values := in[fieldName]
+		if len(values) == 0 {
+			if !required {
+				continue
+			}
+			return ErrMissingRequired
+		}
+
+		fieldValuePtr := reflect.New(fieldValue.Type())
+		if err := DecodeSliceToBasic(values, fieldValuePtr.Interface()); err != nil {
+			return err
+		}
+		fieldValue.Set(fieldValuePtr.Elem())
+	}
+
+	return nil
+}
+
+// EncodeStructToMap encodes a struct (or a *struct) to a string map.
+func EncodeStructToMap(in interface{}, out *map[string][]string) error {
+	inValue := reflect.ValueOf(in)
+	switch k := inValue.Kind(); {
+	case k == reflect.Ptr && inValue.Elem().Kind() == reflect.Struct:
+		// Convert inValue from *struct to struct implicitly.
+		inValue = inValue.Elem()
+	case k == reflect.Struct:
+	default:
+		return ErrUnsupportedType
+	}
+
+	if out == nil {
+		panic(fmt.Errorf("invalid out: %#v", out))
+	}
+	outMap := *out
+
+	structType := inValue.Type()
+	for i := 0; i < structType.NumField(); i++ {
+		field := structType.Field(i)
+		fieldValue := inValue.Field(i)
+
+		fieldName, _, omitted := GetFieldName(field)
+		if omitted {
+			continue
+		}
+
+		outMap[fieldName] = EncodeBasicToSlice(fieldValue.Interface())
+	}
+
+	return nil
+}
+
+func GetFieldName(field reflect.StructField) (name string, required, omitted bool) {
+	kokTag := field.Tag.Get(tagName)
+	parts := strings.SplitN(kokTag, ",", 2)
+
+	kokName := parts[0]
+	if len(parts) == 2 && parts[1] == "required" {
+		required = true
+	}
+
+	switch kokName {
+	case "":
+		name = field.Name
+	case "-":
+		omitted = true
+	default:
+		name = kokName
+	}
+
 	return
 }
