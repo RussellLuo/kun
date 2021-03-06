@@ -24,7 +24,7 @@ func (cm CodecMap) EncodeDecoder(name string) Codec {
 	if cm.Default != nil {
 		return cm.Default
 	}
-	return NewJSON(nil) // defaults to JSON
+	return JSON{} // defaults to JSON
 }
 
 type Error struct {
@@ -36,25 +36,10 @@ type FailureResponse struct {
 	Error Error `json:"error"`
 }
 
-type JSON struct {
-	params       map[string]Param // customized codecs for parameters
-	defaultParam Param
-}
-
-func NewJSON(params map[string]Param) JSON {
-	return JSON{
-		params:       params,
-		defaultParam: Param{},
-	}
-}
+type JSON struct{}
 
 func (j JSON) DecodeRequestParam(name string, values []string, out interface{}) error {
-	p, ok := j.params[name]
-	if !ok {
-		p = j.defaultParam
-	}
-
-	if err := p.Decode(name, values, out); err != nil {
+	if err := Decode(values, out); err != nil {
 		return werror.Wrap(googlecode.ErrInvalidArgument).SetError(err)
 	}
 	return nil
@@ -95,11 +80,7 @@ func (j JSON) EncodeFailureResponse(w http.ResponseWriter, err error) error {
 }
 
 func (j JSON) EncodeRequestParam(name string, value interface{}) []string {
-	p, ok := j.params[name]
-	if !ok {
-		p = j.defaultParam
-	}
-	return p.Encode(name, value)
+	return Encode(value)
 }
 
 func (j JSON) EncodeRequestParams(name string, value interface{}) map[string][]string {

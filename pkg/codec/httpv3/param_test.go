@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func TestParam_Decode(t *testing.T) {
+func Test_Decode(t *testing.T) {
 	type value struct {
 		Int       int
 		Ints      []int
@@ -120,10 +120,9 @@ func TestParam_Decode(t *testing.T) {
 		},
 	}
 
-	p := Param{}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			err := p.Decode("", c.values, c.out)
+			err := Decode(c.values, c.out)
 			if err != c.wantErr {
 				t.Fatalf("Err: got (%#v), want (%#v)", err, c.wantErr)
 			}
@@ -137,7 +136,7 @@ func TestParam_Decode(t *testing.T) {
 	}
 }
 
-func TestParam_Encode(t *testing.T) {
+func Test_Encode(t *testing.T) {
 	cases := []struct {
 		name    string
 		value   interface{}
@@ -195,10 +194,9 @@ func TestParam_Encode(t *testing.T) {
 		},
 	}
 
-	p := Param{}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			out := p.Encode("", c.value)
+			out := Encode(c.value)
 			if !reflect.DeepEqual(out, c.wantOut) {
 				t.Fatalf("Out: got (%#v), want (%#v)", out, c.wantOut)
 			}

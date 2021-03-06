@@ -6,9 +6,7 @@ import (
 	"time"
 )
 
-type Param struct{}
-
-func (p Param) Decode(name string, values []string, out interface{}) error {
+func Decode(values []string, out interface{}) error {
 	if len(values) == 0 {
 		return nil
 	}
@@ -171,9 +169,7 @@ func (p Param) Decode(name string, values []string, out interface{}) error {
 	case *string:
 		*v = values[0]
 	case *[]string:
-		for _, value := range values {
-			*v = append(*v, value)
-		}
+		*v = append(*v, values...)
 	case *time.Time:
 		vv, err := time.Parse(time.RFC3339, values[0])
 		if err != nil {
@@ -210,7 +206,7 @@ func (p Param) Decode(name string, values []string, out interface{}) error {
 	return nil
 }
 
-func (p Param) Encode(name string, in interface{}) (values []string) {
+func Encode(in interface{}) (values []string) {
 	switch v := in.(type) {
 	case int:
 		values = append(values, strconv.FormatInt(int64(v), 10))
