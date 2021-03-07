@@ -19,7 +19,7 @@ func main() {
 	flag.Parse()
 
 	svc := &helloworld.Greeter{}
-	r := helloworld.NewHTTPRouterWithOAS(svc, httpcodec.CodecMap{}, &oasv2.ResponseSchema{})
+	r := helloworld.NewHTTPRouterWithOAS(svc, httpcodec.NewDefaultCodecs(nil), &oasv2.ResponseSchema{})
 
 	errs := make(chan error, 2)
 	go func() {

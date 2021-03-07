@@ -11,20 +11,23 @@ import (
 	"github.com/RussellLuo/kok/pkg/werror/googlecode"
 )
 
-type CodecMap struct {
-	Codecs  map[string]Codec
-	Default Codec
+type DefaultCodecs struct {
+	Codecs map[string]Codec
+	d      Codec
 }
 
-func (cm CodecMap) EncodeDecoder(name string) Codec {
-	if c, ok := cm.Codecs[name]; ok {
+func NewDefaultCodecs(d Codec) *DefaultCodecs {
+	if d == nil {
+		d = JSON{} // defaults to JSON
+	}
+	return &DefaultCodecs{d: d}
+}
+
+func (dc *DefaultCodecs) EncodeDecoder(name string) Codec {
+	if c, ok := dc.Codecs[name]; ok {
 		return c
 	}
-
-	if cm.Default != nil {
-		return cm.Default
-	}
-	return JSON{} // defaults to JSON
+	return dc.d
 }
 
 type Error struct {

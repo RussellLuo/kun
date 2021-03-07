@@ -28,10 +28,8 @@ func codeFrom(err error) int {
 	}
 }
 
-func NewCodecs() httpcodec.CodecMap {
-	return httpcodec.CodecMap{
-		Default: Codec{},
-	}
+func NewCodecs() *httpcodec.DefaultCodecs {
+	return httpcodec.NewDefaultCodecs(Codec{})
 }
 
 func GetFailures(name string) map[error]interface{} {

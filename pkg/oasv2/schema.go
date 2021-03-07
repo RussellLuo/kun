@@ -31,7 +31,7 @@ type ResponseSchema struct {
 
 func (rs *ResponseSchema) codecs() httpcodec.Codecs {
 	if rs.Codecs == nil {
-		rs.Codecs = httpcodec.CodecMap{}
+		rs.Codecs = httpcodec.NewDefaultCodecs(nil)
 	}
 	return rs.Codecs
 }

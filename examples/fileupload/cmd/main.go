@@ -19,7 +19,7 @@ func main() {
 	flag.Parse()
 
 	svc := &fileupload.Uploader{}
-	codecs := httpcodec.CodecMap{Default: httpcodec.NewMultipartForm(0)}
+	codecs := httpcodec.NewDefaultCodecs(httpcodec.NewMultipartForm(0))
 	r := fileupload.NewHTTPRouterWithOAS(svc, codecs, &oasv2.ResponseSchema{})
 
 	errs := make(chan error, 2)
