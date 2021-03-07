@@ -21,7 +21,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv3"
+	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
 
 	{{- range .Result.Imports}}
 	"{{.}}"

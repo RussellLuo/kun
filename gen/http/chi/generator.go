@@ -30,7 +30,7 @@ import (
 	{{- end}}
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-kit/kit/endpoint"
-	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv3"
+	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
 	"github.com/RussellLuo/kok/pkg/oasv2"
 
 	{{- range .Result.Imports}}

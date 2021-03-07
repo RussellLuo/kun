@@ -3,7 +3,7 @@ package profilesvc
 import (
 	"net/http"
 
-	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv3"
+	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
 	"github.com/RussellLuo/kok/pkg/oasv2"
 )
 

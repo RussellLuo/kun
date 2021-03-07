@@ -10,7 +10,7 @@ import (
 
 	"github.com/RussellLuo/kok/gen/util/misc"
 	"github.com/RussellLuo/kok/gen/util/reflector"
-	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv3"
+	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
 )
 
 const (
