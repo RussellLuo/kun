@@ -40,6 +40,9 @@ type JSON struct{}
 
 func (j JSON) DecodeRequestParam(name string, values []string, out interface{}) error {
 	if err := DecodeSliceToBasic(values, out); err != nil {
+		if err == ErrUnsupportedType {
+			panic(fmt.Errorf("DecodeRequestParam not implemented for %q (of type %T)", name, out))
+		}
 		return werror.Wrap(googlecode.ErrInvalidArgument).SetError(err)
 	}
 	return nil

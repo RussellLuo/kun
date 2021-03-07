@@ -212,8 +212,7 @@ func DecodeSliceToBasic(values []string, out interface{}) error {
 			*v = append(*v, vv)
 		}
 	default:
-		// Panic since this is a programming error.
-		panic(fmt.Errorf("unsupported out type: %T", v))
+		return ErrUnsupportedType
 	}
 
 	return nil
