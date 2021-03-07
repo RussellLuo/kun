@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func Test_DecodeSliceToBasic(t *testing.T) {
+func TestDecodeSliceToBasic(t *testing.T) {
 	type value struct {
 		Int       int
 		Ints      []int
@@ -136,7 +136,7 @@ func Test_DecodeSliceToBasic(t *testing.T) {
 	}
 }
 
-func Test_EncodeBasicToSlice(t *testing.T) {
+func TestEncodeBasicToSlice(t *testing.T) {
 	cases := []struct {
 		name    string
 		value   interface{}

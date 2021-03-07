@@ -17,31 +17,32 @@ func TestDecodeMultipartFormToStruct(t *testing.T) {
 	}
 
 	type form struct {
-		Name string    `json:"name"`
+		Text string    `json:"text"`
 		File *FormFile `json:"file"`
 	}
 
-	inFileContent := "value string"
+	inFileContent := "this is a file"
 	in := form{
-		Name: "file",
+		Text: "this is a text",
 		File: fromString("filename", inFileContent),
 	}
 
-	// 1. Encode the struct in to a multipart message.
+	// 1. Encode the struct named in to a multipart message.
 	data := &bytes.Buffer{}
 	writer := multipart.NewWriter(data)
 	if err := encodeStructToMultipartForm(in, writer); err != nil {
 		t.Fatalf("Error: %v", err)
 	}
 
-	// 2. Decode the multipart message to a struct out.
+	// 2. Decode the multipart message to a struct named out.
 
-	// Create an instance of multipart.Form.
+	// Parse the boundary.
 	_, params, err := mime.ParseMediaType(writer.FormDataContentType())
 	if err != nil {
 		t.Fatalf("Error: %v", err)
 	}
 
+	// Parse the multipart message.
 	reader := multipart.NewReader(data, params["boundary"])
 	formData, err := reader.ReadForm(defaultMaxMemory)
 	if err != nil {
@@ -53,9 +54,9 @@ func TestDecodeMultipartFormToStruct(t *testing.T) {
 		t.Fatalf("Error: %v", err)
 	}
 
-	// 3. Validate the equality of out and in.
-	if out.Name != in.Name {
-		t.Fatalf("Name: got (%#v), want (%#v)", out.Name, in.Name)
+	// 3. Assert the equality of out and in.
+	if out.Text != in.Text {
+		t.Fatalf("Name: got (%#v), want (%#v)", out.Text, in.Text)
 	}
 	if out.File.Name != in.File.Name {
 		t.Fatalf("File.Name: got (%#v), want (%#v)", out.File.Name, in.File.Name)
