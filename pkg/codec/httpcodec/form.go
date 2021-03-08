@@ -92,7 +92,7 @@ func decodeMultipartFormToStruct(form *multipart.Form, out interface{}) error {
 		switch v := fieldValuePtr.Interface().(type) {
 		case **FormFile:
 			// Decode the first form file.
-			if files, ok := form.File[fieldName]; ok {
+			if files, ok := form.File[fieldName]; ok && len(files) > 0 {
 				f, err := FromMultipartFileHeader(files[0])
 				if err != nil {
 					return err
@@ -208,10 +208,12 @@ func getFormFieldName(field reflect.StructField) (name string, omitted bool) {
 	return
 }
 
-// FormFile represents a file field of a multipart form.
+// FormFile describes a file part of a multipart message.
 type FormFile struct {
-	Name string
-	File io.ReadCloser
+	Name   string
+	Header map[string][]string
+	Size   int64
+	File   io.ReadCloser
 }
 
 func FromMultipartFileHeader(fh *multipart.FileHeader) (*FormFile, error) {
@@ -220,8 +222,10 @@ func FromMultipartFileHeader(fh *multipart.FileHeader) (*FormFile, error) {
 		return nil, err
 	}
 	return &FormFile{
-		Name: fh.Filename,
-		File: file,
+		Name:   fh.Filename,
+		Header: fh.Header,
+		Size:   fh.Size,
+		File:   file,
 	}, nil
 }
 
@@ -230,8 +234,17 @@ func FromOSFile(name string) (*FormFile, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	info, err := file.Stat()
+	if err != nil {
+		return nil, err
+	}
+	size := info.Size()
+
 	return &FormFile{
 		Name: name,
+		// Header is nil for OS files.
+		Size: size,
 		File: file,
 	}, nil
 }

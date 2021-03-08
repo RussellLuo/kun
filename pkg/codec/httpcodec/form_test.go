@@ -12,6 +12,7 @@ func TestDecodeMultipartFormToStruct(t *testing.T) {
 	fromString := func(name, value string) *FormFile {
 		return &FormFile{
 			Name: name,
+			Size: int64(len(value)),
 			File: ioutil.NopCloser(bytes.NewBufferString(value)),
 		}
 	}
