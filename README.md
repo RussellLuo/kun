@@ -226,61 +226,62 @@ See more examples [here](examples).
         - **header**: The method argument is sourced from a [header parameter](https://swagger.io/docs/specification/describing-parameters/#header-parameters).
         - **cookie**: The method argument is sourced from a [cookie parameter](https://swagger.io/docs/specification/describing-parameters/#cookie-parameters).
             + Not supported yet.
-        - **body**: The method argument is sourced from the [request body](https://swagger.io/docs/specification/describing-request-body/).
-            + Deprecated: Use `@kok(body)` instead.
         - **request**: The method argument is sourced from a property of Go's [http.Request](https://golang.org/pkg/net/http/#Request).
             + This is a special case, and only one property `RemoteAddr` is available now.
             + Note that parameters located in **request** have no relationship with OAS.
     + **name**: The name of the corresponding request parameter.
         - Optional: Defaults to **argName** if not specified.
-    + **type**: The type of the corresponding request parameter.
-        - Optional: Defaults to the type of the method argument, if not specified.
-        - **Required** for *Argument aggregation* for generating correct OAS documentation.
     + **required**: Determines whether this parameter is mandatory.
         - Optional: Defaults to `false`, if not specified.
         - If the parameter location is **path**, this property will be set to `true` internally, whether it's specified or not.
 - Example:
-    + Simple argument:
+    + Bind request parameters to simple arguments:
 
         ```go
         type Service interface {
             // @kok(op): PUT /users/{id}
             // @kok(param): name < in:header,name:X-User-Name
-            // @kok(param): age < in:header,name:X-User-Age
-            UpdateUser(ctx context.Context, id int, name string, age int) (err error)
+            UpdateUser(ctx context.Context, id int, name string) (err error)
         }
 
         // HTTP request:
-        // $ http PUT /users/101 X-User-Name:tracey X-User-Age:1
+        // $ http PUT /users/101 X-User-Name:tracey
         ```
-    + Argument aggregation:
+    + Bind multiple request parameters to a struct according to tags:
 
         ```go
         type User struct {
-            Name    string   `kok:"query.name"`
-            Age     int      `kok:"query.age"`
-            Hobbies []string `kok:"query.hobby"`
+            ID   int    `kok:"path.id"`
+            Name string `kok:"query.name"`
+            Age  int    `kok:"header.X-User-Age"`
+        }
+
+        type Service interface {
+            // @kok(op): PUT /users/{id}
+            // @kok(param): user
+            UpdateUser(ctx context.Context, user User) (err error)
+        }
+
+        // HTTP request:
+        // $ http PUT /users/101?name=tracey X-User-Age:1
+        ```
+    + Bind multiple query parameters to a struct with no tags:
+
+        ```go
+        type User struct {
+            Name    string
+            Age     int
+            Hobbies []string
         }
 
         type Service interface {
             // @kok(op): POST /users
-            // @kok(param): user < in:query,name:name,type:string
-            // @kok(param): user < in:query,name:age,type:int
-            // @kok(param): user < in:query,name:hobby,type:[]string
-            CreateUser(ctx context.Context, user User) (err error)
-        }
-
-        // The equivalent annotations.
-        type Service interface {
-            // @kok(op): POST /users
-            // @kok(param): user < in:query,name:name,type:string
-            // @kok(param):      < in:query,name:age,type:int
-            // @kok(param):      < in:query,name:hobby,type:[]string
+            // @kok(param): user
             CreateUser(ctx context.Context, user User) (err error)
         }
 
         // HTTP request:
-        // $ http POST /users?name=tracey&age=1&hobby=music&hobby=sport
+        // $ http POST /users?Name=tracey&Age=1&Hobbies=music&Hobbies=sport
         ```
 
 </details>
@@ -328,9 +329,9 @@ See more examples [here](examples).
 
         ```go
         type User struct {
-            Name    string   `kok:"query.name"`
-            Age     int      `kok:"query.age"`
-            Hobbies []string `kok:"query.hobby"`
+            Name    string   `kok:"name"`
+            Age     int      `kok:"age"`
+            Hobbies []string `kok:"hobby"`
         }
 
         type Service interface {
