@@ -2,15 +2,12 @@ package openapi
 
 import (
 	"fmt"
-	"go/types"
 	"net/http"
-	"reflect"
 	"regexp"
 	"strings"
 
 	"github.com/RussellLuo/kok/gen/util/misc"
 	"github.com/RussellLuo/kok/gen/util/reflector"
-	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
 )
 
 const (
@@ -84,27 +81,28 @@ func isKokAnnotation(comment string) bool {
 }
 
 func manipulateByComments(op *Operation, params map[string]*Param, results map[string]*reflector.Param, comments []string) error {
-	var prevParamName string
+	parser := &Parser{
+		methodName: op.Name,
+		params:     params,
+	}
 
-	setParam := func(value, prevName string) (string, error) {
-		p := op.buildParamV2(value, prevName)
-
-		param, ok := params[p.Name]
+	setParamByAnnotation := func(a *annotation) error {
+		param, ok := params[a.ArgName]
 		if !ok {
-			return "", fmt.Errorf("no param `%s` declared in the method %s", p.Name, op.Name)
+			return fmt.Errorf("no param `%s` declared in the method %s", a.ArgName, op.Name)
 		}
 
 		if !param.inUse {
-			param.Set(p)
+			param.SetByAnnotation(a)
 		} else {
 			copied := *param
-			param.Set(p)
+			param.SetByAnnotation(a)
 
 			// Add a new parameter with the same name.
 			op.addParam(&copied)
 		}
 
-		return p.Name, nil
+		return nil
 	}
 
 	for _, comment := range comments {
@@ -127,11 +125,15 @@ func manipulateByComments(op *Operation, params map[string]*Param, results map[s
 			op.Method, op.Pattern = fields[0], fields[1]
 
 		case "param":
-			name, err := setParam(value, prevParamName)
+			annotations, err := parser.Parse(value)
 			if err != nil {
 				return err
 			}
-			prevParamName = name
+			for _, a := range annotations {
+				if err := setParamByAnnotation(a); err != nil {
+					return err
+				}
+			}
 
 		case "body":
 			if _, ok := params[value]; value != OptionNoBody && !ok {
@@ -153,25 +155,32 @@ func manipulateByComments(op *Operation, params map[string]*Param, results map[s
 
 	// Add path parameters according to the path pattern.
 	for _, name := range extractPathVarNames(op.Pattern) {
-		// If name is already bound to a path parameter that is specified in
-		// @kok(param), do not reset it.
+		// If name is already bound to a path parameter by @kok(param) or
+		// by struct tags, do not reset it.
 		if isAlreadyPathParam(name, op.Request.Params) {
 			continue
 		}
 
-		// Build the @kok(param) value according to the path variable name.
-		text := fmt.Sprintf("%s < in:path", name)
-
 		// Add this path parameter.
-		if _, err := setParam(text, ""); err != nil {
+		annotations, err := parser.Parse(name + " < in:path")
+		if err != nil {
 			return err
+		}
+		for _, a := range annotations {
+			if err := setParamByAnnotation(a); err != nil {
+				return err
+			}
 		}
 	}
 
 	// Add possible query parameters if no-request-body is specified.
 	if op.Request.BodyField == OptionNoBody {
-		for _, text := range makeKokQueryParamTextsFromBodyParams(params, op.Name) {
-			if _, err := setParam(text, ""); err != nil {
+		annotations, err := makeKokQueryParamTextsFromBodyParams(parser)
+		if err != nil {
+			return err
+		}
+		for _, a := range annotations {
+			if err := setParamByAnnotation(a); err != nil {
 				return err
 			}
 		}
@@ -203,60 +212,19 @@ func isAlreadyPathParam(name string, params []*Param) bool {
 	return false
 }
 
-func makeKokQueryParamTextsFromBodyParams(params map[string]*Param, methodName string) (texts []string) {
-	for _, p := range params {
+func makeKokQueryParamTextsFromBodyParams(parser *Parser) (annotations []*annotation, err error) {
+	for _, p := range parser.params {
 		if p.In != InBody || p.Name == "ctx" {
 			// Ignore non-body parameters and the special context.Context parameter.
 			continue
 		}
 
-		nameTypes := make(map[string]string)
-
-		// Build the kok tag text.
-		switch t := p.RawType.Underlying().(type) {
-		case *types.Basic:
-			nameTypes[p.Alias] = t.Name()
-		case *types.Slice:
-			et, ok := t.Elem().(*types.Basic)
-			if !ok {
-				panic(fmt.Errorf("query parameter cannot be mapped to argument `%s` (of type %v) in method %s", p.Name, t, methodName))
-			}
-			nameTypes[p.Alias] = "[]" + et.Name()
-		case *types.Struct:
-			for i := 0; i < t.NumFields(); i++ {
-				var typeName string
-				switch ft := t.Field(i).Type().(type) {
-				case *types.Basic:
-					typeName = ft.Name()
-				case *types.Slice:
-					et, ok := ft.Elem().(*types.Basic)
-					if !ok {
-						panic(fmt.Errorf("query parameter cannot be mapped to struct field %q (of type %v) from argument `%s` in method %s", t.Field(i).Name(), ft, p.Name, methodName))
-					}
-					typeName = "[]" + et.Name()
-				default:
-					panic(fmt.Errorf("query parameter cannot be mapped to struct field %q (of type %v) from argument `%s` in method %s", t.Field(i).Name(), ft, p.Name, methodName))
-				}
-
-				field := reflect.StructField{
-					Tag:  reflect.StructTag(t.Tag(i)),
-					Name: t.Field(i).Name(),
-				}
-				name, _, _ := httpcodec.GetFieldName(field)
-				if strings.HasPrefix(name, "query.") {
-					// Only add the field that is mapped to a query parameter.
-					name = strings.TrimPrefix(name, "query.") // get the real query name
-					nameTypes[name] = typeName
-				}
-			}
-		default:
-			panic(fmt.Errorf("query parameter cannot be mapped to argument `%s` (of type %v) in method %s", p.Name, t, methodName))
+		annos, err := parser.Parse(p.Name + " < in:query")
+		if err != nil {
+			return nil, err
 		}
 
-		for name, typ := range nameTypes {
-			texts = append(texts, fmt.Sprintf("%s < in:query,name:%s,type:%s", p.Name, name, typ))
-		}
+		annotations = append(annotations, annos...)
 	}
-
 	return
 }

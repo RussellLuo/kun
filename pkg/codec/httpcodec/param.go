@@ -414,5 +414,16 @@ func GetFieldName(field reflect.StructField) (name string, required, omitted boo
 		name = kokName
 	}
 
+	// Do the following transformations:
+	//     "xyz"      -> "query.xyz"
+	//     ".xyz"     -> "query.xyz"
+	//     "path.xyz" -> "path.xyz"
+	split := strings.SplitN(name, ".", 2)
+	if len(split) == 1 {
+		name = "query." + split[0]
+	} else if split[0] == "" {
+		name = "query." + split[1]
+	}
+
 	return
 }

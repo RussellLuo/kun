@@ -77,6 +77,18 @@ func (p *Param) Set(o *Param) {
 	p.inUse = true
 }
 
+// Set sets properties according to the given annotation.
+func (p *Param) SetByAnnotation(a *annotation) {
+	if a.In != "" {
+		p.In = a.In
+	}
+	p.Alias = a.Name
+	p.Required = a.Required
+	p.AliasType = a.Type
+
+	p.inUse = true
+}
+
 type Request struct {
 	MediaType string
 
