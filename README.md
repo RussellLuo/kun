@@ -297,7 +297,7 @@ See more examples [here](examples).
 
         // The equivalent annotations.
         type Service interface {
-            // @kok(op): POST /users
+            // @kok(op): POST /logs
             // @kok(param): ip < in:header,name:X-Forwarded-For
             // @kok(param):    < in:request,name:RemoteAddr
             Log(ctx context.Context, ip net.IP) (err error)
@@ -307,7 +307,7 @@ See more examples [here](examples).
         // See examples in the `Encoding and decoding` section.
 
         // HTTP request:
-        // $ http POST /users?Name=tracey&Age=1&Hobbies=music&Hobbies=sport
+        // $ http POST /logs
         ```
 
 </details>
@@ -441,6 +441,10 @@ func (c *Codec) DecodeRequestParams(name string, values map[string][]string, out
         outIP := out.(*net.IP)
         *outIP = ip
         return nil
+
+    default:
+        // Use the JSON codec for other arguments.
+        return c.JSON.DecodeRequestParams(name, values, out)
     }
 }
 ```
