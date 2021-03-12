@@ -415,7 +415,7 @@ import (
 )
 
 type Codec struct {
-	httpcodec.JSON
+    httpcodec.JSON
 }
 
 func (c *Codec) DecodeRequestParams(name string, values map[string][]string, out interface{}) error {
@@ -424,23 +424,24 @@ func (c *Codec) DecodeRequestParams(name string, values map[string][]string, out
         // We are decoding the "ip" argument.
 
         remote := values["request.RemoteAddr"][0]
+        if fwdFor := values["header.X-Forwarded-For"][0]; fwdFor != "" {
+            remote = strings.TrimSpace(strings.Split(fwdFor, ",")[0])
+        }
 
-    	if fwdFor := values["header.X-Forwarded-For"][0]; fwdFor != "" {
-    		remote = strings.TrimSpace(strings.Split(fwdFor, ",")[0])
-    	}
+        ipStr, _, err := net.SplitHostPort(remote)
+        if err != nil {
+            ipStr = remote // OK; probably didn't have a port
+        }
 
-    	ipStr, _, err := net.SplitHostPort(remote)
-    	if err != nil {
-    		ipStr = remote // OK; probably didn't have a port
-    	}
+        ip := net.ParseIP(ipStr)
+        if ip == nil {
+            return fmt.Errorf("invalid client IP address: %s", ipStr)
+        }
 
-    	ip := net.ParseIP(ipStr)
-    	if ip == nil {
-		    return nil, fmt.Errorf("invalid client IP address: %s", ipStr)
-	    }
-
-	    return ip, nil
-	}
+        outIP := out.(*net.IP)
+        *outIP = ip
+        return nil
+    }
 }
 ```
 
