@@ -283,6 +283,32 @@ See more examples [here](examples).
         // HTTP request:
         // $ http POST /users?Name=tracey&Age=1&Hobbies=music&Hobbies=sport
         ```
+    + Argument aggregation:
+
+        ```go
+	    import "net"
+
+        type Service interface {
+            // @kok(op): POST /users
+            // @kok(param): ip < in:header,name:X-Forwarded-For
+            // @kok(param): ip < in:request,name:RemoteAddr
+            Log(ctx context.Context, ip net.IP) (err error)
+        }
+
+        // The equivalent annotations.
+        type Service interface {
+            // @kok(op): POST /users
+            // @kok(param): ip < in:header,name:X-Forwarded-For
+            // @kok(param):    < in:request,name:RemoteAddr
+            Log(ctx context.Context, ip net.IP) (err error)
+        }
+
+        // You must customize the decoding of `ip` later (conventionally in another file named `codec.go`).
+        // See examples in the `Encoding and decoding` section.
+
+        // HTTP request:
+        // $ http POST /users?Name=tracey&Age=1&Hobbies=music&Hobbies=sport
+        ```
 
 </details>
 
@@ -375,7 +401,50 @@ See more examples [here](examples).
 
 ### Encoding and decoding
 
-See the [HTTP Codec](https://github.com/RussellLuo/kok/blob/master/pkg/codec/httpv2/codec.go#L8-L22) interface.
+See the [HTTP Codec](https://github.com/RussellLuo/kok/blob/master/pkg/codec/httpcodec/codec.go#L8-L22) interface.
+
+Take the `IP decoding` mentioned above as an example, we can get the real IP by customizing the built-in [httpcodec.JSON](https://github.com/RussellLuo/kok/blob/master/pkg/codec/httpcodec/json.go#L42):
+
+```go
+// codec.go
+
+import (
+    "net"
+
+    "github.com/RussellLuo/kok/pkg/codec/httpcodec"
+)
+
+type Codec struct {
+	httpcodec.JSON
+}
+
+func (c *Codec) DecodeRequestParams(name string, values map[string][]string, out interface{}) error {
+    switch name {
+    case "ip":
+        // We are decoding the "ip" argument.
+
+        remote := values["request.RemoteAddr"][0]
+
+    	if fwdFor := values["header.X-Forwarded-For"][0]; fwdFor != "" {
+    		remote = strings.TrimSpace(strings.Split(fwdFor, ",")[0])
+    	}
+
+    	ipStr, _, err := net.SplitHostPort(remote)
+    	if err != nil {
+    		ipStr = remote // OK; probably didn't have a port
+    	}
+
+    	ip := net.ParseIP(ipStr)
+    	if ip == nil {
+		    return nil, fmt.Errorf("invalid client IP address: %s", ipStr)
+	    }
+
+	    return ip, nil
+	}
+}
+```
+
+For how to use the customized Codec implementation in your HTTP server, see the [profilesvc](https://github.com/RussellLuo/kok/tree/master/examples/profilesvc) example.
 
 ### OAS Schema
 
