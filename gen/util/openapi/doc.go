@@ -15,7 +15,7 @@ const (
 )
 
 var (
-	reKok = regexp.MustCompile(`@kok2?\((\w+)\):\s*(.+)$`)
+	reKok = regexp.MustCompile(`@kok\((\w+)\):\s*(.+)$`)
 
 	rePathVarName = regexp.MustCompile(`{(\w+)}`)
 )
