@@ -214,7 +214,7 @@ See more examples [here](examples).
   <summary> Define the HTTP request parameters </summary>
 
 - Key: `@kok(param)`
-- Value: `<argName> < in:<in>,name:<name>,type:<type>,required:<required>`
+- Value: `<argName> < in:<in>,name:<name>,required:<required>`
     + **argName**: The name of the method argument.
         - *Argument aggregation*: By specifying the same **argName**, multiple request parameters (each one is of basic type or repeated basic type) can be aggregated into one method argument (of any type).
             + You do not need to repeat the **argName**, only the first one is required.
