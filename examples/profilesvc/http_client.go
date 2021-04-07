@@ -53,22 +53,22 @@ func (c *HTTPClient) DeleteAddress(ctx context.Context, id string, addressID str
 		return err
 	}
 
-	resp, err := c.httpClient.Do(_req)
+	_resp, err := c.httpClient.Do(_req)
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer _resp.Body.Close()
 
-	if resp.StatusCode >= http.StatusOK && resp.StatusCode <= http.StatusNoContent {
-		return nil
-	} else {
+	if _resp.StatusCode < http.StatusOK || _resp.StatusCode > http.StatusNoContent {
 		var respErr error
-		err := codec.DecodeFailureResponse(resp.Body, &respErr)
+		err := codec.DecodeFailureResponse(_resp.Body, &respErr)
 		if err == nil {
 			err = respErr
 		}
 		return err
 	}
+
+	return nil
 }
 
 func (c *HTTPClient) DeleteProfile(ctx context.Context, id string) (err error) {
@@ -88,22 +88,22 @@ func (c *HTTPClient) DeleteProfile(ctx context.Context, id string) (err error) {
 		return err
 	}
 
-	resp, err := c.httpClient.Do(_req)
+	_resp, err := c.httpClient.Do(_req)
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer _resp.Body.Close()
 
-	if resp.StatusCode >= http.StatusOK && resp.StatusCode <= http.StatusNoContent {
-		return nil
-	} else {
+	if _resp.StatusCode < http.StatusOK || _resp.StatusCode > http.StatusNoContent {
 		var respErr error
-		err := codec.DecodeFailureResponse(resp.Body, &respErr)
+		err := codec.DecodeFailureResponse(_resp.Body, &respErr)
 		if err == nil {
 			err = respErr
 		}
 		return err
 	}
+
+	return nil
 }
 
 func (c *HTTPClient) GetAddress(ctx context.Context, id string, addressID string) (address Address, err error) {
@@ -124,27 +124,27 @@ func (c *HTTPClient) GetAddress(ctx context.Context, id string, addressID string
 		return Address{}, err
 	}
 
-	resp, err := c.httpClient.Do(_req)
+	_resp, err := c.httpClient.Do(_req)
 	if err != nil {
 		return Address{}, err
 	}
-	defer resp.Body.Close()
+	defer _resp.Body.Close()
 
-	if resp.StatusCode >= http.StatusOK && resp.StatusCode <= http.StatusNoContent {
-		respBody := &GetAddressResponse{}
-		err := codec.DecodeSuccessResponse(resp.Body, respBody.Body())
-		if err != nil {
-			return Address{}, err
-		}
-		return respBody.Address, nil
-	} else {
+	if _resp.StatusCode < http.StatusOK || _resp.StatusCode > http.StatusNoContent {
 		var respErr error
-		err := codec.DecodeFailureResponse(resp.Body, &respErr)
+		err := codec.DecodeFailureResponse(_resp.Body, &respErr)
 		if err == nil {
 			err = respErr
 		}
 		return Address{}, err
 	}
+
+	respBody := &GetAddressResponse{}
+	err = codec.DecodeSuccessResponse(_resp.Body, respBody.Body())
+	if err != nil {
+		return Address{}, err
+	}
+	return respBody.Address, nil
 }
 
 func (c *HTTPClient) GetAddresses(ctx context.Context, id string) (addresses []Address, err error) {
@@ -164,27 +164,27 @@ func (c *HTTPClient) GetAddresses(ctx context.Context, id string) (addresses []A
 		return nil, err
 	}
 
-	resp, err := c.httpClient.Do(_req)
+	_resp, err := c.httpClient.Do(_req)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer _resp.Body.Close()
 
-	if resp.StatusCode >= http.StatusOK && resp.StatusCode <= http.StatusNoContent {
-		respBody := &GetAddressesResponse{}
-		err := codec.DecodeSuccessResponse(resp.Body, respBody.Body())
-		if err != nil {
-			return nil, err
-		}
-		return respBody.Addresses, nil
-	} else {
+	if _resp.StatusCode < http.StatusOK || _resp.StatusCode > http.StatusNoContent {
 		var respErr error
-		err := codec.DecodeFailureResponse(resp.Body, &respErr)
+		err := codec.DecodeFailureResponse(_resp.Body, &respErr)
 		if err == nil {
 			err = respErr
 		}
 		return nil, err
 	}
+
+	respBody := &GetAddressesResponse{}
+	err = codec.DecodeSuccessResponse(_resp.Body, respBody.Body())
+	if err != nil {
+		return nil, err
+	}
+	return respBody.Addresses, nil
 }
 
 func (c *HTTPClient) GetProfile(ctx context.Context, id string) (profile Profile, err error) {
@@ -204,27 +204,27 @@ func (c *HTTPClient) GetProfile(ctx context.Context, id string) (profile Profile
 		return Profile{}, err
 	}
 
-	resp, err := c.httpClient.Do(_req)
+	_resp, err := c.httpClient.Do(_req)
 	if err != nil {
 		return Profile{}, err
 	}
-	defer resp.Body.Close()
+	defer _resp.Body.Close()
 
-	if resp.StatusCode >= http.StatusOK && resp.StatusCode <= http.StatusNoContent {
-		respBody := &GetProfileResponse{}
-		err := codec.DecodeSuccessResponse(resp.Body, respBody.Body())
-		if err != nil {
-			return Profile{}, err
-		}
-		return respBody.Profile, nil
-	} else {
+	if _resp.StatusCode < http.StatusOK || _resp.StatusCode > http.StatusNoContent {
 		var respErr error
-		err := codec.DecodeFailureResponse(resp.Body, &respErr)
+		err := codec.DecodeFailureResponse(_resp.Body, &respErr)
 		if err == nil {
 			err = respErr
 		}
 		return Profile{}, err
 	}
+
+	respBody := &GetProfileResponse{}
+	err = codec.DecodeSuccessResponse(_resp.Body, respBody.Body())
+	if err != nil {
+		return Profile{}, err
+	}
+	return respBody.Profile, nil
 }
 
 func (c *HTTPClient) PatchProfile(ctx context.Context, id string, profile Profile) (err error) {
@@ -258,22 +258,22 @@ func (c *HTTPClient) PatchProfile(ctx context.Context, id string, profile Profil
 		_req.Header.Set(k, v)
 	}
 
-	resp, err := c.httpClient.Do(_req)
+	_resp, err := c.httpClient.Do(_req)
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer _resp.Body.Close()
 
-	if resp.StatusCode >= http.StatusOK && resp.StatusCode <= http.StatusNoContent {
-		return nil
-	} else {
+	if _resp.StatusCode < http.StatusOK || _resp.StatusCode > http.StatusNoContent {
 		var respErr error
-		err := codec.DecodeFailureResponse(resp.Body, &respErr)
+		err := codec.DecodeFailureResponse(_resp.Body, &respErr)
 		if err == nil {
 			err = respErr
 		}
 		return err
 	}
+
+	return nil
 }
 
 func (c *HTTPClient) PostAddress(ctx context.Context, id string, address Address) (err error) {
@@ -307,22 +307,22 @@ func (c *HTTPClient) PostAddress(ctx context.Context, id string, address Address
 		_req.Header.Set(k, v)
 	}
 
-	resp, err := c.httpClient.Do(_req)
+	_resp, err := c.httpClient.Do(_req)
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer _resp.Body.Close()
 
-	if resp.StatusCode >= http.StatusOK && resp.StatusCode <= http.StatusNoContent {
-		return nil
-	} else {
+	if _resp.StatusCode < http.StatusOK || _resp.StatusCode > http.StatusNoContent {
 		var respErr error
-		err := codec.DecodeFailureResponse(resp.Body, &respErr)
+		err := codec.DecodeFailureResponse(_resp.Body, &respErr)
 		if err == nil {
 			err = respErr
 		}
 		return err
 	}
+
+	return nil
 }
 
 func (c *HTTPClient) PostProfile(ctx context.Context, profile Profile) (err error) {
@@ -354,22 +354,22 @@ func (c *HTTPClient) PostProfile(ctx context.Context, profile Profile) (err erro
 		_req.Header.Set(k, v)
 	}
 
-	resp, err := c.httpClient.Do(_req)
+	_resp, err := c.httpClient.Do(_req)
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer _resp.Body.Close()
 
-	if resp.StatusCode >= http.StatusOK && resp.StatusCode <= http.StatusNoContent {
-		return nil
-	} else {
+	if _resp.StatusCode < http.StatusOK || _resp.StatusCode > http.StatusNoContent {
 		var respErr error
-		err := codec.DecodeFailureResponse(resp.Body, &respErr)
+		err := codec.DecodeFailureResponse(_resp.Body, &respErr)
 		if err == nil {
 			err = respErr
 		}
 		return err
 	}
+
+	return nil
 }
 
 func (c *HTTPClient) PutProfile(ctx context.Context, id string, profile Profile) (err error) {
@@ -403,20 +403,20 @@ func (c *HTTPClient) PutProfile(ctx context.Context, id string, profile Profile)
 		_req.Header.Set(k, v)
 	}
 
-	resp, err := c.httpClient.Do(_req)
+	_resp, err := c.httpClient.Do(_req)
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer _resp.Body.Close()
 
-	if resp.StatusCode >= http.StatusOK && resp.StatusCode <= http.StatusNoContent {
-		return nil
-	} else {
+	if _resp.StatusCode < http.StatusOK || _resp.StatusCode > http.StatusNoContent {
 		var respErr error
-		err := codec.DecodeFailureResponse(resp.Body, &respErr)
+		err := codec.DecodeFailureResponse(_resp.Body, &respErr)
 		if err == nil {
 			err = respErr
 		}
 		return err
 	}
+
+	return nil
 }

@@ -63,20 +63,20 @@ func (c *HTTPClient) Upload(ctx context.Context, file *httpcodec.FormFile) (err 
 		_req.Header.Set(k, v)
 	}
 
-	resp, err := c.httpClient.Do(_req)
+	_resp, err := c.httpClient.Do(_req)
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer _resp.Body.Close()
 
-	if resp.StatusCode >= http.StatusOK && resp.StatusCode <= http.StatusNoContent {
-		return nil
-	} else {
+	if _resp.StatusCode < http.StatusOK || _resp.StatusCode > http.StatusNoContent {
 		var respErr error
-		err := codec.DecodeFailureResponse(resp.Body, &respErr)
+		err := codec.DecodeFailureResponse(_resp.Body, &respErr)
 		if err == nil {
 			err = respErr
 		}
 		return err
 	}
+
+	return nil
 }

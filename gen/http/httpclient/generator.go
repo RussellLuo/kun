@@ -136,31 +136,31 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 	{{end}}
 	{{- end}} {{/* if $bodyParams */}}
 
-	resp, err := c.httpClient.Do(_req)
+	_resp, err := c.httpClient.Do(_req)
 	if err != nil {
 		return {{returnErr .Returns}}
 	}
-	defer resp.Body.Close()
+	defer _resp.Body.Close()
 
-	if resp.StatusCode >= http.StatusOK && resp.StatusCode <= http.StatusNoContent {
-		{{- if $nonErrReturns}}
-			respBody := {{addAmpersand .Name}}Response{}
-			err := codec.DecodeSuccessResponse(resp.Body, respBody.Body())
-			if err != nil {
-				return {{returnErr .Returns}}
-			}
-			return {{joinParams $nonErrReturns "respBody.>Name" ", "}}, nil
-		{{- else}}
-			return nil
-		{{- end}}
-	} else {
+	if _resp.StatusCode < http.StatusOK || _resp.StatusCode > http.StatusNoContent {
 		var respErr error
-		err := codec.DecodeFailureResponse(resp.Body, &respErr)
+		err := codec.DecodeFailureResponse(_resp.Body, &respErr)
 		if err == nil {
 			err = respErr
 		}
 		return {{returnErr .Returns}}
 	}
+
+	{{if $nonErrReturns -}}
+		respBody := {{addAmpersand .Name}}Response{}
+		err = codec.DecodeSuccessResponse(_resp.Body, respBody.Body())
+		if err != nil {
+			return {{returnErr .Returns}}
+		}
+		return {{joinParams $nonErrReturns "respBody.>Name" ", "}}, nil
+	{{- else}}
+		return nil
+	{{- end}}
 }
 {{- end}} {{/* range .DocMethods */}}
 `
