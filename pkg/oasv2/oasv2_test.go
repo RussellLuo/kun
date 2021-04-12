@@ -6,9 +6,23 @@ import (
 )
 
 func TestAddDefinition(t *testing.T) {
+	toPtr := func(v interface{}) interface{} {
+		switch t := v.(type) {
+		// NOTE: t will be of type interface{}, if we list multiple types in each case.
+		case bool:
+			return &t
+		case string:
+			return &t
+		case int:
+			return &t
+		}
+		return &v
+	}
+
 	type Datum struct {
 		Properties []string `json:"properties"`
 	}
+
 	cases := []struct {
 		name     string
 		inBody   interface{}
@@ -138,6 +152,47 @@ func TestAddDefinition(t *testing.T) {
 				"Attrs": {
 					Type: "object",
 					ItemTypeOrProperties: []Property{
+						{
+							Name: "age",
+							Type: JSONType{
+								Kind:   "basic",
+								Type:   "integer",
+								Format: "int64",
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "pointers to basic types",
+			inBody: struct {
+				Name *string `json:"name"`
+				Male *bool   `json:"male"`
+				Age  *int    `json:"age"`
+			}{
+				Name: toPtr("xxx").(*string),
+				Male: toPtr(true).(*bool),
+				Age:  toPtr(10).(*int),
+			},
+			wantDefs: map[string]Definition{
+				"Response": {
+					Type: "object",
+					ItemTypeOrProperties: []Property{
+						{
+							Name: "name",
+							Type: JSONType{
+								Kind: "basic",
+								Type: "string",
+							},
+						},
+						{
+							Name: "male",
+							Type: JSONType{
+								Kind: "basic",
+								Type: "boolean",
+							},
+						},
 						{
 							Name: "age",
 							Type: JSONType{

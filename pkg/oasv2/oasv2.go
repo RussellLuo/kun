@@ -235,7 +235,14 @@ func addSubDefinition(defs map[string]Definition, name string, value reflect.Val
 		elemType := value.Type().Elem()
 		elemName := elemType.Name()
 		elem := reflect.New(elemType).Elem()
-		AddDefinition(defs, elemName, elem)
+		switch elem.Kind() {
+		case reflect.Bool, reflect.String,
+			reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			// No op for a pointer to any basic type.
+		default:
+			AddDefinition(defs, elemName, elem)
+		}
 	case reflect.Struct:
 		AddDefinition(defs, typeName, value)
 	case reflect.Interface:
@@ -266,6 +273,7 @@ func getJSONType(typ reflect.Type, name string) JSONType {
 	case reflect.Map:
 		return JSONType{Kind: "object", Type: strings.Title(name)}
 	case reflect.Ptr:
+		// Dereference the pointer and get its element type.
 		return getJSONType(typ.Elem(), name)
 	case reflect.Slice, reflect.Array:
 		elemType := typ.Elem()
