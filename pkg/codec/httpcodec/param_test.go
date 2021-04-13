@@ -28,6 +28,10 @@ func TestDecodeSliceToBasic(t *testing.T) {
 		Uint32s   []uint32
 		Uint64    uint64
 		Uint64s   []uint64
+		Float32   float32
+		Float32s  []float32
+		Float64   float64
+		Float64s  []float64
 		Bool      bool
 		Bools     []bool
 		String    string
@@ -69,6 +73,30 @@ func TestDecodeSliceToBasic(t *testing.T) {
 			values:  []string{"1", "2"},
 			out:     &v.Uints,
 			wantOut: []uint{1, 2},
+		},
+		{
+			name:    "float32",
+			values:  []string{"1", "2"},
+			out:     &v.Float32,
+			wantOut: float32(1),
+		},
+		{
+			name:    "[]float32",
+			values:  []string{"1", "2"},
+			out:     &v.Float32s,
+			wantOut: []float32{1, 2},
+		},
+		{
+			name:    "float64",
+			values:  []string{"1", "2"},
+			out:     &v.Float64,
+			wantOut: float64(1),
+		},
+		{
+			name:    "[]float64",
+			values:  []string{"1", "2"},
+			out:     &v.Float64s,
+			wantOut: []float64{1, 2},
 		},
 		{
 			name:    "bool",
@@ -160,6 +188,26 @@ func TestEncodeBasicToSlice(t *testing.T) {
 		{
 			name:    "[]uint",
 			value:   []uint{1, 2},
+			wantOut: []string{"1", "2"},
+		},
+		{
+			name:    "float32",
+			value:   float32(1),
+			wantOut: []string{"1"},
+		},
+		{
+			name:    "[]float32",
+			value:   []float32{1, 2},
+			wantOut: []string{"1", "2"},
+		},
+		{
+			name:    "float64",
+			value:   float64(1),
+			wantOut: []string{"1"},
+		},
+		{
+			name:    "[]float64",
+			value:   []float64{1, 2},
 			wantOut: []string{"1", "2"},
 		},
 		{

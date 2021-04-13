@@ -165,6 +165,34 @@ func DecodeSliceToBasic(values []string, out interface{}) error {
 			}
 			*v = append(*v, vv)
 		}
+	case *float32:
+		vv, err := strconv.ParseFloat(values[0], 32)
+		if err != nil {
+			return err
+		}
+		*v = float32(vv)
+	case *[]float32:
+		for _, value := range values {
+			vv, err := strconv.ParseFloat(value, 32)
+			if err != nil {
+				return err
+			}
+			*v = append(*v, float32(vv))
+		}
+	case *float64:
+		vv, err := strconv.ParseFloat(values[0], 64)
+		if err != nil {
+			return err
+		}
+		*v = vv
+	case *[]float64:
+		for _, value := range values {
+			vv, err := strconv.ParseFloat(value, 64)
+			if err != nil {
+				return err
+			}
+			*v = append(*v, vv)
+		}
 	case *bool:
 		vv, err := strconv.ParseBool(values[0])
 		if err != nil {
@@ -280,6 +308,18 @@ func EncodeBasicToSlice(in interface{}) (values []string) {
 	case []uint64:
 		for _, vv := range v {
 			values = append(values, strconv.FormatUint(vv, 10))
+		}
+	case float32:
+		values = append(values, strconv.FormatFloat(float64(v), 'f', -1, 32))
+	case []float32:
+		for _, vv := range v {
+			values = append(values, strconv.FormatFloat(float64(vv), 'f', -1, 32))
+		}
+	case float64:
+		values = append(values, strconv.FormatFloat(v, 'f', -1, 64))
+	case []float64:
+		for _, vv := range v {
+			values = append(values, strconv.FormatFloat(vv, 'f', -1, 64))
 		}
 	case bool:
 		values = append(values, strconv.FormatBool(v))

@@ -15,6 +15,10 @@ func TestAddDefinition(t *testing.T) {
 			return &t
 		case int:
 			return &t
+		case float32:
+			return &t
+		case float64:
+			return &t
 		}
 		return &v
 	}
@@ -167,13 +171,17 @@ func TestAddDefinition(t *testing.T) {
 		{
 			name: "pointers to basic types",
 			inBody: struct {
-				Name *string `json:"name"`
-				Male *bool   `json:"male"`
-				Age  *int    `json:"age"`
+				Name       *string  `json:"name"`
+				Male       *bool    `json:"male"`
+				Age        *int     `json:"age"`
+				Float32Age *float32 `json:"float32_age"`
+				Float64Age *float64 `json:"float64_age"`
 			}{
-				Name: toPtr("xxx").(*string),
-				Male: toPtr(true).(*bool),
-				Age:  toPtr(10).(*int),
+				Name:       toPtr("xxx").(*string),
+				Male:       toPtr(true).(*bool),
+				Age:        toPtr(10).(*int),
+				Float32Age: toPtr(float32(10)).(*float32),
+				Float64Age: toPtr(10.0).(*float64),
 			},
 			wantDefs: map[string]Definition{
 				"Response": {
@@ -199,6 +207,22 @@ func TestAddDefinition(t *testing.T) {
 								Kind:   "basic",
 								Type:   "integer",
 								Format: "int64",
+							},
+						},
+						{
+							Name: "float32_age",
+							Type: JSONType{
+								Kind:   "basic",
+								Type:   "number",
+								Format: "float",
+							},
+						},
+						{
+							Name: "float64_age",
+							Type: JSONType{
+								Kind:   "basic",
+								Type:   "number",
+								Format: "double",
 							},
 						},
 					},

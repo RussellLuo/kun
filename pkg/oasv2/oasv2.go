@@ -190,7 +190,8 @@ func AddDefinition(defs map[string]Definition, name string, value reflect.Value)
 		switch elemType.Kind() {
 		case reflect.Bool, reflect.String,
 			reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+			reflect.Float32, reflect.Float64:
 		case reflect.Struct:
 			elem := reflect.New(elemType).Elem()
 			AddDefinition(defs, elemType.Name(), elem)
@@ -238,7 +239,8 @@ func addSubDefinition(defs map[string]Definition, name string, value reflect.Val
 		switch elem.Kind() {
 		case reflect.Bool, reflect.String,
 			reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+			reflect.Float32, reflect.Float64:
 			// No op for a pointer to any basic type.
 		default:
 			AddDefinition(defs, elemName, elem)
