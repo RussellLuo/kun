@@ -160,6 +160,7 @@ func AddDefinition(defs map[string]Definition, name string, value reflect.Value)
 			Type:                 "object",
 			ItemTypeOrProperties: properties,
 		}
+
 	case reflect.Map:
 		var properties []Property
 
@@ -184,32 +185,9 @@ func AddDefinition(defs map[string]Definition, name string, value reflect.Value)
 			Type:                 "object",
 			ItemTypeOrProperties: properties,
 		}
+
 	case reflect.Slice, reflect.Array:
-		elemType := value.Type().Elem()
-
-		switch elemType.Kind() {
-		case reflect.Bool, reflect.String,
-			reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
-			reflect.Float32, reflect.Float64:
-		case reflect.Struct:
-			elem := reflect.New(elemType).Elem()
-			AddDefinition(defs, elemType.Name(), elem)
-		case reflect.Ptr:
-			elemType = elemType.Elem()
-			for elemType.Kind() == reflect.Ptr {
-				elemType = elemType.Elem()
-			}
-			elem := reflect.New(elemType).Elem()
-			AddDefinition(defs, elemType.Name(), elem)
-		default:
-			panic(fmt.Errorf("only struct slice or array is supported, but got %v", elemType.String()))
-		}
-
-		/*defs[name] = Definition{
-			Type:                 "array",
-			ItemTypeOrProperties: getJSONType(elemType, elemType.Name()),
-		}*/
+		addArrayDefinition(defs, name, value, false)
 
 	case reflect.Ptr:
 		elemType := value.Type().Elem()
@@ -228,30 +206,72 @@ func addSubDefinition(defs map[string]Definition, name string, value reflect.Val
 	}
 
 	switch value.Kind() {
-	case reflect.Map:
+	case reflect.Struct, reflect.Map:
 		AddDefinition(defs, typeName, value)
 	case reflect.Slice, reflect.Array:
-		AddDefinition(defs, typeName, value)
+		addArrayDefinition(defs, typeName, value, true)
 	case reflect.Ptr:
 		elemType := value.Type().Elem()
 		elemName := elemType.Name()
 		elem := reflect.New(elemType).Elem()
-		switch elem.Kind() {
-		case reflect.Bool, reflect.String,
-			reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
-			reflect.Float32, reflect.Float64:
-			// No op for a pointer to any basic type.
-		default:
+		if !isBasicKind(elem.Kind()) {
+			// This is a pointer to a non-basic type, add more possible definitions.
 			AddDefinition(defs, elemName, elem)
 		}
-	case reflect.Struct:
-		AddDefinition(defs, typeName, value)
 	case reflect.Interface:
 		value = addSubDefinition(defs, typeName, value.Elem())
 	}
 
 	return value
+}
+
+func addArrayDefinition(defs map[string]Definition, name string, value reflect.Value, inner bool) {
+	elemType := value.Type().Elem()
+	k := elemType.Kind()
+
+	if isBasicKind(k) {
+		if !inner {
+			defs[name] = Definition{
+				Type:                 "array",
+				ItemTypeOrProperties: getJSONType(elemType, elemType.Name()),
+			}
+		}
+		return
+	}
+
+	switch k {
+	case reflect.Struct, reflect.Map:
+		elem := reflect.New(elemType).Elem()
+		AddDefinition(defs, elemType.Name(), elem)
+	case reflect.Ptr:
+		elemType = elemType.Elem()
+		for elemType.Kind() == reflect.Ptr {
+			elemType = elemType.Elem()
+		}
+		elem := reflect.New(elemType).Elem()
+		AddDefinition(defs, elemType.Name(), elem)
+	default:
+		panic(fmt.Errorf("only struct slice or array is supported, but got %v", elemType.String()))
+	}
+
+	if !inner {
+		defs[name] = Definition{
+			Type:                 "array",
+			ItemTypeOrProperties: elemType.Name(),
+		}
+	}
+}
+
+func isBasicKind(kind reflect.Kind) bool {
+	switch kind {
+	case reflect.Bool, reflect.String,
+		reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+		reflect.Float32, reflect.Float64:
+		return true
+	default:
+		return false
+	}
 }
 
 func getJSONType(typ reflect.Type, name string) JSONType {

@@ -134,6 +134,41 @@ func TestAddDefinition(t *testing.T) {
 			},
 		},
 		{
+			name:   "array of string",
+			inBody: []string{},
+			wantDefs: map[string]Definition{
+				"Response": {
+					Type: "array",
+					ItemTypeOrProperties: JSONType{
+						Kind: "basic",
+						Type: "string",
+					},
+				},
+			},
+		},
+		{
+			name:   "array of struct",
+			inBody: []Datum{},
+			wantDefs: map[string]Definition{
+				"Response": {
+					Type:                 "array",
+					ItemTypeOrProperties: "Datum",
+				},
+				"Datum": {
+					Type: "object",
+					ItemTypeOrProperties: []Property{
+						{
+							Name: "properties",
+							Type: JSONType{
+								Kind: "array",
+								Type: "string",
+							},
+						},
+					},
+				},
+			},
+		},
+		{
 			name: "map_interface",
 			inBody: map[string]interface{}{
 				"attrs": map[string]interface{}{
