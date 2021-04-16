@@ -3,6 +3,7 @@ package oasv2
 import (
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestAddDefinition(t *testing.T) {
@@ -41,6 +42,7 @@ func TestAddDefinition(t *testing.T) {
 				Hobbies []string        `json:"hobbies"`
 				Datum   *Datum          `json:"datum"`
 				Data    []Datum         `json:"data"`
+				Time    time.Time       `json:"time"`
 				Other   map[string]bool `json:"other"`
 			}{
 				Name:    "xxx",
@@ -96,6 +98,14 @@ func TestAddDefinition(t *testing.T) {
 							Type: JSONType{
 								Kind: "array",
 								Type: "Datum",
+							},
+						},
+						{
+							Name: "time",
+							Type: JSONType{
+								Kind:   "basic",
+								Type:   "string",
+								Format: "date-time",
 							},
 						},
 						{

@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+	"time"
 )
 
 var (
@@ -133,6 +134,11 @@ func AddDefinition(defs map[string]Definition, name string, value reflect.Value)
 
 	switch value.Kind() {
 	case reflect.Struct:
+		if isTime(value) {
+			// Ignore this struct if it is a time value (of type `time.Time`).
+			return
+		}
+
 		var properties []Property
 
 		structType := value.Type()
@@ -291,6 +297,10 @@ func getJSONType(typ reflect.Type, name string) JSONType {
 	case reflect.String:
 		return JSONType{Kind: "basic", Type: "string"}
 	case reflect.Struct:
+		if isTime(reflect.New(typ).Elem()) {
+			// A time value is also a struct in Go, but it is represented as a string in OAS.
+			return JSONType{Kind: "basic", Type: "string", Format: "date-time"}
+		}
 		return JSONType{Kind: "object", Type: typ.Name()}
 	case reflect.Map:
 		return JSONType{Kind: "object", Type: strings.Title(name)}
@@ -305,6 +315,15 @@ func getJSONType(typ reflect.Type, name string) JSONType {
 		return JSONType{Kind: "array", Type: elemType.Name()}
 	default:
 		panic(fmt.Errorf("unsupported type %s", typ.Kind()))
+	}
+}
+
+func isTime(v reflect.Value) bool {
+	switch v.Interface().(type) {
+	case *time.Time, time.Time:
+		return true
+	default:
+		return false
 	}
 }
 
