@@ -214,6 +214,48 @@ func TestAddDefinition(t *testing.T) {
 			},
 		},
 		{
+			name:   "nil_map_interface",
+			inBody: map[string]interface{}(nil),
+			wantDefs: map[string]Definition{
+				"Response": {
+					Type:                 "object",
+					ItemTypeOrProperties: []Property(nil),
+				},
+			},
+		},
+		{
+			name:   "array_of_nil_map_interface",
+			inBody: []map[string]interface{}(nil),
+			wantDefs: map[string]Definition{
+				"Response": {
+					Type:                 "array",
+					ItemTypeOrProperties: "ResponseArrayItem",
+				},
+				"ResponseArrayItem": {
+					Type:                 "object",
+					ItemTypeOrProperties: []Property(nil),
+				},
+			},
+		},
+		{
+			name:   "array_of_array_of_nil_map_interface",
+			inBody: [][]map[string]interface{}(nil),
+			wantDefs: map[string]Definition{
+				"Response": {
+					Type:                 "array",
+					ItemTypeOrProperties: "ResponseArrayItem",
+				},
+				"ResponseArrayItem": {
+					Type:                 "array",
+					ItemTypeOrProperties: "ResponseArrayItemArrayItem",
+				},
+				"ResponseArrayItemArrayItem": {
+					Type:                 "object",
+					ItemTypeOrProperties: []Property(nil),
+				},
+			},
+		},
+		{
 			name: "pointers to basic types",
 			inBody: struct {
 				Name       *string  `json:"name"`

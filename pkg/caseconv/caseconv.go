@@ -18,16 +18,31 @@ func ToSnakeCase(s string) string {
 	return strings.ToLower(snake)
 }
 
-func ToLowerCamelCase(s string) string {
-	camel := matchUnderscore.ReplaceAllStringFunc(s, func(x string) string {
+func ToCamelCase(s string) string {
+	return matchUnderscore.ReplaceAllStringFunc(s, func(x string) string {
 		return strings.Title(strings.TrimLeft(x, "_"))
 	})
-	return LowerFirst(camel)
+}
+
+func ToUpperCamelCase(s string) string {
+	return UpperFirst(ToCamelCase(s))
+}
+
+func ToLowerCamelCase(s string) string {
+	return LowerFirst(ToCamelCase(s))
+}
+
+func UpperFirst(s string) string {
+	return convertFirst(s, strings.ToUpper)
 }
 
 func LowerFirst(s string) string {
+	return convertFirst(s, strings.ToLower)
+}
+
+func convertFirst(s string, f func(string) string) string {
 	if len(s) == 0 {
 		return s
 	}
-	return strings.ToLower(string(s[0])) + s[1:]
+	return f(string(s[0])) + s[1:]
 }

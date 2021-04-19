@@ -27,6 +27,27 @@ func TestToSnakeCase(t *testing.T) {
 	}
 }
 
+func TestToUpperCamelCase(t *testing.T) {
+	cases := []struct {
+		input string
+		want  string
+	}{
+		{"", ""},
+		{"alreadyCamel", "AlreadyCamel"},
+		{"a", "A"},
+		{"aa_aa", "AaAa"},
+		{"http_request", "HttpRequest"},
+		{"battery__life_Value", "BatteryLifeValue"},
+		{"id0_value", "Id0Value"},
+	}
+	for _, c := range cases {
+		got := ToUpperCamelCase(c.input)
+		if got != c.want {
+			t.Fatalf("Result: got (%#v), want (%#v)", got, c.want)
+		}
+	}
+}
+
 func TestToLowerCamelCase(t *testing.T) {
 	cases := []struct {
 		input string

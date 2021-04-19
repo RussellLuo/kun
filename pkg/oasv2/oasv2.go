@@ -9,6 +9,8 @@ import (
 	"strings"
 	"text/template"
 	"time"
+
+	"github.com/RussellLuo/kok/pkg/caseconv"
 )
 
 var (
@@ -158,7 +160,7 @@ func AddDefinition(defs map[string]Definition, name string, value reflect.Value)
 
 			properties = append(properties, Property{
 				Name: fieldName,
-				Type: getJSONType(fieldValue.Type(), fieldName),
+				Type: getJSONType(fieldValue.Type(), caseconv.ToUpperCamelCase(fieldName)),
 			})
 		}
 
@@ -183,7 +185,7 @@ func AddDefinition(defs map[string]Definition, name string, value reflect.Value)
 
 			properties = append(properties, Property{
 				Name: keyString,
-				Type: getJSONType(keyValue.Type(), keyString),
+				Type: getJSONType(keyValue.Type(), caseconv.ToUpperCamelCase(keyString)),
 			})
 		}
 
@@ -208,7 +210,7 @@ func AddDefinition(defs map[string]Definition, name string, value reflect.Value)
 func addSubDefinition(defs map[string]Definition, name string, value reflect.Value) reflect.Value {
 	typeName := value.Type().Name()
 	if typeName == "" {
-		typeName = strings.Title(name)
+		typeName = caseconv.ToUpperCamelCase(name)
 	}
 
 	switch value.Kind() {
@@ -248,14 +250,17 @@ func addArrayDefinition(defs map[string]Definition, name string, value reflect.V
 	switch k {
 	case reflect.Struct, reflect.Map:
 		elem := reflect.New(elemType).Elem()
-		AddDefinition(defs, elemType.Name(), elem)
+		AddDefinition(defs, getArrayElemTypeName(elemType, name), elem)
 	case reflect.Ptr:
 		elemType = elemType.Elem()
 		for elemType.Kind() == reflect.Ptr {
 			elemType = elemType.Elem()
 		}
 		elem := reflect.New(elemType).Elem()
-		AddDefinition(defs, elemType.Name(), elem)
+		AddDefinition(defs, getArrayElemTypeName(elemType, name), elem)
+	case reflect.Slice, reflect.Array:
+		elem := reflect.New(elemType).Elem()
+		addArrayDefinition(defs, getArrayElemTypeName(elemType, name), elem, inner)
 	default:
 		panic(fmt.Errorf("only struct slice or array is supported, but got %v", elemType.String()))
 	}
@@ -263,9 +268,13 @@ func addArrayDefinition(defs map[string]Definition, name string, value reflect.V
 	if !inner {
 		defs[name] = Definition{
 			Type:                 "array",
-			ItemTypeOrProperties: elemType.Name(),
+			ItemTypeOrProperties: getArrayElemTypeName(elemType, name),
 		}
 	}
+}
+
+func getArrayElemTypeName(elemType reflect.Type, arrayTypeName string) string {
+	return getTypeName(elemType, arrayTypeName+"ArrayItem")
 }
 
 func isBasicKind(kind reflect.Kind) bool {
@@ -301,9 +310,9 @@ func getJSONType(typ reflect.Type, name string) JSONType {
 			// A time value is also a struct in Go, but it is represented as a string in OAS.
 			return JSONType{Kind: "basic", Type: "string", Format: "date-time"}
 		}
-		return JSONType{Kind: "object", Type: typ.Name()}
+		return JSONType{Kind: "object", Type: getTypeName(typ, name)}
 	case reflect.Map:
-		return JSONType{Kind: "object", Type: strings.Title(name)}
+		return JSONType{Kind: "object", Type: name}
 	case reflect.Ptr:
 		// Dereference the pointer and get its element type.
 		return getJSONType(typ.Elem(), name)
@@ -312,10 +321,17 @@ func getJSONType(typ reflect.Type, name string) JSONType {
 		for elemType.Kind() == reflect.Ptr {
 			elemType = elemType.Elem()
 		}
-		return JSONType{Kind: "array", Type: elemType.Name()}
+		return JSONType{Kind: "array", Type: getArrayElemTypeName(elemType, name)}
 	default:
 		panic(fmt.Errorf("unsupported type %s", typ.Kind()))
 	}
+}
+
+func getTypeName(t reflect.Type, defaultName string) string {
+	if t.Name() != "" {
+		return t.Name()
+	}
+	return defaultName
 }
 
 func isTime(v reflect.Value) bool {
