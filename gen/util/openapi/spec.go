@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/RussellLuo/kok/gen/util/misc"
+	"github.com/RussellLuo/kok/pkg/caseconv"
 )
 
 const (
@@ -193,7 +193,7 @@ func (o *Operation) buildParam(text, name, typ string) *Param {
 		p.In = InBody
 	}
 	if p.Name == "" && name != "" {
-		p.SetName(misc.LowerFirst(name))
+		p.SetName(caseconv.LowerFirst(name))
 	}
 
 	if p.In == InRequest && p.Alias != "RemoteAddr" {

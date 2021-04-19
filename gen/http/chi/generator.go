@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/RussellLuo/kok/gen/util/generator"
-	"github.com/RussellLuo/kok/gen/util/misc"
 	"github.com/RussellLuo/kok/gen/util/openapi"
 	"github.com/RussellLuo/kok/gen/util/reflector"
+	"github.com/RussellLuo/kok/pkg/caseconv"
 )
 
 var (
@@ -206,7 +206,7 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 	return generator.Generate(template, data, generator.Options{
 		Funcs: map[string]interface{}{
 			"title":      strings.Title,
-			"lowerFirst": misc.LowerFirst,
+			"lowerFirst": caseconv.LowerFirst,
 			"addAmpersand": func(name string) string {
 				if g.opts.SchemaPtr {
 					return "&" + name

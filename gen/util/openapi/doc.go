@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/RussellLuo/kok/gen/util/misc"
 	"github.com/RussellLuo/kok/gen/util/reflector"
+	"github.com/RussellLuo/kok/pkg/caseconv"
 )
 
 const (
@@ -197,7 +197,7 @@ func extractPathVarNames(pattern string) (names []string) {
 
 	for _, s := range result {
 		// Convert possible snake case to camel case.
-		name := misc.ToLowerCamelCase(s[1])
+		name := caseconv.ToLowerCamelCase(s[1])
 		names = append(names, name)
 	}
 	return

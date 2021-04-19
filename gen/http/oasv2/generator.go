@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/RussellLuo/kok/gen/util/generator"
-	"github.com/RussellLuo/kok/gen/util/misc"
 	"github.com/RussellLuo/kok/gen/util/openapi"
 	"github.com/RussellLuo/kok/gen/util/reflector"
+	"github.com/RussellLuo/kok/pkg/caseconv"
 )
 
 var (
@@ -237,7 +237,7 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 				if typ == "error" {
 					name = "-"
 				} else if g.opts.TagKeyToSnakeCase {
-					name = misc.ToSnakeCase(name)
+					name = caseconv.ToSnakeCase(name)
 				}
 
 				return fmt.Sprintf("`%s:\"%s\"`", g.opts.SchemaTag, name)
