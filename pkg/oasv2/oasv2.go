@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/RussellLuo/kok/pkg/caseconv"
+	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
 )
 
 var (
@@ -156,11 +157,24 @@ func AddDefinition(defs map[string]Definition, name string, value reflect.Value)
 				fieldName = jsonName
 			}
 
-			fieldValue := addSubDefinition(defs, fieldName, value.Field(i))
+			var fieldValueType reflect.Type
+
+			kokField := httpcodec.GetKokField(field)
+			if kokField.Type != "" {
+				// Use the user-specified type (a basic type) if any.
+				var err error
+				if fieldValueType, err = getReflectType(kokField.Type); err != nil {
+					panic(err)
+				}
+			} else {
+				// Use the raw type of this struct field.
+				fieldValue := addSubDefinition(defs, fieldName, value.Field(i))
+				fieldValueType = fieldValue.Type()
+			}
 
 			properties = append(properties, Property{
 				Name: fieldName,
-				Type: getJSONType(fieldValue.Type(), caseconv.ToUpperCamelCase(fieldName)),
+				Type: getJSONType(fieldValueType, caseconv.ToUpperCamelCase(fieldName)),
 			})
 		}
 
@@ -341,6 +355,41 @@ func isTime(v reflect.Value) bool {
 	default:
 		return false
 	}
+}
+
+func getReflectType(typ string) (reflect.Type, error) {
+	var v interface{}
+	switch typ {
+	case "bool":
+		v = false
+	case "string":
+		v = ""
+	case "int":
+		v = int(0)
+	case "int8":
+		v = int8(0)
+	case "int16":
+		v = int16(0)
+	case "int32":
+		v = int32(0)
+	case "int64":
+		v = int64(0)
+	case "uint":
+		v = uint(0)
+	case "uint16":
+		v = uint16(0)
+	case "uint32":
+		v = uint32(0)
+	case "uint64":
+		v = uint64(0)
+	case "float32":
+		v = float32(0)
+	case "float64":
+		v = float64(0)
+	default:
+		return nil, fmt.Errorf("invalid basic type name: %s", typ)
+	}
+	return reflect.ValueOf(v).Type(), nil
 }
 
 func GetOASResponses(schema Schema, name string, statusCode int, body interface{}) OASResponses {
