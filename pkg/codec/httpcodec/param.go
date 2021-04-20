@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	tagName = "kok"
+	tagName    = "kok"
+	typePrefix = "type:"
 )
 
 var (
@@ -380,14 +381,14 @@ func DecodeMapToStruct(in map[string][]string, out interface{}) error {
 		field := structType.Field(i)
 		fieldValue := structValue.Field(i)
 
-		fieldName, required, omitted := GetFieldName(field)
-		if omitted {
+		kokField := GetKokField(field)
+		if kokField.Omitted {
 			continue
 		}
 
-		values := in[fieldName]
+		values := in[kokField.Name]
 		if len(values) == 0 {
-			if !required {
+			if !kokField.Required {
 				continue
 			}
 			return ErrMissingRequired
@@ -425,44 +426,61 @@ func EncodeStructToMap(in interface{}, out *map[string][]string) error {
 		field := structType.Field(i)
 		fieldValue := inValue.Field(i)
 
-		fieldName, _, omitted := GetFieldName(field)
-		if omitted {
+		kokField := GetKokField(field)
+		if kokField.Omitted {
 			continue
 		}
 
-		outMap[fieldName] = EncodeBasicToSlice(fieldValue.Interface())
+		outMap[kokField.Name] = EncodeBasicToSlice(fieldValue.Interface())
 	}
 
 	return nil
 }
 
-func GetFieldName(field reflect.StructField) (name string, required, omitted bool) {
-	kokTag := field.Tag.Get(tagName)
-	parts := strings.SplitN(kokTag, ",", 2)
+type KokField struct {
+	Name     string
+	Required bool
+	Omitted  bool
+	Type     string
+}
 
-	kokName := parts[0]
-	if len(parts) == 2 && parts[1] == "required" {
-		required = true
+func GetKokField(field reflect.StructField) (result KokField) {
+	kokTag := field.Tag.Get(tagName)
+	if kokTag == "-" {
+		result.Omitted = true
+		return
 	}
 
-	switch kokName {
-	case "":
-		name = field.Name
-	case "-":
-		omitted = true
-	default:
-		name = kokName
+	parts := strings.Split(kokTag, ",")
+
+	result.Name = parts[0]
+	if result.Name == "" {
+		result.Name = field.Name
+	}
+
+	for _, option := range parts[1:] {
+		switch {
+		case option == "required":
+			result.Required = true
+		case strings.HasPrefix(option, typePrefix):
+			result.Type = option[len(typePrefix):]
+		}
 	}
 
 	// Do the following transformations:
 	//     "xyz"      -> "query.xyz"
 	//     ".xyz"     -> "query.xyz"
 	//     "path.xyz" -> "path.xyz"
-	split := strings.SplitN(name, ".", 2)
+	split := strings.SplitN(result.Name, ".", 2)
 	if len(split) == 1 {
-		name = "query." + split[0]
+		result.Name = "query." + split[0]
 	} else if split[0] == "" {
-		name = "query." + split[1]
+		result.Name = "query." + split[1]
+	}
+
+	if split[0] == "path" {
+		// Path parameters are always required.
+		result.Required = true
 	}
 
 	return

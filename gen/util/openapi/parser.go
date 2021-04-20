@@ -163,12 +163,12 @@ func (p *Parser) completeAnnotations(typ types.Type, a *annotation) (annotations
 				Name: t.Field(i).Name(),
 			}
 
-			fieldName, required, omitted := httpcodec.GetFieldName(field)
-			if omitted {
+			kokField := httpcodec.GetKokField(field)
+			if kokField.Omitted {
 				continue
 			}
 
-			parts := strings.SplitN(fieldName, ".", 2)
+			parts := strings.SplitN(kokField.Name, ".", 2)
 			in, name := parts[0], parts[1]
 			if err := errorIn(in); err != nil {
 				return nil, err
@@ -177,11 +177,7 @@ func (p *Parser) completeAnnotations(typ types.Type, a *annotation) (annotations
 			anno := a.Copy().SetType(typeName)
 			anno.In = in
 			anno.Name = name
-			if anno.In == InPath {
-				// Parameters located in path must be required.
-				required = true
-			}
-			anno.Required = required
+			anno.Required = kokField.Required
 			annotations = append(annotations, anno)
 		}
 	//case *types.Pointer:

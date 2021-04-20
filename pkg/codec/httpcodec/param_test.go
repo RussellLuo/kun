@@ -547,3 +547,45 @@ func TestEncodeStructToMap(t *testing.T) {
 		})
 	}
 }
+
+func TestGetKokField(t *testing.T) {
+	cases := []struct {
+		name    string
+		in      reflect.StructField
+		wantOut KokField
+	}{
+		{
+			name:    "in path",
+			in:      reflect.StructField{Name: "ID", Tag: `kok:"path.id"`},
+			wantOut: KokField{Name: "path.id", Required: true},
+		},
+		{
+			name:    "in query",
+			in:      reflect.StructField{Name: "ID", Tag: `kok:"query.id"`},
+			wantOut: KokField{Name: "query.id"},
+		},
+		{
+			name:    "omitted",
+			in:      reflect.StructField{Name: "ID", Tag: `kok:"-"`},
+			wantOut: KokField{Omitted: true},
+		},
+		{
+			name:    "required",
+			in:      reflect.StructField{Name: "ID", Tag: `kok:",required"`},
+			wantOut: KokField{Name: "query.ID", Required: true},
+		},
+		{
+			name:    "has type",
+			in:      reflect.StructField{Name: "ID", Tag: `kok:",type:string"`},
+			wantOut: KokField{Name: "query.ID", Type: "string"},
+		},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			out := GetKokField(c.in)
+			if !reflect.DeepEqual(out, c.wantOut) {
+				t.Fatalf("Out: got (%#v), want (%#v)", out, c.wantOut)
+			}
+		})
+	}
+}
