@@ -67,7 +67,12 @@ paths:
         - name: {{.Alias}}
           in: {{.In}}
           required: {{.Required}}
-          {{paramSchema .AliasType}}
+          {{- $type := typeName .AliasType}}
+          type: {{$type.Type}}
+          {{- if $type.ItemType}}
+          items:
+            type: {{$type.ItemType}}
+          {{- end}}
           description: ""
         {{- end}} {{/* range $nonCtxNonBodyParams */}}
 
@@ -161,6 +166,11 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 		Operations []*openapi.Operation
 	}
 
+	type ParamType struct {
+		Type     string
+		ItemType string
+	}
+
 	return generator.Generate(template, data, generator.Options{
 		Funcs: map[string]interface{}{
 			"title": strings.Title,
@@ -183,19 +193,55 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 
 				return
 			},
-			"paramSchema": func(typ string) string {
-				switch typ {
-				case "int", "int8", "int16", "int32", "int64",
-					"uint", "uint8", "uint16", "uint32", "uint64":
-					return "type: integer"
-				case "float32", "float64":
-					return "type: number"
-				case "string":
-					return "type: string"
-				case "bool":
-					return "type: boolean"
+			"typeName": func(typ string) ParamType {
+				basicOASType := func(n string) string {
+					switch n {
+					case "int", "int8", "int16", "int32", "int64",
+						"uint", "uint8", "uint16", "uint32", "uint64":
+						return "integer"
+					case "float32", "float64":
+						return "number"
+					case "string":
+						return "string"
+					case "bool":
+						return "boolean"
+					default:
+						return "string"
+					}
+				}
+
+				isBasicGoType := func(t string) bool {
+					switch t {
+					case "bool", "string",
+						"int", "int8", "int16", "int32", "int64",
+						"uint", "uint8", "uint16", "uint32", "uint64",
+						"float32", "float64":
+						return true
+					default:
+						return false
+					}
+				}
+
+				// Cases are more complicated regarding Argument aggregation,
+				// where typ (as the same as argument type) usually does not
+				// match the actual type of the corresponding request parameter.
+				//
+				// | Method argument | Request parameter    |
+				// | --------------- | -------------------- |
+				// | basic or slice  | string (UNSUPPORTED) |
+				// | struct or other | string               |
+				//
+				// Adding one more optional tag `type` in the @kok(param)
+				// annotation may be a better solution?
+
+				switch {
+				case isBasicGoType(typ):
+					return ParamType{Type: basicOASType(typ)}
+				case strings.HasPrefix(typ, "[]") && isBasicGoType(typ[2:]):
+					itemType := typ[2:]
+					return ParamType{Type: "array", ItemType: basicOASType(itemType)}
 				default:
-					return fmt.Sprintf(`$ref: "#/definitions/%s"`, typ)
+					return ParamType{Type: "string"}
 				}
 			},
 			"nonCtxParams": func(params []*openapi.Param) (out []*openapi.Param) {
