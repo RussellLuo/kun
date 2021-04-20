@@ -139,9 +139,9 @@ func (p *Parser) completeAnnotations(typ types.Type, a *annotation) (annotations
 		}
 		annotations = append(annotations, a.Copy().SetType("[]"+et.Name()))
 	case *types.Struct:
-		if a.In != "" {
+		/*if a.In != "" {
 			fmt.Printf("WARNING: manually specified `in:%s` is ignored for struct argument `%s` in method %s\n", a.In, a.ArgName, p.methodName)
-		}
+		}*/
 
 		for i := 0; i < t.NumFields(); i++ {
 			var typeName string
@@ -177,6 +177,10 @@ func (p *Parser) completeAnnotations(typ types.Type, a *annotation) (annotations
 			anno := a.Copy().SetType(typeName)
 			anno.In = in
 			anno.Name = name
+			if anno.In == InPath {
+				// Parameters located in path must be required.
+				required = true
+			}
 			anno.Required = required
 			annotations = append(annotations, anno)
 		}
