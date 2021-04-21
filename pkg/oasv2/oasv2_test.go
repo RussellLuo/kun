@@ -43,6 +43,7 @@ func TestAddDefinition(t *testing.T) {
 				Datum   *Datum          `json:"datum"`
 				Data    []Datum         `json:"data"`
 				Time    time.Time       `json:"time"`
+				TimeStr string          `json:"time_str" kok:",type:time"`
 				Other   map[string]bool `json:"other"`
 			}{
 				Name:    "xxx",
@@ -102,6 +103,14 @@ func TestAddDefinition(t *testing.T) {
 						},
 						{
 							Name: "time",
+							Type: JSONType{
+								Kind:   "basic",
+								Type:   "string",
+								Format: "date-time",
+							},
+						},
+						{
+							Name: "time_str",
 							Type: JSONType{
 								Kind:   "basic",
 								Type:   "string",

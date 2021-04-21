@@ -386,6 +386,8 @@ func getReflectType(typ string) (reflect.Type, error) {
 		v = float32(0)
 	case "float64":
 		v = float64(0)
+	case "time":
+		v = time.Time{}
 	default:
 		return nil, fmt.Errorf("invalid basic type name: %s", typ)
 	}
