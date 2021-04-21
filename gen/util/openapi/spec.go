@@ -116,6 +116,7 @@ type Operation struct {
 	Request          Request
 	SuccessResponse  *Response
 	FailureResponses []*Response
+	Tags             []string
 }
 
 func GET() *Operation {

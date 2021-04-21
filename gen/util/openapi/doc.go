@@ -144,6 +144,9 @@ func manipulateByComments(op *Operation, params map[string]*Param, results map[s
 		case "success":
 			op.SuccessResponse = buildSuccessResponse(value, results, op.Name)
 
+		case "tag":
+			op.Tags = strings.Split(value, ",")
+
 		default:
 			return fmt.Errorf(`unrecognized kok key "%s" in comment: %s`, key, comment)
 		}

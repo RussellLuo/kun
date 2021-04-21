@@ -60,6 +60,13 @@ paths:
     {{lower .Method}}:
       description: ""
       operationId: "{{.Name}}"
+      {{- if .Tags}}
+      tags:
+        {{- range .Tags}}
+        - {{.}}
+        {{- end -}} {{/* range .Tags */}}
+      {{- end -}} {{/* if .Tags */}}
+
       {{- $nonCtxNonBodyParams := nonBodyParams $nonCtxParams}}
       {{- if $nonCtxParams}}
       parameters:
