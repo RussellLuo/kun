@@ -25,7 +25,12 @@ const (
 )
 
 type Specification struct {
+	Metadata   Metadata
 	Operations []*Operation
+}
+
+type Metadata struct {
+	Description string
 }
 
 func Spec() *Specification {
@@ -116,6 +121,7 @@ type Operation struct {
 	Request          Request
 	SuccessResponse  *Response
 	FailureResponses []*Response
+	Description      string
 	Tags             []string
 }
 

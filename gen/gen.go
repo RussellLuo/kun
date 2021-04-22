@@ -118,7 +118,7 @@ func (g *Generator) Generate(srcFilename, interfaceName, dstPkgName, testFilenam
 }
 
 func (g *Generator) getSpec(result *reflector.Result, srcFilename, interfaceName string) (*openapi.Specification, error) {
-	doc, err := reflector.GetInterfaceMethodDoc(srcFilename, interfaceName)
+	doc, err := reflector.NewInterfaceDoc(srcFilename, interfaceName)
 	if err != nil {
 		return nil, err
 	}

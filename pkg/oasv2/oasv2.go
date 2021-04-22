@@ -72,7 +72,7 @@ definitions:
 
         {{- if .Type.Format}}
         format: {{.Type.Format}}
-        {{- end}} {{/* if .Type.Format */}}
+        {{- end -}} {{/* if .Type.Format */}}
 
         {{- else if eq .Type.Kind "object"}}
         $ref: "#/definitions/{{.Type.Type}}"
@@ -85,18 +85,18 @@ definitions:
           type: {{$basicJSONType}}
           {{- else}}
           $ref: "#/definitions/{{.Type.Type}}"
-          {{- end}} {{/* if isBasic .Type.Type */}}
-        {{- end}} {{/* if eq .Type.Kind "basic" */}}
+          {{- end -}} {{/* if isBasic .Type.Type */}}
+        {{- end -}} {{/* if eq .Type.Kind "basic" */}}
 
-      {{- end}} {{/* range $definition.ItemTypeOrProperties */}}
-    {{- end}} {{/* if $definition.ItemTypeOrProperties */}}
+      {{- end -}} {{/* range $definition.ItemTypeOrProperties */}}
+    {{- end -}} {{/* if $definition.ItemTypeOrProperties */}}
 
     {{- else if eq $definition.Type "array"}}
     type: array
     items:
       $ref: '#/definitions/{{$definition.ItemTypeOrProperties}}'
-	{{- end}} {{/* if eq $definition.Type "object" */}}
-{{- end}} {{/* range $name, $definition := .Definitions */}}
+	{{- end -}} {{/* if eq $definition.Type "object" */}}
+{{- end -}} {{/* range $name, $definition := .Definitions */}}
 `))
 )
 

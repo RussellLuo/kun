@@ -35,7 +35,7 @@ var (
 info:
   version: "1.0.0"
   title: "Swagger Example"
-  description: ""
+  description: "{{.Spec.Metadata.Description}}"
   license:
     name: "MIT"
 host: "example.com"
@@ -58,7 +58,7 @@ paths:
   {{- range .Operations}}
   {{- $nonCtxParams := nonCtxParams .Request.Params}}
     {{lower .Method}}:
-      description: ""
+      description: "{{.Description}}"
       operationId: "{{.Name}}"
       {{- if .Tags}}
       tags:

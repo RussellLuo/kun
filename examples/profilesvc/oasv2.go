@@ -14,7 +14,7 @@ var (
 info:
   version: "1.0.0"
   title: "Swagger Example"
-  description: ""
+  description: "Service is a simple CRUD interface for user profiles."
   license:
     name: "MIT"
 host: "example.com"

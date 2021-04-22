@@ -20,16 +20,23 @@ var (
 	rePathVarName = regexp.MustCompile(`{(\w+)}`)
 )
 
-func FromDoc(result *reflector.Result, doc map[string][]string) (*Specification, error) {
-	spec := &Specification{}
+func FromDoc(result *reflector.Result, doc *reflector.InterfaceDoc) (*Specification, error) {
+	spec := &Specification{
+		Metadata: Metadata{
+			Description: getDescriptionFromDoc(doc.Doc),
+		},
+	}
 
 	for _, m := range result.Interface.Methods {
-		comments, ok := doc[m.Name]
+		comments, ok := doc.MethodDocs[m.Name]
 		if !ok || !hasKokAnnotations(comments) {
 			continue
 		}
 
-		op := &Operation{Name: m.Name}
+		op := &Operation{
+			Name:        m.Name,
+			Description: getDescriptionFromDoc(comments),
+		}
 
 		// Add all request parameters with specified Name/Type
 		params := make(map[string]*Param)
@@ -63,6 +70,17 @@ func FromDoc(result *reflector.Result, doc map[string][]string) (*Specification,
 	}
 
 	return spec, nil
+}
+
+func getDescriptionFromDoc(doc []string) string {
+	var comments []string
+	for _, comment := range doc {
+		if !isKokAnnotation(comment) {
+			comments = append(comments, strings.TrimPrefix(comment, "// "))
+		}
+	}
+	// Separate multiline description by raw `\n`.
+	return strings.Join(comments, "\\n")
 }
 
 func hasKokAnnotations(comments []string) bool {

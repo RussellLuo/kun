@@ -2,7 +2,7 @@ swagger: "2.0"
 info:
   version: "1.0.0"
   title: "Swagger Example"
-  description: ""
+  description: "Service is a simple CRUD interface for user profiles."
   license:
     name: "MIT"
 host: "example.com"
@@ -252,129 +252,122 @@ definitions:
     type: object
     properties:
       id:
-        type: string  
+        type: string
       location:
-        type: string     
+        type: string
   DeleteAddressResponse:
-    type: object  
+    type: object
   DeleteAddressResponseError404:
     type: object
     properties:
       error:
-        type: string     
+        type: string
   DeleteProfileResponse:
-    type: object  
+    type: object
   DeleteProfileResponseError404:
     type: object
     properties:
       error:
-        type: string     
+        type: string
   GetAddressResponse:
     type: object
     properties:
       address:
-        $ref: "#/definitions/Address"    
+        $ref: "#/definitions/Address"
   GetAddressResponseError404:
     type: object
     properties:
       error:
-        type: string     
+        type: string
   GetAddressesResponse:
     type: object
     properties:
       addresses:
         type: array
         items:
-          $ref: "#/definitions/Address"    
+          $ref: "#/definitions/Address"
   GetAddressesResponseError404:
     type: object
     properties:
       error:
-        type: string     
+        type: string
   GetProfileResponse:
     type: object
     properties:
       profile:
-        $ref: "#/definitions/Profile"    
+        $ref: "#/definitions/Profile"
   GetProfileResponseError404:
     type: object
     properties:
       error:
-        type: string     
+        type: string
   PatchProfileRequestBody:
     type: object
     properties:
       profile:
-        $ref: "#/definitions/Profile"    
+        $ref: "#/definitions/Profile"
   PatchProfileResponse:
-    type: object  
+    type: object
   PatchProfileResponseError400:
     type: object
     properties:
       error:
-        type: string     
+        type: string
   PatchProfileResponseError404:
     type: object
     properties:
       error:
-        type: string     
+        type: string
   PostAddressRequestBody:
     type: object
     properties:
       address:
-        $ref: "#/definitions/Address"    
+        $ref: "#/definitions/Address"
   PostAddressResponse:
-    type: object  
+    type: object
   PostAddressResponseError400:
     type: object
     properties:
       error:
-        type: string     
+        type: string
   PostAddressResponseError404:
     type: object
     properties:
       error:
-        type: string     
+        type: string
   PostProfileRequestBody:
     type: object
     properties:
       profile:
-        $ref: "#/definitions/Profile"    
+        $ref: "#/definitions/Profile"
   PostProfileResponse:
-    type: object  
+    type: object
   PostProfileResponseError400:
     type: object
     properties:
       error:
-        type: string     
+        type: string
   Profile:
     type: object
     properties:
       id:
-        type: string  
+        type: string
       name:
-        type: string  
+        type: string
       addresses:
         type: array
         items:
-          $ref: "#/definitions/Address"    
+          $ref: "#/definitions/Address"
   PutProfileRequestBody:
     type: object
     properties:
       profile:
-        $ref: "#/definitions/Profile"    
+        $ref: "#/definitions/Profile"
   PutProfileResponse:
-    type: object  
+    type: object
   PutProfileResponseError400:
     type: object
     properties:
       error:
-        type: string     
-  profilesvc.Address:
-    type: object
-    properties:
-      id:
-        type: string  
-      location:
-        type: string      
+        type: string
 
