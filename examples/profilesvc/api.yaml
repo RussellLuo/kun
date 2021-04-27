@@ -1,12 +1,12 @@
 swagger: "2.0"
 info:
-  version: "1.0.0"
-  title: "Swagger Example"
+  title: "No Title"
+  version: "0.0.0"
   description: "Service is a simple CRUD interface for user profiles."
   license:
     name: "MIT"
 host: "example.com"
-basePath: "/api"
+basePath: "/"
 schemes:
   - "https"
 consumes:

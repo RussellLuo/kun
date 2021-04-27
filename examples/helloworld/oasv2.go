@@ -12,13 +12,13 @@ import (
 var (
 	base = `swagger: "2.0"
 info:
-  version: "1.0.0"
-  title: "Swagger Example"
-  description: ""
+  title: "No Title"
+  version: "0.0.0"
+  description: "Service is used for saying hello."
   license:
     name: "MIT"
 host: "example.com"
-basePath: "/api"
+basePath: "/"
 schemes:
   - "https"
 consumes:
@@ -31,7 +31,7 @@ produces:
 paths:
   /messages:
     post:
-      description: ""
+      description: "SayHello says hello to the given name."
       operationId: "SayHello"
       parameters: 
         - name: body

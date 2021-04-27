@@ -9,7 +9,9 @@ import (
 
 //go:generate kokgen ./service.go Service
 
+// Service is used for uploading files.
 type Service interface {
+	// Upload uploads a file.
 	// @kok(op): POST /upload
 	// @kok(success): statusCode:204
 	Upload(ctx context.Context, file *httpcodec.FormFile) (err error)

@@ -13,13 +13,13 @@ import (
 var (
 	base = `swagger: "2.0"
 info:
-  version: "1.0.0"
-  title: "Swagger Example"
-  description: ""
+  title: "No Title"
+  version: "0.0.0"
+  description: "Service is used for uploading files."
   license:
     name: "MIT"
 host: "example.com"
-basePath: "/api"
+basePath: "/"
 schemes:
   - "https"
 consumes:
@@ -32,7 +32,7 @@ produces:
 paths:
   /upload:
     post:
-      description: ""
+      description: "Upload uploads a file."
       operationId: "Upload"
       parameters: 
         - name: body

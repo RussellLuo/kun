@@ -50,7 +50,10 @@ func buildSuccessResponse(text string, results map[string]*reflector.Param, opNa
 
 func buildMetadata(comments []string) (m *Metadata, err error) {
 	m = &Metadata{
+		Title:       "No Title",
+		Version:     "0.0.0",
 		Description: getDescriptionFromDoc(comments),
+		BasePath:    "/",
 	}
 
 	for _, comment := range comments {
