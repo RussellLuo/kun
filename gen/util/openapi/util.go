@@ -47,3 +47,42 @@ func buildSuccessResponse(text string, results map[string]*reflector.Param, opNa
 
 	return resp
 }
+
+func buildMetadata(comments []string) (m *Metadata, err error) {
+	m = &Metadata{
+		Description: getDescriptionFromDoc(comments),
+	}
+
+	for _, comment := range comments {
+		if !isKokAnnotation(comment) {
+			continue
+		}
+
+		result := reKok.FindStringSubmatch(comment)
+		if len(result) != 3 || result[1] != "oas" {
+			return nil, fmt.Errorf("invalid kok comment: %s", comment)
+		}
+
+		value := strings.TrimSpace(result[2])
+		parts := strings.SplitN(value, ":", 2)
+		if len(parts) != 2 {
+			return nil, fmt.Errorf(`%q does not match the expected format: "<key>:<value>"`, value)
+		}
+
+		k, v := parts[0], parts[1]
+		switch k {
+		case "title":
+			m.Title = v
+		case "version":
+			m.Version = v
+		case "basePath":
+			m.BasePath = v
+		case "tags":
+			m.DefaultTags = strings.Split(v, ",")
+		default:
+			return nil, fmt.Errorf(`invalid key %q for @kok(oas) in %q`, k, value)
+		}
+	}
+
+	return m, nil
+}

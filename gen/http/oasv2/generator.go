@@ -33,13 +33,13 @@ import (
 var (
 	base = ` + "`" + `swagger: "2.0"
 info:
-  version: "1.0.0"
-  title: "Swagger Example"
+  title: "{{.Spec.Metadata.Title}}"
+  version: "{{.Spec.Metadata.Version}}"
   description: "{{.Spec.Metadata.Description}}"
   license:
     name: "MIT"
 host: "example.com"
-basePath: "/api"
+basePath: "{{.Spec.Metadata.BasePath}}"
 schemes:
   - "https"
 consumes:
@@ -48,6 +48,7 @@ produces:
   - "application/json"
 ` + "`" + `
 
+{{- $defaultTags := .Spec.Metadata.DefaultTags}}
 {{- $operationsGroupByPattern := operationsGroupByPattern .Spec.Operations}}
 
 	paths = ` + "`" + `
@@ -60,12 +61,13 @@ paths:
     {{lower .Method}}:
       description: "{{.Description}}"
       operationId: "{{.Name}}"
-      {{- if .Tags}}
+      {{- $tags := getTags .Tags $defaultTags}}
+      {{- if $tags}}
       tags:
-        {{- range .Tags}}
+        {{- range $tags}}
         - {{.}}
-        {{- end -}} {{/* range .Tags */}}
-      {{- end -}} {{/* if .Tags */}}
+        {{- end -}} {{/* range $tags */}}
+      {{- end -}} {{/* if $tags */}}
 
       {{- $nonCtxNonBodyParams := nonBodyParams $nonCtxParams}}
       {{- if $nonCtxParams}}
@@ -250,6 +252,12 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 				default:
 					return ParamType{Type: "string"}
 				}
+			},
+			"getTags": func(opTags, defaultTags []string) []string {
+				if len(opTags) > 0 {
+					return opTags
+				}
+				return defaultTags
 			},
 			"nonCtxParams": func(params []*openapi.Param) (out []*openapi.Param) {
 				for _, p := range params {

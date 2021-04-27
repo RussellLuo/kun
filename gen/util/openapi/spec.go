@@ -25,12 +25,16 @@ const (
 )
 
 type Specification struct {
-	Metadata   Metadata
+	Metadata   *Metadata
 	Operations []*Operation
 }
 
 type Metadata struct {
+	Title       string
+	Version     string
 	Description string
+	BasePath    string
+	DefaultTags []string
 }
 
 func Spec() *Specification {

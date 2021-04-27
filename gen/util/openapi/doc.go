@@ -21,10 +21,13 @@ var (
 )
 
 func FromDoc(result *reflector.Result, doc *reflector.InterfaceDoc) (*Specification, error) {
+	metadata, err := buildMetadata(doc.Doc)
+	if err != nil {
+		return nil, err
+	}
+
 	spec := &Specification{
-		Metadata: Metadata{
-			Description: getDescriptionFromDoc(doc.Doc),
-		},
+		Metadata: metadata,
 	}
 
 	for _, m := range result.Interface.Methods {
@@ -162,8 +165,12 @@ func manipulateByComments(op *Operation, params map[string]*Param, results map[s
 		case "success":
 			op.SuccessResponse = buildSuccessResponse(value, results, op.Name)
 
-		case "tag":
-			op.Tags = strings.Split(value, ",")
+		case "oas":
+			parts := strings.SplitN(value, ":", 2)
+			if len(parts) != 2 || parts[0] != "tags" {
+				return fmt.Errorf(`%q does not match the expected format: "tags:<tag1>[,<tag2>]"`, value)
+			}
+			op.Tags = strings.Split(parts[1], ",")
 
 		default:
 			return fmt.Errorf(`unrecognized kok key "%s" in comment: %s`, key, comment)
