@@ -88,6 +88,10 @@ definitions:
           {{- end -}} {{/* if isBasic .Type.Type */}}
         {{- end -}} {{/* if eq .Type.Kind "basic" */}}
 
+        {{- if .Type.Description}}
+        description: {{.Type.Description}}
+        {{- end}}
+
       {{- end -}} {{/* range $definition.ItemTypeOrProperties */}}
     {{- end -}} {{/* if $definition.ItemTypeOrProperties */}}
 
@@ -101,9 +105,10 @@ definitions:
 )
 
 type JSONType struct {
-	Kind   string
-	Type   string
-	Format string
+	Kind        string
+	Type        string
+	Format      string
+	Description string
 }
 
 type ItemType JSONType
@@ -174,7 +179,7 @@ func AddDefinition(defs map[string]Definition, name string, value reflect.Value)
 
 			properties = append(properties, Property{
 				Name: fieldName,
-				Type: getJSONType(fieldValueType, caseconv.ToUpperCamelCase(fieldName)),
+				Type: getJSONType(fieldValueType, caseconv.ToUpperCamelCase(fieldName), kokField.Description),
 			})
 		}
 
@@ -199,7 +204,7 @@ func AddDefinition(defs map[string]Definition, name string, value reflect.Value)
 
 			properties = append(properties, Property{
 				Name: keyString,
-				Type: getJSONType(keyValue.Type(), caseconv.ToUpperCamelCase(keyString)),
+				Type: getJSONType(keyValue.Type(), caseconv.ToUpperCamelCase(keyString), ""),
 			})
 		}
 
@@ -255,7 +260,7 @@ func addArrayDefinition(defs map[string]Definition, name string, value reflect.V
 		if !inner {
 			defs[name] = Definition{
 				Type:                 "array",
-				ItemTypeOrProperties: getJSONType(elemType, elemType.Name()),
+				ItemTypeOrProperties: getJSONType(elemType, elemType.Name(), ""),
 			}
 		}
 		return
@@ -303,39 +308,39 @@ func isBasicKind(kind reflect.Kind) bool {
 	}
 }
 
-func getJSONType(typ reflect.Type, name string) JSONType {
+func getJSONType(typ reflect.Type, name, description string) JSONType {
 	switch typ.Kind() {
 	case reflect.Bool:
-		return JSONType{Kind: "basic", Type: "boolean"}
+		return JSONType{Kind: "basic", Type: "boolean", Description: description}
 	case reflect.Int8, reflect.Int16, reflect.Int32,
 		reflect.Uint8, reflect.Uint16, reflect.Uint32:
-		return JSONType{Kind: "basic", Type: "integer", Format: "int32"}
+		return JSONType{Kind: "basic", Type: "integer", Format: "int32", Description: description}
 	case reflect.Int, reflect.Int64,
 		reflect.Uint, reflect.Uint64, reflect.Uintptr:
-		return JSONType{Kind: "basic", Type: "integer", Format: "int64"}
+		return JSONType{Kind: "basic", Type: "integer", Format: "int64", Description: description}
 	case reflect.Float32:
-		return JSONType{Kind: "basic", Type: "number", Format: "float"}
+		return JSONType{Kind: "basic", Type: "number", Format: "float", Description: description}
 	case reflect.Float64:
-		return JSONType{Kind: "basic", Type: "number", Format: "double"}
+		return JSONType{Kind: "basic", Type: "number", Format: "double", Description: description}
 	case reflect.String:
-		return JSONType{Kind: "basic", Type: "string"}
+		return JSONType{Kind: "basic", Type: "string", Description: description}
 	case reflect.Struct:
 		if isTime(reflect.New(typ).Elem()) {
 			// A time value is also a struct in Go, but it is represented as a string in OAS.
-			return JSONType{Kind: "basic", Type: "string", Format: "date-time"}
+			return JSONType{Kind: "basic", Type: "string", Format: "date-time", Description: description}
 		}
-		return JSONType{Kind: "object", Type: getTypeName(typ, name)}
+		return JSONType{Kind: "object", Type: getTypeName(typ, name), Description: description}
 	case reflect.Map:
-		return JSONType{Kind: "object", Type: name}
+		return JSONType{Kind: "object", Type: name, Description: description}
 	case reflect.Ptr:
 		// Dereference the pointer and get its element type.
-		return getJSONType(typ.Elem(), name)
+		return getJSONType(typ.Elem(), name, description)
 	case reflect.Slice, reflect.Array:
 		elemType := typ.Elem()
 		for elemType.Kind() == reflect.Ptr {
 			elemType = elemType.Elem()
 		}
-		return JSONType{Kind: "array", Type: getArrayElemTypeName(elemType, name)}
+		return JSONType{Kind: "array", Type: getArrayElemTypeName(elemType, name), Description: description}
 	default:
 		panic(fmt.Errorf("unsupported type %s", typ.Kind()))
 	}

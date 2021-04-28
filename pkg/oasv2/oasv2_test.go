@@ -38,13 +38,13 @@ func TestAddDefinition(t *testing.T) {
 			inBody: struct {
 				Name    string          `json:"name"`
 				Male    bool            `json:"male"`
-				Age     int             `json:"age"`
+				Age     int             `json:"age" kok:",descr:the age"`
 				Hobbies []string        `json:"hobbies"`
-				Datum   *Datum          `json:"datum"`
+				Datum   *Datum          `json:"datum" kok:",descr:the datum"`
 				Data    []Datum         `json:"data"`
 				Time    time.Time       `json:"time"`
 				TimeStr string          `json:"time_str" kok:",type:time"`
-				Other   map[string]bool `json:"other"`
+				Other   map[string]bool `json:"other" kok:",descr:other is a map"`
 			}{
 				Name:    "xxx",
 				Male:    true,
@@ -75,9 +75,10 @@ func TestAddDefinition(t *testing.T) {
 						{
 							Name: "age",
 							Type: JSONType{
-								Kind:   "basic",
-								Type:   "integer",
-								Format: "int64",
+								Kind:        "basic",
+								Type:        "integer",
+								Format:      "int64",
+								Description: "the age",
 							},
 						},
 						{
@@ -90,8 +91,9 @@ func TestAddDefinition(t *testing.T) {
 						{
 							Name: "datum",
 							Type: JSONType{
-								Kind: "object",
-								Type: "Datum",
+								Kind:        "object",
+								Type:        "Datum",
+								Description: "the datum",
 							},
 						},
 						{
@@ -120,8 +122,9 @@ func TestAddDefinition(t *testing.T) {
 						{
 							Name: "other",
 							Type: JSONType{
-								Kind: "object",
-								Type: "Other",
+								Kind:        "object",
+								Type:        "Other",
+								Description: "other is a map",
 							},
 						},
 					},

@@ -579,6 +579,11 @@ func TestGetKokField(t *testing.T) {
 			in:      reflect.StructField{Name: "ID", Tag: `kok:",type:string"`},
 			wantOut: KokField{Name: "query.ID", Type: "string"},
 		},
+		{
+			name:    "has description",
+			in:      reflect.StructField{Name: "ID", Tag: `kok:",descr:string"`},
+			wantOut: KokField{Name: "query.ID", Description: "string"},
+		},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {

@@ -176,6 +176,7 @@ func (p *Parser) completeAnnotations(typ types.Type, a *annotation) (annotations
 			anno.In = in
 			anno.Name = name
 			anno.Required = kokField.Required
+			anno.Description = kokField.Description
 			annotations = append(annotations, anno)
 		}
 	//case *types.Pointer:

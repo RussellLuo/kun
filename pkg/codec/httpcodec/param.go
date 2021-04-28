@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	tagName    = "kok"
-	typePrefix = "type:"
+	tagName     = "kok"
+	typePrefix  = "type:"
+	descrPrefix = "descr:"
 )
 
 var (
@@ -438,10 +439,11 @@ func EncodeStructToMap(in interface{}, out *map[string][]string) error {
 }
 
 type KokField struct {
-	Name     string
-	Required bool
-	Omitted  bool
-	Type     string
+	Name        string
+	Required    bool
+	Omitted     bool
+	Type        string
+	Description string
 }
 
 func GetKokField(field reflect.StructField) (result KokField) {
@@ -464,6 +466,8 @@ func GetKokField(field reflect.StructField) (result KokField) {
 			result.Required = true
 		case strings.HasPrefix(option, typePrefix):
 			result.Type = option[len(typePrefix):]
+		case strings.HasPrefix(option, descrPrefix):
+			result.Description = option[len(descrPrefix):]
 		}
 	}
 
