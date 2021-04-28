@@ -10,11 +10,12 @@ import (
 )
 
 type annotation struct {
-	ArgName  string
-	In       string
-	Name     string
-	Type     string
-	Required bool
+	ArgName     string
+	In          string
+	Name        string
+	Type        string
+	Required    bool
+	Description string
 }
 
 func newParamAnnotation(text, prevParamName string) (*annotation, error) {
@@ -64,6 +65,8 @@ func newParamAnnotation(text, prevParamName string) (*annotation, error) {
 			a.Name = v
 		case "required":
 			a.Required = v == "true"
+		case "descr":
+			a.Description = v
 		default:
 			return nil, fmt.Errorf("invalid tag part: %s", part)
 		}
@@ -82,13 +85,8 @@ func newParamAnnotation(text, prevParamName string) (*annotation, error) {
 }
 
 func (a *annotation) Copy() *annotation {
-	return &annotation{
-		ArgName:  a.ArgName,
-		In:       a.In,
-		Name:     a.Name,
-		Type:     a.Type,
-		Required: a.Required,
-	}
+	anno := *a
+	return &anno
 }
 
 func (a *annotation) SetType(typ string) *annotation {

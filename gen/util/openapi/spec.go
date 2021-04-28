@@ -50,13 +50,14 @@ func (s *Specification) Path(pattern string, operations ...*Operation) *Specific
 }
 
 type Param struct {
-	Name      string     // Method argument name
-	Type      string     // Method argument type
-	RawType   types.Type // The raw Go type of the method argument
-	In        string
-	Alias     string // Request parameter name
-	AliasType string // Request parameter type
-	Required  bool
+	Name        string     // Method argument name
+	Type        string     // Method argument type
+	RawType     types.Type // The raw Go type of the method argument
+	In          string
+	Alias       string // Request parameter name
+	AliasType   string // Request parameter type
+	Required    bool
+	Description string // OAS description
 
 	inUse bool // Indicates this parameter already has a corresponding @kok(param).
 }
@@ -94,6 +95,7 @@ func (p *Param) SetByAnnotation(a *annotation) {
 	p.Alias = a.Name
 	p.Required = a.Required
 	p.AliasType = a.Type
+	p.Description = a.Description
 
 	p.inUse = true
 }

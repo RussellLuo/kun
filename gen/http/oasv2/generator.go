@@ -82,8 +82,8 @@ paths:
           items:
             type: {{$type.ItemType}}
           {{- end}}
-          description: ""
-        {{- end}} {{/* range $nonCtxNonBodyParams */}}
+          description: "{{.Description}}"
+        {{- end -}} {{/* range $nonCtxNonBodyParams */}}
 
         {{- $bodyParams := bodyParams $nonCtxParams}}
         {{- if $bodyParams}}
@@ -92,11 +92,11 @@ paths:
           schema:
             $ref: "#/definitions/{{.Name}}RequestBody"
         {{- end}}
-      {{- end}} {{/* if $nonCtxParams */}}
+      {{- end -}} {{/* if $nonCtxParams */}}
       %s
-  {{- end}} {{/* range .Operations */}}
+  {{- end -}} {{/* range .Operations */}}
 
-{{- end}} {{/* range $operationsGroupByPattern */}}
+{{- end -}} {{/* range $operationsGroupByPattern */}}
 ` + "`" + `
 )
 
