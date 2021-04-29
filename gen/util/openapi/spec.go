@@ -30,10 +30,15 @@ type Specification struct {
 }
 
 type Metadata struct {
+	// Relative path to the OAS documentation.
+	DocsPath string
+
 	Title       string
 	Version     string
 	Description string
 	BasePath    string
+
+	// Default tags for operations those have no tags.
 	DefaultTags []string
 }
 

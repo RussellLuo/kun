@@ -51,7 +51,7 @@ func NewHTTPRouterWithOAS(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}
 	{{- end}}
 
 	if schema != nil {
-		r.Method("GET", "/api", oasv2.Handler(OASv2APIDoc, schema))
+		r.Method("GET", "{{.Spec.Metadata.DocsPath}}", oasv2.Handler(OASv2APIDoc, schema))
 	}
 
 	var codec httpcodec.Codec

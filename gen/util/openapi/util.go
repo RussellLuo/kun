@@ -50,6 +50,7 @@ func buildSuccessResponse(text string, results map[string]*reflector.Param, opNa
 
 func buildMetadata(comments []string) (m *Metadata, err error) {
 	m = &Metadata{
+		DocsPath:    "/api",
 		Title:       "No Title",
 		Version:     "0.0.0",
 		Description: getDescriptionFromDoc(comments),
@@ -72,8 +73,10 @@ func buildMetadata(comments []string) (m *Metadata, err error) {
 			return nil, fmt.Errorf(`%q does not match the expected format: "<key>:<value>"`, value)
 		}
 
-		k, v := parts[0], parts[1]
+		k, v := strings.TrimSpace(parts[0]), strings.TrimSpace(parts[1])
 		switch k {
+		case "docsPath":
+			m.DocsPath = v
 		case "title":
 			m.Title = v
 		case "version":
