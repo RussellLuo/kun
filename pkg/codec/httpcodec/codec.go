@@ -5,6 +5,7 @@ import (
 	"net/http"
 )
 
+// Codec is a series of codecs (encoders and decoders) for HTTP requests and responses.
 type Codec interface {
 	// Encoders and decoders used at the server side.
 	DecodeRequestParam(name string, values []string, out interface{}) error
@@ -23,4 +24,16 @@ type Codec interface {
 
 type Codecs interface {
 	EncodeDecoder(name string) Codec
+}
+
+// ParamCodec is a codec (encoder and decoder) for a single request parameter.
+type ParamCodec interface {
+	Decode(in []string, out interface{}) error
+	Encode(in interface{}) (out []string)
+}
+
+// ParamsCodec is a codec (encoder and decoder) for a group of request parameters.
+type ParamsCodec interface {
+	Decode(in map[string][]string, out interface{}) error
+	Encode(in interface{}) (out map[string][]string)
 }

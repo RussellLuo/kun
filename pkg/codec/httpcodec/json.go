@@ -11,25 +11,6 @@ import (
 	"github.com/RussellLuo/kok/pkg/werror/googlecode"
 )
 
-type DefaultCodecs struct {
-	Codecs map[string]Codec
-	d      Codec
-}
-
-func NewDefaultCodecs(d Codec) *DefaultCodecs {
-	if d == nil {
-		d = JSON{} // defaults to JSON
-	}
-	return &DefaultCodecs{d: d}
-}
-
-func (dc *DefaultCodecs) EncodeDecoder(name string) Codec {
-	if c, ok := dc.Codecs[name]; ok {
-		return c
-	}
-	return dc.d
-}
-
 type Error struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
@@ -97,7 +78,7 @@ func (j JSON) EncodeRequestParams(name string, value interface{}) map[string][]s
 		}
 		panic(err)
 	}
-	return nil
+	return out
 }
 
 func (j JSON) EncodeRequestBody(body interface{}) (io.Reader, map[string]string, error) {
