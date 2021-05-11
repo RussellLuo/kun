@@ -408,14 +408,8 @@ func (p StructParams) Decode(in map[string][]string, out interface{}) error {
 		}
 
 		values := in[kokField.Name]
-		if len(values) == 0 {
-			if !kokField.Required {
-				continue
-			}
-			return ErrMissingRequired
-		}
-
 		fieldValuePtr := reflect.New(fieldValue.Type())
+
 		codec := p.fieldCodec(field.Name)
 		if err := codec.Decode(values, fieldValuePtr.Interface()); err != nil {
 			return err

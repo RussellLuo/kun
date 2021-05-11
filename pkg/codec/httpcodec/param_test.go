@@ -947,14 +947,6 @@ func TestStructParams_Decode(t *testing.T) {
 			wantOut: value{Required: "wow"},
 		},
 		{
-			name: "missing required field",
-			in: map[string][]string{
-				"query.required": nil,
-			},
-			outPtr:  ptrToValue,
-			wantErr: ErrMissingRequired,
-		},
-		{
 			name:    "struct pointer",
 			in:      testIn,
 			outPtr:  ptrToValue,
