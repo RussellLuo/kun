@@ -56,9 +56,9 @@ func (dc *DefaultCodecs) EncodeDecoder(name string) Codec {
 }
 
 // Patcher is used to change the encoding and decoding behaviors of an
-// existing codec (encoder and decoder).
+// existing instance of Codec.
 type Patcher struct {
-	Codec // the original codec
+	Codec // the original Codec
 
 	// Custom codecs each for a single request parameter.
 	paramCodecs map[string]ParamCodec
