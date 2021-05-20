@@ -156,6 +156,62 @@ func TestAddDefinition(t *testing.T) {
 			},
 		},
 		{
+			name: "embedded struct",
+			inBody: struct {
+				Name string `json:"name"`
+				Datum
+			}{},
+			wantDefs: map[string]Definition{
+				"Response": {
+					Type: "object",
+					ItemTypeOrProperties: []Property{
+						{
+							Name: "name",
+							Type: JSONType{
+								Kind: "basic",
+								Type: "string",
+							},
+						},
+						{
+							Name: "properties",
+							Type: JSONType{
+								Kind: "array",
+								Type: "string",
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "embedded struct pointer",
+			inBody: struct {
+				Name string `json:"name"`
+				*Datum
+			}{},
+			wantDefs: map[string]Definition{
+				"Response": {
+					Type: "object",
+					ItemTypeOrProperties: []Property{
+						{
+							Name: "name",
+							Type: JSONType{
+								Kind: "basic",
+								Type: "string",
+							},
+						},
+						{
+							Name: "properties",
+							Type: JSONType{
+								Kind: "array",
+								Type: "string",
+							},
+						},
+					},
+				},
+			},
+		},
+		{
 			name:   "array of string",
 			inBody: []string{},
 			wantDefs: map[string]Definition{

@@ -134,7 +134,13 @@ type OASResponses struct {
 	Failures     map[int]OASResponse
 }
 
-func AddDefinition(defs map[string]Definition, name string, value reflect.Value) {
+func AddDefinition(defs map[string]Definition, name string, value reflect.Value, anonymous ...bool) {
+	// NOTE: Use anonymous as a variadic argument for backwards compatibility.
+	embedded := false
+	if len(anonymous) > 0 {
+		embedded = anonymous[0]
+	}
+
 	if _, ok := defs[name]; ok {
 		// Ignore duplicated definitions implicitly.
 		return
@@ -142,51 +148,7 @@ func AddDefinition(defs map[string]Definition, name string, value reflect.Value)
 
 	switch value.Kind() {
 	case reflect.Struct:
-		if isTime(value) {
-			// Ignore this struct if it is a time value (of type `time.Time`).
-			return
-		}
-
-		var properties []Property
-
-		structType := value.Type()
-		for i := 0; i < structType.NumField(); i++ {
-			field := structType.Field(i)
-			fieldName := field.Name
-			jsonTag := field.Tag.Get("json")
-			jsonName := strings.SplitN(jsonTag, ",", 2)[0]
-			if jsonName != "" {
-				if jsonName == "-" {
-					continue
-				}
-				fieldName = jsonName
-			}
-
-			var fieldValueType reflect.Type
-
-			kokField := httpcodec.GetKokField(field)
-			if kokField.Type != "" {
-				// Use the user-specified type (a basic type) if any.
-				var err error
-				if fieldValueType, err = getReflectType(kokField.Type); err != nil {
-					panic(err)
-				}
-			} else {
-				// Use the raw type of this struct field.
-				fieldValue := addSubDefinition(defs, fieldName, value.Field(i))
-				fieldValueType = fieldValue.Type()
-			}
-
-			properties = append(properties, Property{
-				Name: fieldName,
-				Type: getJSONType(fieldValueType, caseconv.ToUpperCamelCase(fieldName), kokField.Description),
-			})
-		}
-
-		defs[name] = Definition{
-			Type:                 "object",
-			ItemTypeOrProperties: properties,
-		}
+		addStructDefinition(defs, name, value, embedded)
 
 	case reflect.Map:
 		var properties []Property
@@ -200,7 +162,7 @@ func AddDefinition(defs map[string]Definition, name string, value reflect.Value)
 
 		for _, key := range value.MapKeys() {
 			keyString := key.String()
-			keyValue := addSubDefinition(defs, keyString, value.MapIndex(key))
+			keyValue := addSubDefinition(defs, keyString, value.MapIndex(key), false)
 
 			properties = append(properties, Property{
 				Name: keyString,
@@ -219,22 +181,99 @@ func AddDefinition(defs map[string]Definition, name string, value reflect.Value)
 	case reflect.Ptr:
 		elemType := value.Type().Elem()
 		elem := reflect.New(elemType).Elem()
-		AddDefinition(defs, name, elem) // Always use the input name
+		AddDefinition(defs, name, elem, embedded) // Always use the input name
 
 	default:
 		panic(fmt.Errorf("unsupported type %s", value.Kind()))
 	}
 }
 
-func addSubDefinition(defs map[string]Definition, name string, value reflect.Value) reflect.Value {
+func addStructDefinition(defs map[string]Definition, name string, value reflect.Value, embedded bool) (properties []Property) {
+	if isTime(value) {
+		// Ignore this struct if it is a time value (of type `time.Time`).
+		return
+	}
+
+	structType := value.Type()
+	for i := 0; i < structType.NumField(); i++ {
+		field := structType.Field(i)
+		fieldName := field.Name
+		jsonTag := field.Tag.Get("json")
+		jsonName := strings.SplitN(jsonTag, ",", 2)[0]
+		if jsonName != "" {
+			if jsonName == "-" {
+				continue
+			}
+			fieldName = jsonName
+		}
+
+		var fieldValueType reflect.Type
+
+		kokField := httpcodec.GetKokField(field)
+		if kokField.Type != "" {
+			// Use the user-specified type (a basic type) if any.
+			var err error
+			if fieldValueType, err = getReflectType(kokField.Type); err != nil {
+				panic(err)
+			}
+		} else {
+			// Use the raw type of this struct field.
+			fieldValue := addSubDefinition(defs, fieldName, value.Field(i), field.Anonymous)
+			fieldValueType = fieldValue.Type()
+		}
+
+		if field.Anonymous {
+			// If this is an embedded field, promote the sub-properties of this field.
+
+			var subProperties []Property
+
+			ft := field.Type
+			switch k := ft.Kind(); {
+			case k == reflect.Struct:
+				v := value.Field(i)
+				subProperties = addStructDefinition(defs, "", v, field.Anonymous)
+			case k == reflect.Ptr && ft.Elem().Kind() == reflect.Struct:
+				v := reflect.New(ft.Elem()).Elem()
+				subProperties = addStructDefinition(defs, "", v, field.Anonymous)
+			}
+
+			properties = append(properties, subProperties...)
+		} else {
+			// Otherwise, append this field as a property.
+			properties = append(properties, Property{
+				Name: fieldName,
+				Type: getJSONType(fieldValueType, caseconv.ToUpperCamelCase(fieldName), kokField.Description),
+			})
+		}
+	}
+
+	// Only add non-embedded struct into definitions.
+	if !embedded {
+		defs[name] = Definition{
+			Type:                 "object",
+			ItemTypeOrProperties: properties,
+		}
+	}
+
+	return
+}
+
+func addSubDefinition(defs map[string]Definition, name string, value reflect.Value, embedded bool) reflect.Value {
 	typeName := value.Type().Name()
 	if typeName == "" {
 		typeName = caseconv.ToUpperCamelCase(name)
 	}
 
 	switch value.Kind() {
-	case reflect.Struct, reflect.Map:
-		AddDefinition(defs, typeName, value)
+	case reflect.Struct:
+		// We only need to call AddDefinition if this is a non-embedded struct.
+		// Otherwise, another call to addStructDefinition will be triggered
+		// instead within addStructDefinition.
+		if !embedded {
+			AddDefinition(defs, typeName, value, embedded)
+		}
+	case reflect.Map:
+		AddDefinition(defs, typeName, value, false)
 	case reflect.Slice, reflect.Array:
 		addArrayDefinition(defs, typeName, value, true)
 	case reflect.Ptr:
@@ -243,10 +282,10 @@ func addSubDefinition(defs map[string]Definition, name string, value reflect.Val
 		elem := reflect.New(elemType).Elem()
 		if !isBasicKind(elem.Kind()) {
 			// This is a pointer to a non-basic type, add more possible definitions.
-			AddDefinition(defs, elemName, elem)
+			AddDefinition(defs, elemName, elem, embedded)
 		}
 	case reflect.Interface:
-		value = addSubDefinition(defs, typeName, value.Elem())
+		value = addSubDefinition(defs, typeName, value.Elem(), embedded)
 	}
 
 	return value
