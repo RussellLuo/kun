@@ -401,53 +401,8 @@ See more examples [here](examples).
 
 See the [HTTP Codec](https://github.com/RussellLuo/kok/blob/master/pkg/codec/httpcodec/codec.go#L8-L22) interface.
 
-Take the `IP decoding` mentioned above as an example, we can get the real IP by customizing the built-in [httpcodec.JSON](https://github.com/RussellLuo/kok/blob/master/pkg/codec/httpcodec/json.go#L42):
+Also see [here](https://github.com/RussellLuo/kok/issues/8) for examples.
 
-```go
-// codec.go
-
-import (
-    "net"
-
-    "github.com/RussellLuo/kok/pkg/codec/httpcodec"
-)
-
-type Codec struct {
-    httpcodec.JSON
-}
-
-func (c Codec) DecodeRequestParams(name string, values map[string][]string, out interface{}) error {
-    switch name {
-    case "ip":
-        // We are decoding the "ip" argument.
-
-        remote := values["request.RemoteAddr"][0]
-        if fwdFor := values["header.X-Forwarded-For"][0]; fwdFor != "" {
-            remote = strings.TrimSpace(strings.Split(fwdFor, ",")[0])
-        }
-
-        ipStr, _, err := net.SplitHostPort(remote)
-        if err != nil {
-            ipStr = remote // OK; probably didn't have a port
-        }
-
-        ip := net.ParseIP(ipStr)
-        if ip == nil {
-            return fmt.Errorf("invalid client IP address: %s", ipStr)
-        }
-
-        outIP := out.(*net.IP)
-        *outIP = ip
-        return nil
-
-    default:
-        // Use the JSON codec for other arguments.
-        return c.JSON.DecodeRequestParams(name, values, out)
-    }
-}
-```
-
-For how to use the customized Codec implementation in your HTTP server, see the [profilesvc](https://github.com/RussellLuo/kok/tree/master/examples/profilesvc) example.
 
 ### OAS Schema
 
