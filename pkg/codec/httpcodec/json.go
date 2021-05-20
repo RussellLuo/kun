@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/RussellLuo/kok/pkg/werror"
-	"github.com/RussellLuo/kok/pkg/werror/googlecode"
+	"github.com/RussellLuo/kok/pkg/werror/gcode"
 )
 
 type Error struct {
@@ -27,7 +27,7 @@ func (j JSON) DecodeRequestParam(name string, values []string, out interface{}) 
 		if err == ErrUnsupportedType {
 			panic(fmt.Errorf("DecodeRequestParam not implemented for %q (of type %T)", name, out))
 		}
-		return werror.Wrap(googlecode.ErrInvalidArgument).SetError(err)
+		return werror.Wrap(gcode.ErrInvalidArgument, err)
 	}
 	return nil
 }
@@ -37,14 +37,14 @@ func (j JSON) DecodeRequestParams(name string, values map[string][]string, out i
 		if err == ErrUnsupportedType {
 			panic(fmt.Errorf("DecodeRequestParams not implemented for %q (of type %T)", name, out))
 		}
-		return werror.Wrap(googlecode.ErrInvalidArgument).SetError(err)
+		return werror.Wrap(gcode.ErrInvalidArgument, err)
 	}
 	return nil
 }
 
 func (j JSON) DecodeRequestBody(r *http.Request, out interface{}) error {
 	if err := json.NewDecoder(r.Body).Decode(out); err != nil {
-		return werror.Wrap(googlecode.ErrInvalidArgument).SetError(err)
+		return werror.Wrap(gcode.ErrInvalidArgument, err)
 	}
 	return nil
 }
@@ -56,8 +56,8 @@ func (j JSON) EncodeSuccessResponse(w http.ResponseWriter, statusCode int, body 
 }
 
 func (j JSON) EncodeFailureResponse(w http.ResponseWriter, err error) error {
-	statusCode := googlecode.HTTPStatusCode(err)
-	code, message := googlecode.ToCodeMessage(err)
+	statusCode := gcode.HTTPStatusCode(err)
+	code, message := gcode.ToCodeMessage(err)
 	return j.EncodeSuccessResponse(w, statusCode, FailureResponse{
 		Error: Error{
 			Code:    code,
@@ -102,6 +102,6 @@ func (j JSON) DecodeFailureResponse(body io.ReadCloser, out *error) error {
 		return err
 	}
 
-	*out = googlecode.FromCodeMessage(resp.Error.Code, resp.Error.Message)
+	*out = gcode.FromCodeMessage(resp.Error.Code, resp.Error.Message)
 	return nil
 }

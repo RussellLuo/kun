@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/RussellLuo/kok/pkg/werror/googlecode"
+	"github.com/RussellLuo/kok/pkg/werror/gcode"
 )
 
 type CodecMap struct {
@@ -158,8 +158,8 @@ func (jc JSONCodec) EncodeSuccessResponse(w http.ResponseWriter, statusCode int,
 }
 
 func (jc JSONCodec) EncodeFailureResponse(w http.ResponseWriter, err error) error {
-	statusCode := googlecode.HTTPStatusCode(err)
-	code, message := googlecode.ToCodeMessage(err)
+	statusCode := gcode.HTTPStatusCode(err)
+	code, message := gcode.ToCodeMessage(err)
 	return jc.EncodeSuccessResponse(w, statusCode, map[string]map[string]string{
 		"error": {
 			"code":    code,

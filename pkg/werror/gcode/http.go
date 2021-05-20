@@ -1,4 +1,4 @@
-package googlecode
+package gcode
 
 import (
 	"errors"
@@ -8,39 +8,40 @@ import (
 )
 
 func HTTPStatusCode(err error) int {
-	if errors.Is(err, ErrInvalidArgument) {
+	switch {
+	case errors.Is(err, ErrInvalidArgument):
 		return http.StatusBadRequest
-	} else if errors.Is(err, ErrFailedPrecondition) {
+	case errors.Is(err, ErrFailedPrecondition):
 		return http.StatusBadRequest
-	} else if errors.Is(err, ErrOutOfRange) {
+	case errors.Is(err, ErrOutOfRange):
 		return http.StatusBadRequest
-	} else if errors.Is(err, ErrUnauthenticated) {
+	case errors.Is(err, ErrUnauthenticated):
 		return http.StatusUnauthorized
-	} else if errors.Is(err, ErrPermissionDenied) {
+	case errors.Is(err, ErrPermissionDenied):
 		return http.StatusForbidden
-	} else if errors.Is(err, ErrNotFound) {
+	case errors.Is(err, ErrNotFound):
 		return http.StatusNotFound
-	} else if errors.Is(err, ErrAborted) {
+	case errors.Is(err, ErrAborted):
 		return http.StatusConflict
-	} else if errors.Is(err, ErrAlreadyExists) {
+	case errors.Is(err, ErrAlreadyExists):
 		return http.StatusConflict
-	} else if errors.Is(err, ErrResourceExhausted) {
+	case errors.Is(err, ErrResourceExhausted):
 		return http.StatusTooManyRequests
-	} else if errors.Is(err, ErrCancelled) {
+	case errors.Is(err, ErrCancelled):
 		return 499 // has no corresponding constant
-	} else if errors.Is(err, ErrDataLoss) {
+	case errors.Is(err, ErrDataLoss):
 		return http.StatusInternalServerError
-	} else if errors.Is(err, ErrUnknown) {
+	case errors.Is(err, ErrUnknown):
 		return http.StatusInternalServerError
-	} else if errors.Is(err, ErrInternal) {
+	case errors.Is(err, ErrInternal):
 		return http.StatusInternalServerError
-	} else if errors.Is(err, ErrNotImplemented) {
+	case errors.Is(err, ErrNotImplemented):
 		return http.StatusNotImplemented
-	} else if errors.Is(err, ErrUnavailable) {
+	case errors.Is(err, ErrUnavailable):
 		return http.StatusServiceUnavailable
-	} else if errors.Is(err, ErrDeadlineExceeded) {
+	case errors.Is(err, ErrDeadlineExceeded):
 		return http.StatusGatewayTimeout
-	} else {
+	default:
 		return http.StatusInternalServerError
 	}
 }
@@ -54,6 +55,6 @@ func ToCodeMessage(err error) (string, string) {
 }
 
 func FromCodeMessage(code, message string) error {
-	codeErr := werror.Wrap(nil).SetErrorf(code)
-	return werror.Wrap(codeErr).SetErrorf(message)
+	codeErr := werror.Wrapf(nil, code)
+	return werror.Wrapf(codeErr, message)
 }
