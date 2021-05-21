@@ -17,9 +17,9 @@ const (
 
 var (
 	ErrUnsupportedType = errors.New("unsupported type")
-	ErrMissingRequired = errors.New("missing required field")
 
-	defaultBasicParam = BasicParam{}
+	defaultBasicParam   = BasicParam{}
+	defaultStructParams = StructParams{}
 )
 
 // BasicParam is a built-in implementation of ParamCodec. It is mainly used
@@ -449,95 +449,6 @@ func (p StructParams) Encode(in interface{}) (out map[string][]string) {
 	}
 
 	return outMap
-}
-
-// DEPRECATED
-// DecodeMapToStruct decodes a string map to a struct (or a *struct).
-func DecodeMapToStruct(in map[string][]string, out interface{}) error {
-	outValue := reflect.ValueOf(out)
-	if outValue.Kind() != reflect.Ptr || outValue.IsNil() {
-		return ErrUnsupportedType
-	}
-
-	elemValue := outValue.Elem()
-	elemType := elemValue.Type()
-
-	var structValue reflect.Value
-
-	switch k := elemValue.Kind(); {
-	case k == reflect.Struct:
-		structValue = elemValue
-	case k == reflect.Ptr && elemType.Elem().Kind() == reflect.Struct:
-		// To handle possible nil pointer, always create a pointer
-		// to a new zero struct.
-		structValuePtr := reflect.New(elemType.Elem())
-		outValue.Elem().Set(structValuePtr)
-
-		structValue = structValuePtr.Elem()
-	default:
-		return ErrUnsupportedType
-	}
-
-	structType := structValue.Type()
-	for i := 0; i < structType.NumField(); i++ {
-		field := structType.Field(i)
-		fieldValue := structValue.Field(i)
-
-		kokField := GetKokField(field)
-		if kokField.Omitted {
-			continue
-		}
-
-		values := in[kokField.Name]
-		if len(values) == 0 {
-			if !kokField.Required {
-				continue
-			}
-			return ErrMissingRequired
-		}
-
-		fieldValuePtr := reflect.New(fieldValue.Type())
-		if err := defaultBasicParam.Decode(values, fieldValuePtr.Interface()); err != nil {
-			return err
-		}
-		fieldValue.Set(fieldValuePtr.Elem())
-	}
-
-	return nil
-}
-
-// DEPRECATED
-// EncodeStructToMap encodes a struct (or a *struct) to a string map.
-func EncodeStructToMap(in interface{}, out *map[string][]string) error {
-	inValue := reflect.ValueOf(in)
-	switch k := inValue.Kind(); {
-	case k == reflect.Ptr && inValue.Elem().Kind() == reflect.Struct:
-		// Convert inValue from *struct to struct implicitly.
-		inValue = inValue.Elem()
-	case k == reflect.Struct:
-	default:
-		return ErrUnsupportedType
-	}
-
-	if out == nil {
-		panic(fmt.Errorf("invalid out: %#v", out))
-	}
-	outMap := *out
-
-	structType := inValue.Type()
-	for i := 0; i < structType.NumField(); i++ {
-		field := structType.Field(i)
-		fieldValue := inValue.Field(i)
-
-		kokField := GetKokField(field)
-		if kokField.Omitted {
-			continue
-		}
-
-		outMap[kokField.Name] = defaultBasicParam.Encode(fieldValue.Interface())
-	}
-
-	return nil
 }
 
 type KokField struct {

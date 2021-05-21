@@ -33,7 +33,7 @@ func (j JSON) DecodeRequestParam(name string, values []string, out interface{}) 
 }
 
 func (j JSON) DecodeRequestParams(name string, values map[string][]string, out interface{}) error {
-	if err := DecodeMapToStruct(values, out); err != nil {
+	if err := defaultStructParams.Decode(values, out); err != nil {
 		if err == ErrUnsupportedType {
 			panic(fmt.Errorf("DecodeRequestParams not implemented for %q (of type %T)", name, out))
 		}
@@ -71,14 +71,7 @@ func (j JSON) EncodeRequestParam(name string, value interface{}) []string {
 }
 
 func (j JSON) EncodeRequestParams(name string, value interface{}) map[string][]string {
-	out := make(map[string][]string)
-	if err := EncodeStructToMap(value, &out); err != nil {
-		if err == ErrUnsupportedType {
-			panic(fmt.Errorf("EncodeRequestParams not implemented for %q (of type %T)", name, out))
-		}
-		panic(err)
-	}
-	return out
+	return defaultStructParams.Encode(value)
 }
 
 func (j JSON) EncodeRequestBody(body interface{}) (io.Reader, map[string]string, error) {

@@ -6,349 +6,6 @@ import (
 	"time"
 )
 
-func TestDecodeMapToStruct(t *testing.T) {
-	type value struct {
-		Int      int      `kok:"int"`
-		Ints     []int    `kok:"ints"`
-		Int8     int8     `kok:"int8"`
-		Int8s    []int8   `kok:"int8s"`
-		Int16    int16    `kok:"int16"`
-		Int16s   []int16  `kok:"int16s"`
-		Int32    int32    `kok:"int32"`
-		Int32s   []int32  `kok:"int32s"`
-		Int64    int64    `kok:"int64"`
-		Int64s   []int64  `kok:"int64s"`
-		Uint     uint     `kok:"uint"`
-		Uints    []uint   `kok:"uints"`
-		Uint8    uint8    `kok:"uint8"`
-		Uint8s   []uint8  `kok:"uint8s"`
-		Uint16   uint16   `kok:"uint16"`
-		Uint16s  []uint16 `kok:"uint16s"`
-		Uint32   uint32   `kok:"uint32"`
-		Uint32s  []uint32 `kok:"uint32s"`
-		Uint64   uint64   `kok:"uint64"`
-		Uint64s  []uint64 `kok:"uint64s"`
-		Bool     bool     `kok:"bool"`
-		Bools    []bool   `kok:"bools"`
-		String   string   `kok:"string"`
-		Strings  []string `kok:"strings"`
-		Required string   `kok:"required,required"`
-	}
-
-	testIn := map[string][]string{
-		"query.int":      {"1"},
-		"query.ints":     {"1", "2"},
-		"query.int8":     {"2"},
-		"query.int8s":    {"2", "3"},
-		"query.int16":    {"3"},
-		"query.int16s":   {"3", "4"},
-		"query.int32":    {"4"},
-		"query.int32s":   {"4", "5"},
-		"query.int64":    {"5"},
-		"query.int64s":   {"5", "6"},
-		"query.uint":     {"6"},
-		"query.uints":    {"6", "7"},
-		"query.uint8":    {"7"},
-		"query.uint8s":   {"7", "8"},
-		"query.uint16":   {"8"},
-		"query.uint16s":  {"8", "9"},
-		"query.uint32":   {"9"},
-		"query.uint32s":  {"9", "10"},
-		"query.uint64":   {"10"},
-		"query.uint64s":  {"10", "11"},
-		"query.bool":     {"true"},
-		"query.bools":    {"true", "false"},
-		"query.string":   {"hello"},
-		"query.strings":  {"hello", "hi"},
-		"query.required": {"wow"},
-	}
-	testValue := value{
-		Int:      1,
-		Ints:     []int{1, 2},
-		Int8:     2,
-		Int8s:    []int8{2, 3},
-		Int16:    3,
-		Int16s:   []int16{3, 4},
-		Int32:    4,
-		Int32s:   []int32{4, 5},
-		Int64:    5,
-		Int64s:   []int64{5, 6},
-		Uint:     6,
-		Uints:    []uint{6, 7},
-		Uint8:    7,
-		Uint8s:   []uint8{7, 8},
-		Uint16:   8,
-		Uint16s:  []uint16{8, 9},
-		Uint32:   9,
-		Uint32s:  []uint32{9, 10},
-		Uint64:   10,
-		Uint64s:  []uint64{10, 11},
-		Bool:     true,
-		Bools:    []bool{true, false},
-		String:   "hello",
-		Strings:  []string{"hello", "hi"},
-		Required: "wow",
-	}
-
-	ptrToValue := &value{}
-	var nilPtrToValue *value = nil
-
-	cases := []struct {
-		name    string
-		in      map[string][]string
-		outPtr  interface{}
-		wantOut interface{}
-		wantErr error
-	}{
-		{
-			name: "missing optional field",
-			in: map[string][]string{
-				"query.string":   nil,
-				"query.required": {"wow"},
-			},
-			outPtr:  ptrToValue,
-			wantOut: value{Required: "wow"},
-		},
-		{
-			name: "missing required field",
-			in: map[string][]string{
-				"query.required": nil,
-			},
-			outPtr:  ptrToValue,
-			wantErr: ErrMissingRequired,
-		},
-		{
-			name:    "struct pointer",
-			in:      testIn,
-			outPtr:  ptrToValue,
-			wantOut: testValue,
-		},
-		{
-			name:    "pointer of struct pointer",
-			in:      testIn,
-			outPtr:  &ptrToValue,
-			wantOut: &testValue,
-		},
-		{
-			name:    "pointer of nil struct pointer",
-			in:      testIn,
-			outPtr:  &nilPtrToValue,
-			wantOut: &testValue,
-		},
-		{
-			name: "nil",
-			in: map[string][]string{
-				"query.int":    {"1"},
-				"query.uint":   {"6"},
-				"query.bool":   {"true"},
-				"query.string": {"hello"},
-			},
-			outPtr:  nil,
-			wantErr: ErrUnsupportedType,
-		},
-		{
-			name: "struct",
-			in: map[string][]string{
-				"query.int":    {"1"},
-				"query.uint":   {"6"},
-				"query.bool":   {"true"},
-				"query.string": {"hello"},
-			},
-			outPtr:  value{},
-			wantErr: ErrUnsupportedType,
-		},
-		{
-			name: "string",
-			in: map[string][]string{
-				"query.int":    {"1"},
-				"query.uint":   {"6"},
-				"query.bool":   {"true"},
-				"query.string": {"hello"},
-			},
-			outPtr:  new(string),
-			wantErr: ErrUnsupportedType,
-		},
-	}
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			err := DecodeMapToStruct(c.in, c.outPtr)
-			if err != c.wantErr {
-				t.Fatalf("Err: got (%#v), want (%#v)", err, c.wantErr)
-			}
-			if err == nil {
-				out := reflect.ValueOf(c.outPtr).Elem().Interface()
-				if !reflect.DeepEqual(out, c.wantOut) {
-					t.Fatalf("Out: got (%#v), want (%#v)", out, c.wantOut)
-				}
-			}
-		})
-	}
-}
-
-func TestEncodeStructToMap(t *testing.T) {
-	type value struct {
-		Int     int      `kok:"int"`
-		Ints    []int    `kok:"ints"`
-		Int8    int8     `kok:"int8"`
-		Int8s   []int8   `kok:"int8s"`
-		Int16   int16    `kok:"int16"`
-		Int16s  []int16  `kok:"int16s"`
-		Int32   int32    `kok:"int32"`
-		Int32s  []int32  `kok:"int32s"`
-		Int64   int64    `kok:"int64"`
-		Int64s  []int64  `kok:"int64s"`
-		Uint    uint     `kok:"uint"`
-		Uints   []uint   `kok:"uints"`
-		Uint8   uint8    `kok:"uint8"`
-		Uint8s  []uint8  `kok:"uint8s"`
-		Uint16  uint16   `kok:"uint16"`
-		Uint16s []uint16 `kok:"uint16s"`
-		Uint32  uint32   `kok:"uint32"`
-		Uint32s []uint32 `kok:"uint32s"`
-		Uint64  uint64   `kok:"uint64"`
-		Uint64s []uint64 `kok:"uint64s"`
-		Bool    bool     `kok:"bool"`
-		Bools   []bool   `kok:"bools"`
-		String  string   `kok:"string"`
-		Strings []string `kok:"strings"`
-	}
-
-	testIn := value{
-		Int:     1,
-		Ints:    []int{1, 2},
-		Int8:    2,
-		Int8s:   []int8{2, 3},
-		Int16:   3,
-		Int16s:  []int16{3, 4},
-		Int32:   4,
-		Int32s:  []int32{4, 5},
-		Int64:   5,
-		Int64s:  []int64{5, 6},
-		Uint:    6,
-		Uints:   []uint{6, 7},
-		Uint8:   7,
-		Uint8s:  []uint8{7, 8},
-		Uint16:  8,
-		Uint16s: []uint16{8, 9},
-		Uint32:  9,
-		Uint32s: []uint32{9, 10},
-		Uint64:  10,
-		Uint64s: []uint64{10, 11},
-		Bool:    true,
-		Bools:   []bool{true, false},
-		String:  "hello",
-		Strings: []string{"hello", "hi"},
-	}
-	testOut := map[string][]string{
-		"query.int":     {"1"},
-		"query.ints":    {"1", "2"},
-		"query.int8":    {"2"},
-		"query.int8s":   {"2", "3"},
-		"query.int16":   {"3"},
-		"query.int16s":  {"3", "4"},
-		"query.int32":   {"4"},
-		"query.int32s":  {"4", "5"},
-		"query.int64":   {"5"},
-		"query.int64s":  {"5", "6"},
-		"query.uint":    {"6"},
-		"query.uints":   {"6", "7"},
-		"query.uint8":   {"7"},
-		"query.uint8s":  {"7", "8"},
-		"query.uint16":  {"8"},
-		"query.uint16s": {"8", "9"},
-		"query.uint32":  {"9"},
-		"query.uint32s": {"9", "10"},
-		"query.uint64":  {"10"},
-		"query.uint64s": {"10", "11"},
-		"query.bool":    {"true"},
-		"query.bools":   {"true", "false"},
-		"query.string":  {"hello"},
-		"query.strings": {"hello", "hi"},
-	}
-
-	cases := []struct {
-		name    string
-		in      interface{}
-		wantOut map[string][]string
-		wantErr error
-	}{
-		{
-			name:    "struct pointer",
-			in:      &testIn,
-			wantOut: testOut,
-		},
-		{
-			name:    "struct",
-			in:      testIn,
-			wantOut: testOut,
-		},
-		{
-			name:    "string",
-			in:      "",
-			wantErr: ErrUnsupportedType,
-		},
-	}
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			out := make(map[string][]string)
-			err := EncodeStructToMap(c.in, &out)
-			if err != c.wantErr {
-				t.Fatalf("Err: got (%#v), want (%#v)", err, c.wantErr)
-			}
-			if err == nil && !reflect.DeepEqual(out, c.wantOut) {
-				t.Fatalf("Out: got (%#v), want (%#v)", out, c.wantOut)
-			}
-		})
-	}
-}
-
-func TestGetKokField(t *testing.T) {
-	cases := []struct {
-		name    string
-		in      reflect.StructField
-		wantOut KokField
-	}{
-		{
-			name:    "in path",
-			in:      reflect.StructField{Name: "ID", Tag: `kok:"path.id"`},
-			wantOut: KokField{Name: "path.id", Required: true},
-		},
-		{
-			name:    "in query",
-			in:      reflect.StructField{Name: "ID", Tag: `kok:"query.id"`},
-			wantOut: KokField{Name: "query.id"},
-		},
-		{
-			name:    "omitted",
-			in:      reflect.StructField{Name: "ID", Tag: `kok:"-"`},
-			wantOut: KokField{Omitted: true},
-		},
-		{
-			name:    "required",
-			in:      reflect.StructField{Name: "ID", Tag: `kok:",required"`},
-			wantOut: KokField{Name: "query.ID", Required: true},
-		},
-		{
-			name:    "has type",
-			in:      reflect.StructField{Name: "ID", Tag: `kok:",type:string"`},
-			wantOut: KokField{Name: "query.ID", Type: "string"},
-		},
-		{
-			name:    "has description",
-			in:      reflect.StructField{Name: "ID", Tag: `kok:",descr:string"`},
-			wantOut: KokField{Name: "query.ID", Description: "string"},
-		},
-	}
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			out := GetKokField(c.in)
-			if !reflect.DeepEqual(out, c.wantOut) {
-				t.Fatalf("Out: got (%#v), want (%#v)", out, c.wantOut)
-			}
-		})
-	}
-}
-
 func TestBasicParam_Decode(t *testing.T) {
 	type value struct {
 		Int       int
@@ -873,6 +530,53 @@ func TestStructParams_Encode(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			out := p.Encode(c.in)
+			if !reflect.DeepEqual(out, c.wantOut) {
+				t.Fatalf("Out: got (%#v), want (%#v)", out, c.wantOut)
+			}
+		})
+	}
+}
+
+func TestGetKokField(t *testing.T) {
+	cases := []struct {
+		name    string
+		in      reflect.StructField
+		wantOut KokField
+	}{
+		{
+			name:    "in path",
+			in:      reflect.StructField{Name: "ID", Tag: `kok:"path.id"`},
+			wantOut: KokField{Name: "path.id", Required: true},
+		},
+		{
+			name:    "in query",
+			in:      reflect.StructField{Name: "ID", Tag: `kok:"query.id"`},
+			wantOut: KokField{Name: "query.id"},
+		},
+		{
+			name:    "omitted",
+			in:      reflect.StructField{Name: "ID", Tag: `kok:"-"`},
+			wantOut: KokField{Omitted: true},
+		},
+		{
+			name:    "required",
+			in:      reflect.StructField{Name: "ID", Tag: `kok:",required"`},
+			wantOut: KokField{Name: "query.ID", Required: true},
+		},
+		{
+			name:    "has type",
+			in:      reflect.StructField{Name: "ID", Tag: `kok:",type:string"`},
+			wantOut: KokField{Name: "query.ID", Type: "string"},
+		},
+		{
+			name:    "has description",
+			in:      reflect.StructField{Name: "ID", Tag: `kok:",descr:string"`},
+			wantOut: KokField{Name: "query.ID", Description: "string"},
+		},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			out := GetKokField(c.in)
 			if !reflect.DeepEqual(out, c.wantOut) {
 				t.Fatalf("Out: got (%#v), want (%#v)", out, c.wantOut)
 			}
