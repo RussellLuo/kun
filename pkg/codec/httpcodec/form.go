@@ -115,7 +115,7 @@ func decodeMultipartFormToStruct(form *multipart.Form, out interface{}) error {
 		default:
 			// Decode normal form values.
 			values := form.Value[fieldName]
-			if err := DecodeSliceToBasic(values, fieldValuePtr.Interface()); err != nil {
+			if err := defaultBasicParam.Decode(values, fieldValuePtr.Interface()); err != nil {
 				return err
 			}
 		}
@@ -167,7 +167,7 @@ func encodeStructToMultipartForm(in interface{}, writer *multipart.Writer) error
 			}
 		default:
 			// Write normal form values.
-			for _, value := range EncodeBasicToSlice(fieldValue.Interface()) {
+			for _, value := range defaultBasicParam.Encode(fieldValue.Interface()) {
 				if err := writer.WriteField(fieldName, value); err != nil {
 					return err
 				}

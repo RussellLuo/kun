@@ -23,7 +23,7 @@ type FailureResponse struct {
 type JSON struct{}
 
 func (j JSON) DecodeRequestParam(name string, values []string, out interface{}) error {
-	if err := DecodeSliceToBasic(values, out); err != nil {
+	if err := defaultBasicParam.Decode(values, out); err != nil {
 		if err == ErrUnsupportedType {
 			panic(fmt.Errorf("DecodeRequestParam not implemented for %q (of type %T)", name, out))
 		}
@@ -67,7 +67,7 @@ func (j JSON) EncodeFailureResponse(w http.ResponseWriter, err error) error {
 }
 
 func (j JSON) EncodeRequestParam(name string, value interface{}) []string {
-	return EncodeBasicToSlice(value)
+	return defaultBasicParam.Encode(value)
 }
 
 func (j JSON) EncodeRequestParams(name string, value interface{}) map[string][]string {
