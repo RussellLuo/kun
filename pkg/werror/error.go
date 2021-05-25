@@ -36,18 +36,6 @@ func wrap(err error, msg string) *Error {
 	}
 }
 
-// DEPRECATED
-func (e *Error) SetError(err error) *Error {
-	e.Message = err.Error()
-	return e
-}
-
-// DEPRECATED
-func (e *Error) SetErrorf(format string, a ...interface{}) *Error {
-	e.Message = fmt.Sprintf(format, a...)
-	return e
-}
-
 // Error implements the error interface.
 func (e *Error) Error() string { return e.Message }
 
