@@ -51,7 +51,7 @@ func (mock *{{$mockInterfaceName}}) {{.Name}}({{joinParams .Params "$Name $Type"
 	if mock.{{.Name}}Func == nil {
 		panic("{{$mockInterfaceName}}.{{.Name}}Func: not implemented")
 	}
-	return mock.{{.Name}}Func({{joinParams .Params "$Name" ", "}})
+	return mock.{{.Name}}Func({{joinParams .Params "$CallName" ", "}})
 }
 {{- end}}
 
@@ -249,7 +249,7 @@ func (g *Generator) Generate(result *reflector.Result, testFilename string) ([]b
 				var results []string
 
 				for _, p := range params {
-					r := strings.NewReplacer("$Name", p.Name, "$Type", p.Type)
+					r := strings.NewReplacer("$Name", p.Name, "$CallName", p.CallName(), "$Type", p.TypeString())
 					results = append(results, r.Replace(format))
 				}
 				return strings.Join(results, sep)
