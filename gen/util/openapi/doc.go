@@ -176,7 +176,7 @@ func manipulateByComments(op *Operation, params map[string]*Param, results map[s
 			}
 
 			// Simple format: <field>
-			if reSingleVarName.MatchString(value) {
+			if value == OptionNoBody || reSingleVarName.MatchString(value) {
 				if err := setBodyField(value); err != nil {
 					return err
 				}
