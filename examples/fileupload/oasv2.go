@@ -34,12 +34,12 @@ paths:
     post:
       description: "Upload uploads a file."
       operationId: "Upload"
-      parameters: 
+      parameters:
         - name: body
           in: body
           schema:
-            $ref: "#/definitions/UploadRequestBody" 
-      %s  
+            $ref: "#/definitions/UploadRequestBody"
+      %s
 `
 )
 

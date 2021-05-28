@@ -33,12 +33,12 @@ paths:
     post:
       description: "SayHello says hello to the given name."
       operationId: "SayHello"
-      parameters: 
+      parameters:
         - name: body
           in: body
           schema:
-            $ref: "#/definitions/SayHelloRequestBody" 
-      %s  
+            $ref: "#/definitions/SayHelloRequestBody"
+      %s
 `
 )
 

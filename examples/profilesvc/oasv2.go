@@ -43,7 +43,7 @@ paths:
           in: path
           required: true
           type: string
-          description: ""  
+          description: ""
       %s
     get:
       description: ""
@@ -58,8 +58,8 @@ paths:
           in: path
           required: true
           type: string
-          description: ""  
-      %s 
+          description: ""
+      %s
   /profiles/{id}:
     delete:
       description: ""
@@ -69,7 +69,7 @@ paths:
           in: path
           required: true
           type: string
-          description: ""  
+          description: ""
       %s
     get:
       description: ""
@@ -79,7 +79,7 @@ paths:
           in: path
           required: true
           type: string
-          description: ""  
+          description: ""
       %s
     patch:
       description: ""
@@ -89,11 +89,11 @@ paths:
           in: path
           required: true
           type: string
-          description: "" 
+          description: ""
         - name: body
           in: body
           schema:
-            $ref: "#/definitions/PatchProfileRequestBody" 
+            $ref: "#/definitions/PatchProfileRequestBody"
       %s
     put:
       description: ""
@@ -103,12 +103,12 @@ paths:
           in: path
           required: true
           type: string
-          description: "" 
+          description: ""
         - name: body
           in: body
           schema:
-            $ref: "#/definitions/PutProfileRequestBody" 
-      %s 
+            $ref: "#/definitions/PutProfileRequestBody"
+      %s
   /profiles/{id}/addresses:
     get:
       description: ""
@@ -118,7 +118,7 @@ paths:
           in: path
           required: true
           type: string
-          description: ""  
+          description: ""
       %s
     post:
       description: ""
@@ -128,22 +128,22 @@ paths:
           in: path
           required: true
           type: string
-          description: "" 
+          description: ""
         - name: body
           in: body
           schema:
-            $ref: "#/definitions/PostAddressRequestBody" 
-      %s 
+            $ref: "#/definitions/PostAddressRequestBody"
+      %s
   /profiles:
     post:
       description: ""
       operationId: "PostProfile"
-      parameters: 
+      parameters:
         - name: body
           in: body
           schema:
-            $ref: "#/definitions/PostProfileRequestBody" 
-      %s  
+            $ref: "#/definitions/PostProfileRequestBody"
+      %s
 `
 )
 

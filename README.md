@@ -132,13 +132,13 @@ kokgen [flags] source-file interface-name
 
     swagger: "2.0"
     info:
-      version: "1.0.0"
-      title: "Swagger Example"
-      description: ""
+      title: "No Title"
+      version: "0.0.0"
+      description: "Service is used for saying hello."
       license:
         name: "MIT"
     host: "example.com"
-    basePath: "/api"
+    basePath: "/"
     schemes:
       - "https"
     consumes:
@@ -149,7 +149,7 @@ kokgen [flags] source-file interface-name
     paths:
       /messages:
         post:
-          description: ""
+          description: "SayHello says hello to the given name."
           operationId: "SayHello"
           parameters:
             - name: body
@@ -320,7 +320,7 @@ See more examples [here](examples).
     + **field**: The name of the method argument whose value is mapped to the HTTP request body.
         - Optional: When omitted, a struct containing all the arguments, which are not located in **path**/**query**/**header**, will automatically be mapped to the HTTP request body.
         - The special name `-` can be used, to define that there is no HTTP request body. As a result, every argument, which is not located in **path**/**query**/**header**, will automatically be mapped to one or more query parameters.
-    + **argName**: The name of the method argument.
+    + **argName**: The name of the method argument to be manipulated.
     + **name**: The name of the corresponding request parameter.
         - Optional: Defaults to **argName** if not specified.
     + **descr**: The OAS description of the corresponding request parameter.
