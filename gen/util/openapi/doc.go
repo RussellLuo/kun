@@ -199,6 +199,10 @@ func manipulateByComments(op *Operation, params map[string]*Param, results map[s
 					return nil, "", err
 				}
 
+				if param.In != InBody {
+					return nil, "", fmt.Errorf(`argument %q is not located in body, but in %s`, argName, param.In)
+				}
+
 				return param, value, nil
 			}
 
