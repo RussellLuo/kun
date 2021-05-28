@@ -76,6 +76,14 @@ func (p *Param) SetName(name string) {
 	}
 }
 
+func (p *Param) SetAlias(alias string) {
+	p.Alias = alias
+}
+
+func (p *Param) SetDescription(descr string) {
+	p.Description = descr
+}
+
 // Set sets properties according to the values hold by o.
 func (p *Param) Set(o *Param) {
 	/*if !isPrimitiveType(p.Type) && o.In != InBody {

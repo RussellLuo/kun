@@ -18,6 +18,8 @@ var (
 	reKok = regexp.MustCompile(`@kok\((\w+)\):\s*(.+)$`)
 
 	rePathVarName = regexp.MustCompile(`{(\w+)}`)
+
+	reSingleVarName = regexp.MustCompile(`^\w+$`)
 )
 
 func FromDoc(result *reflector.Result, doc *reflector.InterfaceDoc) (*Specification, error) {
@@ -107,10 +109,18 @@ func manipulateByComments(op *Operation, params map[string]*Param, results map[s
 		params:     params,
 	}
 
-	setParamByAnnotation := func(a *annotation) error {
-		param, ok := params[a.ArgName]
+	getParam := func(argName string) (*Param, error) {
+		p, ok := params[argName]
 		if !ok {
-			return fmt.Errorf("no param `%s` declared in the method %s", a.ArgName, op.Name)
+			return nil, fmt.Errorf("no param `%s` declared in the method %s", argName, op.Name)
+		}
+		return p, nil
+	}
+
+	setParamByAnnotation := func(a *annotation) error {
+		param, err := getParam(a.ArgName)
+		if err != nil {
+			return err
 		}
 
 		if !param.inUse {
@@ -157,10 +167,69 @@ func manipulateByComments(op *Operation, params map[string]*Param, results map[s
 			}
 
 		case "body":
-			if _, ok := params[value]; value != OptionNoBody && !ok {
-				return fmt.Errorf("no param `%s` declared in the method %s", value, op.Name)
+			setBodyField := func(value string) error {
+				if _, ok := params[value]; value != OptionNoBody && !ok {
+					return fmt.Errorf("no param `%s` declared in the method %s", value, op.Name)
+				}
+				op.Request.BodyField = value
+				return nil
 			}
-			op.Request.BodyField = value
+
+			// Simple format: <field>
+			if reSingleVarName.MatchString(value) {
+				if err := setBodyField(value); err != nil {
+					return err
+				}
+				continue
+			}
+
+			// Complicated format:
+			//
+			// body:<field>,name:<argName>=<NAME>,descr:<argName>=<DESCR>
+
+			getParamAndValue := func(v string) (*Param, string, error) {
+				s := strings.SplitN(v, "=", 2)
+				if len(s) != 2 {
+					return nil, "", fmt.Errorf(`%q does not match the expected format: "<argName>=<value>"`, v)
+				}
+				argName, value := strings.TrimSpace(s[0]), strings.TrimSpace(s[1])
+
+				param, err := getParam(argName)
+				if err != nil {
+					return nil, "", err
+				}
+
+				return param, value, nil
+			}
+
+			for _, subValue := range strings.Split(value, ",") {
+				parts := strings.SplitN(subValue, ":", 2)
+				if len(parts) != 2 {
+					return fmt.Errorf(`%q does not match the expected format: "<key>:<value>"`, subValue)
+				}
+				k, v := parts[0], parts[1]
+
+				switch k {
+				case "body":
+					if err := setBodyField(v); err != nil {
+						return err
+					}
+				case "name":
+					param, alias, err := getParamAndValue(v)
+					if err != nil {
+						return err
+					}
+					param.SetAlias(alias)
+				case "descr":
+					param, descr, err := getParamAndValue(v)
+					if err != nil {
+						return err
+					}
+					param.SetDescription(descr)
+				default:
+					return fmt.Errorf("invalid tag part: %s", subValue)
+				}
+			}
 
 		case "success":
 			op.SuccessResponse = buildSuccessResponse(value, results, op.Name)

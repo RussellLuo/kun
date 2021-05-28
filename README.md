@@ -231,6 +231,8 @@ See more examples [here](examples).
             + Note that parameters located in **request** have no relationship with OAS.
     + **name**: The name of the corresponding request parameter.
         - Optional: Defaults to **argName** if not specified.
+    + **descr**: The OAS description of the corresponding request parameter.
+        - Optional: Defaults to `""` if not specified.
     + **required**: Determines whether this parameter is mandatory.
         - Optional: Defaults to `false`, if not specified.
         - If the parameter location is **path**, this property will be set to `true` internally, whether it's specified or not.
@@ -314,10 +316,15 @@ See more examples [here](examples).
   <summary> Define the HTTP request body </summary>
 
 - Key: `@kok(body)`
-- Value: `<field>`
+- Value: `<field>` or `body:<field>,name:<argName>=<name>,descr:<argName>=<descr>`
     + **field**: The name of the method argument whose value is mapped to the HTTP request body.
         - Optional: When omitted, a struct containing all the arguments, which are not located in **path**/**query**/**header**, will automatically be mapped to the HTTP request body.
         - The special name `-` can be used, to define that there is no HTTP request body. As a result, every argument, which is not located in **path**/**query**/**header**, will automatically be mapped to one or more query parameters.
+    + **argName**: The name of the method argument.
+    + **name**: The name of the corresponding request parameter.
+        - Optional: Defaults to **argName** if not specified.
+    + **descr**: The OAS description of the corresponding request parameter.
+        - Optional: Defaults to `""` if not specified.
 - Example:
     + Omitted:
 
