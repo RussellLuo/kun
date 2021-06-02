@@ -24,49 +24,44 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"github.com/go-chi/chi"
+
 	{{- if $enableTracing}}
 	"github.com/RussellLuo/kok/pkg/trace/xnet"
 	{{- end}}
+	"github.com/go-chi/chi"
 	kithttp "github.com/go-kit/kit/transport/http"
-	"github.com/go-kit/kit/endpoint"
-	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
-	"github.com/RussellLuo/kok/pkg/oasv2"
 
 	{{- range .Result.Imports}}
 	"{{.}}"
 	{{- end}}
 )
 
-func NewHTTPRouter(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}, codecs httpcodec.Codecs) chi.Router {
-	return NewHTTPRouterWithOAS(svc, codecs, nil)
-}
-
-func NewHTTPRouterWithOAS(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}, codecs httpcodec.Codecs, schema oasv2.Schema) chi.Router {
+func NewHTTPRouter(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}, codecs httpcodec.Codecs, opts ...httpoption.Option) chi.Router {
 	r := chi.NewRouter()
+	options := httpoption.NewOptions(opts...)
 
 	{{if $enableTracing -}}
 	contextor := xnet.NewContextor()
 	r.Method("PUT", "/trace", xnet.HTTPHandler(contextor))
 	{{- end}}
 
-	if schema != nil {
-		r.Method("GET", "{{.Spec.Metadata.DocsPath}}", oasv2.Handler(OASv2APIDoc, schema))
-	}
+	r.Method("GET", "{{.Spec.Metadata.DocsPath}}", oasv2.Handler(OASv2APIDoc, options.ResponseSchema()))
 
 	var codec httpcodec.Codec
-	var options []kithttp.ServerOption
+	var validator httpoption.Validator
+	var kitOptions []kithttp.ServerOption
 
 	{{- range .Spec.Operations}}
 
 	codec = codecs.EncodeDecoder("{{.Name}}")
+	validator = options.RequestValidator("{{.Name}}")
 	r.Method(
 		"{{.Method}}", "{{.Pattern}}",
 		kithttp.NewServer(
 			MakeEndpointOf{{.Name}}(svc),
-			decode{{.Name}}Request(codec),
+			decode{{.Name}}Request(codec, validator),
 			httpcodec.MakeResponseEncoder(codec, {{getStatusCode .SuccessResponse.StatusCode .Name}}),
-			append(options,
+			append(kitOptions,
 				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
 				{{- if $enableTracing}}
 				kithttp.ServerBefore(contextor.HTTPToContext("{{$pkgName}}", "{{.Name}}")),
@@ -79,6 +74,10 @@ func NewHTTPRouterWithOAS(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}
 	return r
 }
 
+func NewHTTPRouterWithOAS(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}, codecs httpcodec.Codecs, schema oasv2.Schema) chi.Router {
+	return NewHTTPRouter(svc, codecs, httpoption.ResponseSchema(schema))
+}
+
 {{- range .Spec.Operations}}
 
 {{- $nonCtxParams := nonCtxParams .Request.Params}}
@@ -86,7 +85,7 @@ func NewHTTPRouterWithOAS(svc {{.Result.SrcPkgPrefix}}{{.Result.Interface.Name}}
 {{- $hasBodyParams := hasBodyParams $nonCtxParams}}
 {{- $bodyField := getBodyField .Request.BodyField}}
 
-func decode{{.Name}}Request(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
+func decode{{.Name}}Request(codec httpcodec.Codec, validator httpoption.Validator) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		{{- if $nonCtxParams}}
 		var _req {{.Name}}Request
@@ -135,6 +134,10 @@ func decode{{.Name}}Request(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 		{{end -}} {{/* range $nonBodyParamsGroupByName */}}
 
 		{{- if $nonCtxParams}}
+
+		if err := validator.Validate({{addAmpersand "_req"}}); err != nil {
+			return nil, err
+		}
 
 		return {{addAmpersand "_req"}}, nil
 		{{- else -}}

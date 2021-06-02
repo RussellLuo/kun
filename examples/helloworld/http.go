@@ -8,33 +8,31 @@ import (
 	"net/http"
 
 	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
+	"github.com/RussellLuo/kok/pkg/httpoption"
 	"github.com/RussellLuo/kok/pkg/oasv2"
 	"github.com/go-chi/chi"
 	kithttp "github.com/go-kit/kit/transport/http"
 )
 
-func NewHTTPRouter(svc Service, codecs httpcodec.Codecs) chi.Router {
-	return NewHTTPRouterWithOAS(svc, codecs, nil)
-}
-
-func NewHTTPRouterWithOAS(svc Service, codecs httpcodec.Codecs, schema oasv2.Schema) chi.Router {
+func NewHTTPRouter(svc Service, codecs httpcodec.Codecs, opts ...httpoption.Option) chi.Router {
 	r := chi.NewRouter()
+	options := httpoption.NewOptions(opts...)
 
-	if schema != nil {
-		r.Method("GET", "/api", oasv2.Handler(OASv2APIDoc, schema))
-	}
+	r.Method("GET", "/api", oasv2.Handler(OASv2APIDoc, options.ResponseSchema()))
 
 	var codec httpcodec.Codec
-	var options []kithttp.ServerOption
+	var validator httpoption.Validator
+	var kitOptions []kithttp.ServerOption
 
 	codec = codecs.EncodeDecoder("SayHello")
+	validator = options.RequestValidator("SayHello")
 	r.Method(
 		"POST", "/messages",
 		kithttp.NewServer(
 			MakeEndpointOfSayHello(svc),
-			decodeSayHelloRequest(codec),
+			decodeSayHelloRequest(codec, validator),
 			httpcodec.MakeResponseEncoder(codec, 200),
-			append(options,
+			append(kitOptions,
 				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
 			)...,
 		),
@@ -43,11 +41,19 @@ func NewHTTPRouterWithOAS(svc Service, codecs httpcodec.Codecs, schema oasv2.Sch
 	return r
 }
 
-func decodeSayHelloRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
+func NewHTTPRouterWithOAS(svc Service, codecs httpcodec.Codecs, schema oasv2.Schema) chi.Router {
+	return NewHTTPRouter(svc, codecs, httpoption.ResponseSchema(schema))
+}
+
+func decodeSayHelloRequest(codec httpcodec.Codec, validator httpoption.Validator) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req SayHelloRequest
 
 		if err := codec.DecodeRequestBody(r, &_req); err != nil {
+			return nil, err
+		}
+
+		if err := validator.Validate(&_req); err != nil {
 			return nil, err
 		}
 

@@ -11,7 +11,7 @@ import (
 
 	"github.com/RussellLuo/kok/examples/helloworld"
 	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
-	"github.com/RussellLuo/kok/pkg/oasv2"
+	"github.com/RussellLuo/kok/pkg/httpoption"
 )
 
 func main() {
@@ -19,7 +19,9 @@ func main() {
 	flag.Parse()
 
 	svc := &helloworld.Greeter{}
-	r := helloworld.NewHTTPRouterWithOAS(svc, httpcodec.NewDefaultCodecs(nil), &oasv2.ResponseSchema{})
+	r := helloworld.NewHTTPRouter(svc,
+		httpcodec.NewDefaultCodecs(nil),
+		httpoption.RequestValidators(helloworld.RequestValidators...))
 
 	errs := make(chan error, 2)
 	go func() {
