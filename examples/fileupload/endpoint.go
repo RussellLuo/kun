@@ -7,11 +7,28 @@ import (
 	"context"
 
 	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
+	"github.com/RussellLuo/kok/pkg/httpoption"
+	"github.com/RussellLuo/kok/pkg/werror"
+	"github.com/RussellLuo/kok/pkg/werror/gcode"
+	"github.com/RussellLuo/validating/v2"
 	"github.com/go-kit/kit/endpoint"
 )
 
 type UploadRequest struct {
 	File *httpcodec.FormFile `json:"file"`
+}
+
+// ValidateUploadRequest creates a validator for UploadRequest.
+func ValidateUploadRequest(newSchema func(*UploadRequest) validating.Schema) httpoption.Validator {
+	return httpoption.FuncValidator(func(value interface{}) error {
+		req := value.(*UploadRequest)
+		schema := newSchema(req)
+		errs := validating.Validate(schema)
+		if len(errs) == 0 {
+			return nil
+		}
+		return werror.Wrap(gcode.ErrInvalidArgument, errs)
+	})
 }
 
 type UploadResponse struct {

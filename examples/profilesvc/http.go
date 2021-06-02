@@ -8,137 +8,143 @@ import (
 	"net/http"
 
 	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
+	"github.com/RussellLuo/kok/pkg/httpoption"
 	"github.com/RussellLuo/kok/pkg/oasv2"
 	"github.com/go-chi/chi"
 	kithttp "github.com/go-kit/kit/transport/http"
 )
 
-func NewHTTPRouter(svc Service, codecs httpcodec.Codecs) chi.Router {
-	return NewHTTPRouterWithOAS(svc, codecs, nil)
-}
-
-func NewHTTPRouterWithOAS(svc Service, codecs httpcodec.Codecs, schema oasv2.Schema) chi.Router {
+func NewHTTPRouter(svc Service, codecs httpcodec.Codecs, opts ...httpoption.Option) chi.Router {
 	r := chi.NewRouter()
+	options := httpoption.NewOptions(opts...)
 
-	if schema != nil {
-		r.Method("GET", "/api", oasv2.Handler(OASv2APIDoc, schema))
-	}
+	r.Method("GET", "/api", oasv2.Handler(OASv2APIDoc, options.ResponseSchema()))
 
 	var codec httpcodec.Codec
-	var options []kithttp.ServerOption
+	var validator httpoption.Validator
+	var kitOptions []kithttp.ServerOption
 
 	codec = codecs.EncodeDecoder("DeleteAddress")
+	validator = options.RequestValidator("DeleteAddress")
 	r.Method(
 		"DELETE", "/profiles/{id}/addresses/{addressID}",
 		kithttp.NewServer(
 			MakeEndpointOfDeleteAddress(svc),
-			decodeDeleteAddressRequest(codec),
+			decodeDeleteAddressRequest(codec, validator),
 			httpcodec.MakeResponseEncoder(codec, 200),
-			append(options,
+			append(kitOptions,
 				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
 			)...,
 		),
 	)
 
 	codec = codecs.EncodeDecoder("DeleteProfile")
+	validator = options.RequestValidator("DeleteProfile")
 	r.Method(
 		"DELETE", "/profiles/{id}",
 		kithttp.NewServer(
 			MakeEndpointOfDeleteProfile(svc),
-			decodeDeleteProfileRequest(codec),
+			decodeDeleteProfileRequest(codec, validator),
 			httpcodec.MakeResponseEncoder(codec, 200),
-			append(options,
+			append(kitOptions,
 				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
 			)...,
 		),
 	)
 
 	codec = codecs.EncodeDecoder("GetAddress")
+	validator = options.RequestValidator("GetAddress")
 	r.Method(
 		"GET", "/profiles/{id}/addresses/{addressID}",
 		kithttp.NewServer(
 			MakeEndpointOfGetAddress(svc),
-			decodeGetAddressRequest(codec),
+			decodeGetAddressRequest(codec, validator),
 			httpcodec.MakeResponseEncoder(codec, 200),
-			append(options,
+			append(kitOptions,
 				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
 			)...,
 		),
 	)
 
 	codec = codecs.EncodeDecoder("GetAddresses")
+	validator = options.RequestValidator("GetAddresses")
 	r.Method(
 		"GET", "/profiles/{id}/addresses",
 		kithttp.NewServer(
 			MakeEndpointOfGetAddresses(svc),
-			decodeGetAddressesRequest(codec),
+			decodeGetAddressesRequest(codec, validator),
 			httpcodec.MakeResponseEncoder(codec, 200),
-			append(options,
+			append(kitOptions,
 				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
 			)...,
 		),
 	)
 
 	codec = codecs.EncodeDecoder("GetProfile")
+	validator = options.RequestValidator("GetProfile")
 	r.Method(
 		"GET", "/profiles/{id}",
 		kithttp.NewServer(
 			MakeEndpointOfGetProfile(svc),
-			decodeGetProfileRequest(codec),
+			decodeGetProfileRequest(codec, validator),
 			httpcodec.MakeResponseEncoder(codec, 200),
-			append(options,
+			append(kitOptions,
 				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
 			)...,
 		),
 	)
 
 	codec = codecs.EncodeDecoder("PatchProfile")
+	validator = options.RequestValidator("PatchProfile")
 	r.Method(
 		"PATCH", "/profiles/{id}",
 		kithttp.NewServer(
 			MakeEndpointOfPatchProfile(svc),
-			decodePatchProfileRequest(codec),
+			decodePatchProfileRequest(codec, validator),
 			httpcodec.MakeResponseEncoder(codec, 200),
-			append(options,
+			append(kitOptions,
 				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
 			)...,
 		),
 	)
 
 	codec = codecs.EncodeDecoder("PostAddress")
+	validator = options.RequestValidator("PostAddress")
 	r.Method(
 		"POST", "/profiles/{id}/addresses",
 		kithttp.NewServer(
 			MakeEndpointOfPostAddress(svc),
-			decodePostAddressRequest(codec),
+			decodePostAddressRequest(codec, validator),
 			httpcodec.MakeResponseEncoder(codec, 200),
-			append(options,
+			append(kitOptions,
 				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
 			)...,
 		),
 	)
 
 	codec = codecs.EncodeDecoder("PostProfile")
+	validator = options.RequestValidator("PostProfile")
 	r.Method(
 		"POST", "/profiles",
 		kithttp.NewServer(
 			MakeEndpointOfPostProfile(svc),
-			decodePostProfileRequest(codec),
+			decodePostProfileRequest(codec, validator),
 			httpcodec.MakeResponseEncoder(codec, 200),
-			append(options,
+			append(kitOptions,
 				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
 			)...,
 		),
 	)
 
 	codec = codecs.EncodeDecoder("PutProfile")
+	validator = options.RequestValidator("PutProfile")
 	r.Method(
 		"PUT", "/profiles/{id}",
 		kithttp.NewServer(
 			MakeEndpointOfPutProfile(svc),
-			decodePutProfileRequest(codec),
+			decodePutProfileRequest(codec, validator),
 			httpcodec.MakeResponseEncoder(codec, 200),
-			append(options,
+			append(kitOptions,
 				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
 			)...,
 		),
@@ -147,7 +153,11 @@ func NewHTTPRouterWithOAS(svc Service, codecs httpcodec.Codecs, schema oasv2.Sch
 	return r
 }
 
-func decodeDeleteAddressRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
+func NewHTTPRouterWithOAS(svc Service, codecs httpcodec.Codecs, schema oasv2.Schema) chi.Router {
+	return NewHTTPRouter(svc, codecs, httpoption.ResponseSchema(schema))
+}
+
+func decodeDeleteAddressRequest(codec httpcodec.Codec, validator httpoption.Validator) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req DeleteAddressRequest
 
@@ -161,11 +171,15 @@ func decodeDeleteAddressRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc
 			return nil, err
 		}
 
+		if err := validator.Validate(&_req); err != nil {
+			return nil, err
+		}
+
 		return &_req, nil
 	}
 }
 
-func decodeDeleteProfileRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
+func decodeDeleteProfileRequest(codec httpcodec.Codec, validator httpoption.Validator) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req DeleteProfileRequest
 
@@ -174,11 +188,15 @@ func decodeDeleteProfileRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc
 			return nil, err
 		}
 
+		if err := validator.Validate(&_req); err != nil {
+			return nil, err
+		}
+
 		return &_req, nil
 	}
 }
 
-func decodeGetAddressRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
+func decodeGetAddressRequest(codec httpcodec.Codec, validator httpoption.Validator) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req GetAddressRequest
 
@@ -192,11 +210,15 @@ func decodeGetAddressRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 			return nil, err
 		}
 
+		if err := validator.Validate(&_req); err != nil {
+			return nil, err
+		}
+
 		return &_req, nil
 	}
 }
 
-func decodeGetAddressesRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
+func decodeGetAddressesRequest(codec httpcodec.Codec, validator httpoption.Validator) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req GetAddressesRequest
 
@@ -205,11 +227,15 @@ func decodeGetAddressesRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc 
 			return nil, err
 		}
 
+		if err := validator.Validate(&_req); err != nil {
+			return nil, err
+		}
+
 		return &_req, nil
 	}
 }
 
-func decodeGetProfileRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
+func decodeGetProfileRequest(codec httpcodec.Codec, validator httpoption.Validator) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req GetProfileRequest
 
@@ -218,11 +244,15 @@ func decodeGetProfileRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 			return nil, err
 		}
 
+		if err := validator.Validate(&_req); err != nil {
+			return nil, err
+		}
+
 		return &_req, nil
 	}
 }
 
-func decodePatchProfileRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
+func decodePatchProfileRequest(codec httpcodec.Codec, validator httpoption.Validator) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req PatchProfileRequest
 
@@ -235,11 +265,15 @@ func decodePatchProfileRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc 
 			return nil, err
 		}
 
+		if err := validator.Validate(&_req); err != nil {
+			return nil, err
+		}
+
 		return &_req, nil
 	}
 }
 
-func decodePostAddressRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
+func decodePostAddressRequest(codec httpcodec.Codec, validator httpoption.Validator) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req PostAddressRequest
 
@@ -252,15 +286,7 @@ func decodePostAddressRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 			return nil, err
 		}
 
-		return &_req, nil
-	}
-}
-
-func decodePostProfileRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
-	return func(_ context.Context, r *http.Request) (interface{}, error) {
-		var _req PostProfileRequest
-
-		if err := codec.DecodeRequestBody(r, &_req); err != nil {
+		if err := validator.Validate(&_req); err != nil {
 			return nil, err
 		}
 
@@ -268,7 +294,23 @@ func decodePostProfileRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 	}
 }
 
-func decodePutProfileRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
+func decodePostProfileRequest(codec httpcodec.Codec, validator httpoption.Validator) kithttp.DecodeRequestFunc {
+	return func(_ context.Context, r *http.Request) (interface{}, error) {
+		var _req PostProfileRequest
+
+		if err := codec.DecodeRequestBody(r, &_req); err != nil {
+			return nil, err
+		}
+
+		if err := validator.Validate(&_req); err != nil {
+			return nil, err
+		}
+
+		return &_req, nil
+	}
+}
+
+func decodePutProfileRequest(codec httpcodec.Codec, validator httpoption.Validator) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req PutProfileRequest
 
@@ -278,6 +320,10 @@ func decodePutProfileRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 
 		id := []string{chi.URLParam(r, "id")}
 		if err := codec.DecodeRequestParam("id", id, &_req.Id); err != nil {
+			return nil, err
+		}
+
+		if err := validator.Validate(&_req); err != nil {
 			return nil, err
 		}
 

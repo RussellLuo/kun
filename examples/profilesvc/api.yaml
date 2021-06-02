@@ -29,7 +29,7 @@ paths:
           in: path
           required: true
           type: string
-          description: ""  
+          description: ""
       
       produces:
         - application/json; charset=utf-8
@@ -56,7 +56,7 @@ paths:
           in: path
           required: true
           type: string
-          description: ""  
+          description: ""
       
       produces:
         - application/json; charset=utf-8
@@ -69,7 +69,7 @@ paths:
           description: ""
           schema:
             $ref: "#/definitions/GetAddressResponseError404"
- 
+
   /profiles/{id}:
     delete:
       description: ""
@@ -79,7 +79,7 @@ paths:
           in: path
           required: true
           type: string
-          description: ""  
+          description: ""
       
       produces:
         - application/json; charset=utf-8
@@ -101,7 +101,7 @@ paths:
           in: path
           required: true
           type: string
-          description: ""  
+          description: ""
       
       produces:
         - application/json; charset=utf-8
@@ -123,11 +123,11 @@ paths:
           in: path
           required: true
           type: string
-          description: "" 
+          description: ""
         - name: body
           in: body
           schema:
-            $ref: "#/definitions/PatchProfileRequestBody" 
+            $ref: "#/definitions/PatchProfileRequestBody"
       
       produces:
         - application/json; charset=utf-8
@@ -153,11 +153,11 @@ paths:
           in: path
           required: true
           type: string
-          description: "" 
+          description: ""
         - name: body
           in: body
           schema:
-            $ref: "#/definitions/PutProfileRequestBody" 
+            $ref: "#/definitions/PutProfileRequestBody"
       
       produces:
         - application/json; charset=utf-8
@@ -170,7 +170,7 @@ paths:
           description: ""
           schema:
             $ref: "#/definitions/PutProfileResponseError400"
- 
+
   /profiles/{id}/addresses:
     get:
       description: ""
@@ -180,7 +180,7 @@ paths:
           in: path
           required: true
           type: string
-          description: ""  
+          description: ""
       
       produces:
         - application/json; charset=utf-8
@@ -202,11 +202,11 @@ paths:
           in: path
           required: true
           type: string
-          description: "" 
+          description: ""
         - name: body
           in: body
           schema:
-            $ref: "#/definitions/PostAddressRequestBody" 
+            $ref: "#/definitions/PostAddressRequestBody"
       
       produces:
         - application/json; charset=utf-8
@@ -223,16 +223,16 @@ paths:
           description: ""
           schema:
             $ref: "#/definitions/PostAddressResponseError404"
- 
+
   /profiles:
     post:
       description: ""
       operationId: "PostProfile"
-      parameters: 
+      parameters:
         - name: body
           in: body
           schema:
-            $ref: "#/definitions/PostProfileRequestBody" 
+            $ref: "#/definitions/PostProfileRequestBody"
       
       produces:
         - application/json; charset=utf-8
@@ -245,7 +245,7 @@ paths:
           description: ""
           schema:
             $ref: "#/definitions/PostProfileResponseError400"
-  
+
 
 definitions:
   Address:

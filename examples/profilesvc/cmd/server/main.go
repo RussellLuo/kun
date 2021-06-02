@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	"github.com/RussellLuo/kok/examples/profilesvc"
+	"github.com/RussellLuo/kok/pkg/httpoption"
 )
 
 func main() {
@@ -17,7 +18,9 @@ func main() {
 	flag.Parse()
 
 	svc := profilesvc.NewInmemService()
-	r := profilesvc.NewHTTPRouterWithOAS(svc, profilesvc.NewCodecs(), profilesvc.NewSchema())
+	r := profilesvc.NewHTTPRouter(svc,
+		profilesvc.NewCodecs(),
+		httpoption.ResponseSchema(profilesvc.NewSchema()))
 
 	errs := make(chan error, 2)
 	go func() {

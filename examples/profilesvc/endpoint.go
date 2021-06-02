@@ -6,12 +6,29 @@ package profilesvc
 import (
 	"context"
 
+	"github.com/RussellLuo/kok/pkg/httpoption"
+	"github.com/RussellLuo/kok/pkg/werror"
+	"github.com/RussellLuo/kok/pkg/werror/gcode"
+	"github.com/RussellLuo/validating/v2"
 	"github.com/go-kit/kit/endpoint"
 )
 
 type DeleteAddressRequest struct {
 	Id        string `json:"-"`
 	AddressID string `json:"-"`
+}
+
+// ValidateDeleteAddressRequest creates a validator for DeleteAddressRequest.
+func ValidateDeleteAddressRequest(newSchema func(*DeleteAddressRequest) validating.Schema) httpoption.Validator {
+	return httpoption.FuncValidator(func(value interface{}) error {
+		req := value.(*DeleteAddressRequest)
+		schema := newSchema(req)
+		errs := validating.Validate(schema)
+		if len(errs) == 0 {
+			return nil
+		}
+		return werror.Wrap(gcode.ErrInvalidArgument, errs)
+	})
 }
 
 type DeleteAddressResponse struct {
@@ -42,6 +59,19 @@ type DeleteProfileRequest struct {
 	Id string `json:"-"`
 }
 
+// ValidateDeleteProfileRequest creates a validator for DeleteProfileRequest.
+func ValidateDeleteProfileRequest(newSchema func(*DeleteProfileRequest) validating.Schema) httpoption.Validator {
+	return httpoption.FuncValidator(func(value interface{}) error {
+		req := value.(*DeleteProfileRequest)
+		schema := newSchema(req)
+		errs := validating.Validate(schema)
+		if len(errs) == 0 {
+			return nil
+		}
+		return werror.Wrap(gcode.ErrInvalidArgument, errs)
+	})
+}
+
 type DeleteProfileResponse struct {
 	Err error `json:"-"`
 }
@@ -68,6 +98,19 @@ func MakeEndpointOfDeleteProfile(s Service) endpoint.Endpoint {
 type GetAddressRequest struct {
 	Id        string `json:"-"`
 	AddressID string `json:"-"`
+}
+
+// ValidateGetAddressRequest creates a validator for GetAddressRequest.
+func ValidateGetAddressRequest(newSchema func(*GetAddressRequest) validating.Schema) httpoption.Validator {
+	return httpoption.FuncValidator(func(value interface{}) error {
+		req := value.(*GetAddressRequest)
+		schema := newSchema(req)
+		errs := validating.Validate(schema)
+		if len(errs) == 0 {
+			return nil
+		}
+		return werror.Wrap(gcode.ErrInvalidArgument, errs)
+	})
 }
 
 type GetAddressResponse struct {
@@ -100,6 +143,19 @@ type GetAddressesRequest struct {
 	Id string `json:"-"`
 }
 
+// ValidateGetAddressesRequest creates a validator for GetAddressesRequest.
+func ValidateGetAddressesRequest(newSchema func(*GetAddressesRequest) validating.Schema) httpoption.Validator {
+	return httpoption.FuncValidator(func(value interface{}) error {
+		req := value.(*GetAddressesRequest)
+		schema := newSchema(req)
+		errs := validating.Validate(schema)
+		if len(errs) == 0 {
+			return nil
+		}
+		return werror.Wrap(gcode.ErrInvalidArgument, errs)
+	})
+}
+
 type GetAddressesResponse struct {
 	Addresses []Address `json:"addresses"`
 	Err       error     `json:"-"`
@@ -127,6 +183,19 @@ func MakeEndpointOfGetAddresses(s Service) endpoint.Endpoint {
 
 type GetProfileRequest struct {
 	Id string `json:"-"`
+}
+
+// ValidateGetProfileRequest creates a validator for GetProfileRequest.
+func ValidateGetProfileRequest(newSchema func(*GetProfileRequest) validating.Schema) httpoption.Validator {
+	return httpoption.FuncValidator(func(value interface{}) error {
+		req := value.(*GetProfileRequest)
+		schema := newSchema(req)
+		errs := validating.Validate(schema)
+		if len(errs) == 0 {
+			return nil
+		}
+		return werror.Wrap(gcode.ErrInvalidArgument, errs)
+	})
 }
 
 type GetProfileResponse struct {
@@ -159,6 +228,19 @@ type PatchProfileRequest struct {
 	Profile Profile `json:"profile"`
 }
 
+// ValidatePatchProfileRequest creates a validator for PatchProfileRequest.
+func ValidatePatchProfileRequest(newSchema func(*PatchProfileRequest) validating.Schema) httpoption.Validator {
+	return httpoption.FuncValidator(func(value interface{}) error {
+		req := value.(*PatchProfileRequest)
+		schema := newSchema(req)
+		errs := validating.Validate(schema)
+		if len(errs) == 0 {
+			return nil
+		}
+		return werror.Wrap(gcode.ErrInvalidArgument, errs)
+	})
+}
+
 type PatchProfileResponse struct {
 	Err error `json:"-"`
 }
@@ -186,6 +268,19 @@ func MakeEndpointOfPatchProfile(s Service) endpoint.Endpoint {
 type PostAddressRequest struct {
 	Id      string  `json:"-"`
 	Address Address `json:"address"`
+}
+
+// ValidatePostAddressRequest creates a validator for PostAddressRequest.
+func ValidatePostAddressRequest(newSchema func(*PostAddressRequest) validating.Schema) httpoption.Validator {
+	return httpoption.FuncValidator(func(value interface{}) error {
+		req := value.(*PostAddressRequest)
+		schema := newSchema(req)
+		errs := validating.Validate(schema)
+		if len(errs) == 0 {
+			return nil
+		}
+		return werror.Wrap(gcode.ErrInvalidArgument, errs)
+	})
 }
 
 type PostAddressResponse struct {
@@ -216,6 +311,19 @@ type PostProfileRequest struct {
 	Profile Profile `json:"profile"`
 }
 
+// ValidatePostProfileRequest creates a validator for PostProfileRequest.
+func ValidatePostProfileRequest(newSchema func(*PostProfileRequest) validating.Schema) httpoption.Validator {
+	return httpoption.FuncValidator(func(value interface{}) error {
+		req := value.(*PostProfileRequest)
+		schema := newSchema(req)
+		errs := validating.Validate(schema)
+		if len(errs) == 0 {
+			return nil
+		}
+		return werror.Wrap(gcode.ErrInvalidArgument, errs)
+	})
+}
+
 type PostProfileResponse struct {
 	Err error `json:"-"`
 }
@@ -242,6 +350,19 @@ func MakeEndpointOfPostProfile(s Service) endpoint.Endpoint {
 type PutProfileRequest struct {
 	Id      string  `json:"-"`
 	Profile Profile `json:"profile"`
+}
+
+// ValidatePutProfileRequest creates a validator for PutProfileRequest.
+func ValidatePutProfileRequest(newSchema func(*PutProfileRequest) validating.Schema) httpoption.Validator {
+	return httpoption.FuncValidator(func(value interface{}) error {
+		req := value.(*PutProfileRequest)
+		schema := newSchema(req)
+		errs := validating.Validate(schema)
+		if len(errs) == 0 {
+			return nil
+		}
+		return werror.Wrap(gcode.ErrInvalidArgument, errs)
+	})
 }
 
 type PutProfileResponse struct {

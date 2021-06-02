@@ -11,7 +11,6 @@ import (
 
 	"github.com/RussellLuo/kok/examples/fileupload"
 	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
-	"github.com/RussellLuo/kok/pkg/oasv2"
 )
 
 func main() {
@@ -20,7 +19,7 @@ func main() {
 
 	svc := &fileupload.Uploader{}
 	codecs := httpcodec.NewDefaultCodecs(httpcodec.NewMultipartForm(0))
-	r := fileupload.NewHTTPRouterWithOAS(svc, codecs, &oasv2.ResponseSchema{})
+	r := fileupload.NewHTTPRouter(svc, codecs)
 
 	errs := make(chan error, 2)
 	go func() {
