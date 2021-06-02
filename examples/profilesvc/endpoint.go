@@ -7,8 +7,6 @@ import (
 	"context"
 
 	"github.com/RussellLuo/kok/pkg/httpoption"
-	"github.com/RussellLuo/kok/pkg/werror"
-	"github.com/RussellLuo/kok/pkg/werror/gcode"
 	"github.com/RussellLuo/validating/v2"
 	"github.com/go-kit/kit/endpoint"
 )
@@ -22,12 +20,7 @@ type DeleteAddressRequest struct {
 func ValidateDeleteAddressRequest(newSchema func(*DeleteAddressRequest) validating.Schema) httpoption.Validator {
 	return httpoption.FuncValidator(func(value interface{}) error {
 		req := value.(*DeleteAddressRequest)
-		schema := newSchema(req)
-		errs := validating.Validate(schema)
-		if len(errs) == 0 {
-			return nil
-		}
-		return werror.Wrap(gcode.ErrInvalidArgument, errs)
+		return httpoption.Validate(newSchema(req))
 	})
 }
 
@@ -63,12 +56,7 @@ type DeleteProfileRequest struct {
 func ValidateDeleteProfileRequest(newSchema func(*DeleteProfileRequest) validating.Schema) httpoption.Validator {
 	return httpoption.FuncValidator(func(value interface{}) error {
 		req := value.(*DeleteProfileRequest)
-		schema := newSchema(req)
-		errs := validating.Validate(schema)
-		if len(errs) == 0 {
-			return nil
-		}
-		return werror.Wrap(gcode.ErrInvalidArgument, errs)
+		return httpoption.Validate(newSchema(req))
 	})
 }
 
@@ -104,12 +92,7 @@ type GetAddressRequest struct {
 func ValidateGetAddressRequest(newSchema func(*GetAddressRequest) validating.Schema) httpoption.Validator {
 	return httpoption.FuncValidator(func(value interface{}) error {
 		req := value.(*GetAddressRequest)
-		schema := newSchema(req)
-		errs := validating.Validate(schema)
-		if len(errs) == 0 {
-			return nil
-		}
-		return werror.Wrap(gcode.ErrInvalidArgument, errs)
+		return httpoption.Validate(newSchema(req))
 	})
 }
 
@@ -147,12 +130,7 @@ type GetAddressesRequest struct {
 func ValidateGetAddressesRequest(newSchema func(*GetAddressesRequest) validating.Schema) httpoption.Validator {
 	return httpoption.FuncValidator(func(value interface{}) error {
 		req := value.(*GetAddressesRequest)
-		schema := newSchema(req)
-		errs := validating.Validate(schema)
-		if len(errs) == 0 {
-			return nil
-		}
-		return werror.Wrap(gcode.ErrInvalidArgument, errs)
+		return httpoption.Validate(newSchema(req))
 	})
 }
 
@@ -189,12 +167,7 @@ type GetProfileRequest struct {
 func ValidateGetProfileRequest(newSchema func(*GetProfileRequest) validating.Schema) httpoption.Validator {
 	return httpoption.FuncValidator(func(value interface{}) error {
 		req := value.(*GetProfileRequest)
-		schema := newSchema(req)
-		errs := validating.Validate(schema)
-		if len(errs) == 0 {
-			return nil
-		}
-		return werror.Wrap(gcode.ErrInvalidArgument, errs)
+		return httpoption.Validate(newSchema(req))
 	})
 }
 
@@ -232,12 +205,7 @@ type PatchProfileRequest struct {
 func ValidatePatchProfileRequest(newSchema func(*PatchProfileRequest) validating.Schema) httpoption.Validator {
 	return httpoption.FuncValidator(func(value interface{}) error {
 		req := value.(*PatchProfileRequest)
-		schema := newSchema(req)
-		errs := validating.Validate(schema)
-		if len(errs) == 0 {
-			return nil
-		}
-		return werror.Wrap(gcode.ErrInvalidArgument, errs)
+		return httpoption.Validate(newSchema(req))
 	})
 }
 
@@ -274,12 +242,7 @@ type PostAddressRequest struct {
 func ValidatePostAddressRequest(newSchema func(*PostAddressRequest) validating.Schema) httpoption.Validator {
 	return httpoption.FuncValidator(func(value interface{}) error {
 		req := value.(*PostAddressRequest)
-		schema := newSchema(req)
-		errs := validating.Validate(schema)
-		if len(errs) == 0 {
-			return nil
-		}
-		return werror.Wrap(gcode.ErrInvalidArgument, errs)
+		return httpoption.Validate(newSchema(req))
 	})
 }
 
@@ -315,12 +278,7 @@ type PostProfileRequest struct {
 func ValidatePostProfileRequest(newSchema func(*PostProfileRequest) validating.Schema) httpoption.Validator {
 	return httpoption.FuncValidator(func(value interface{}) error {
 		req := value.(*PostProfileRequest)
-		schema := newSchema(req)
-		errs := validating.Validate(schema)
-		if len(errs) == 0 {
-			return nil
-		}
-		return werror.Wrap(gcode.ErrInvalidArgument, errs)
+		return httpoption.Validate(newSchema(req))
 	})
 }
 
@@ -356,12 +314,7 @@ type PutProfileRequest struct {
 func ValidatePutProfileRequest(newSchema func(*PutProfileRequest) validating.Schema) httpoption.Validator {
 	return httpoption.FuncValidator(func(value interface{}) error {
 		req := value.(*PutProfileRequest)
-		schema := newSchema(req)
-		errs := validating.Validate(schema)
-		if len(errs) == 0 {
-			return nil
-		}
-		return werror.Wrap(gcode.ErrInvalidArgument, errs)
+		return httpoption.Validate(newSchema(req))
 	})
 }
 

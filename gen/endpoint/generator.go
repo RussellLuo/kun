@@ -17,7 +17,7 @@ var (
 package {{.Result.PkgName}}
 
 import (
-	"github.com/RussellLuo/valiadting/v2"
+	"github.com/RussellLuo/validating/v2"
 	"github.com/go-kit/kit/endpoint"
 
 	{{- range .Result.Imports}}
@@ -44,12 +44,7 @@ type {{.Name}}Request struct {
 func Validate{{.Name}}Request(newSchema func({{addAsterisks .Name}}Request) validating.Schema) httpoption.Validator {
 	return httpoption.FuncValidator(func(value interface{}) error {
 		req := value.({{addAsterisks .Name}}Request)
-		schema := newSchema(req)
-		errs := validating.Validate(schema)
-		if len(errs) == 0 {
-			return nil
-		}
-		return werror.Wrap(gcode.ErrInvalidArgument, errs)
+		return httpoption.Validate(newSchema(req))
 	})
 }
 {{- end}}

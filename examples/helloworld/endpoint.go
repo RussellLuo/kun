@@ -7,8 +7,6 @@ import (
 	"context"
 
 	"github.com/RussellLuo/kok/pkg/httpoption"
-	"github.com/RussellLuo/kok/pkg/werror"
-	"github.com/RussellLuo/kok/pkg/werror/gcode"
 	"github.com/RussellLuo/validating/v2"
 	"github.com/go-kit/kit/endpoint"
 )
@@ -21,12 +19,7 @@ type SayHelloRequest struct {
 func ValidateSayHelloRequest(newSchema func(*SayHelloRequest) validating.Schema) httpoption.Validator {
 	return httpoption.FuncValidator(func(value interface{}) error {
 		req := value.(*SayHelloRequest)
-		schema := newSchema(req)
-		errs := validating.Validate(schema)
-		if len(errs) == 0 {
-			return nil
-		}
-		return werror.Wrap(gcode.ErrInvalidArgument, errs)
+		return httpoption.Validate(newSchema(req))
 	})
 }
 
