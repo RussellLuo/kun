@@ -78,3 +78,21 @@ func (g *RequiredServiceGetter) MustGet(name string) interface{} {
 
 	return svc
 }
+
+type ChiRouter interface {
+	Router() chi.Router
+}
+
+func GetChiRouter(value interface{}) (chi.Router, error) {
+	r, ok := value.(ChiRouter)
+	if !ok {
+		return nil, fmt.Errorf("value %#v does not implement httpapp.ChiRouter", value)
+	}
+
+	result := r.Router()
+	if result == nil {
+		return nil, fmt.Errorf("method Router() of value %#v returns nil", value)
+	}
+
+	return result, nil
+}
