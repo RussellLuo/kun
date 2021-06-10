@@ -6,17 +6,19 @@ import (
 	"github.com/RussellLuo/appx"
 )
 
+type InitFunc func(appx.Context) error
+
 type InitWrapper struct {
 	instance appx.Initializer
 
-	afterInitFunc appx.InitFuncV2
+	afterInitFunc InitFunc
 }
 
 func New(instance appx.Initializer) *InitWrapper {
 	return &InitWrapper{instance: instance}
 }
 
-func (w *InitWrapper) AfterInitFunc(f appx.InitFuncV2) {
+func (w *InitWrapper) AfterInitFunc(f InitFunc) {
 	w.afterInitFunc = f
 }
 
