@@ -12,84 +12,97 @@ import (
 	"github.com/RussellLuo/kok/pkg/appx/httpapp"
 )
 
+type Hi struct {
+	router chi.Router
+}
+
+func (h *Hi) Router() chi.Router {
+	return h.router
+}
+
+func (h *Hi) Init(appx.Context) error {
+	h.router = chi.NewRouter()
+	h.router.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("Got a request for /hi")
+	})
+	return nil
+}
+
+type Bye struct {
+	router chi.Router
+}
+
+func (b *Bye) Router() chi.Router {
+	return b.router
+}
+
+func (b *Bye) Init(appx.Context) error {
+	b.router = chi.NewRouter()
+	b.router.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("Got a request for /bye")
+	})
+	return nil
+}
+
+type Greeter struct {
+	router chi.Router
+	server *http.Server
+}
+
+func (g *Greeter) Router() chi.Router {
+	return g.router
+}
+
+func (g *Greeter) Init(appx.Context) error {
+	g.router = chi.NewRouter()
+	g.server = &http.Server{
+		Addr:    ":8080",
+		Handler: g.router,
+	}
+	return nil
+}
+
+func (g *Greeter) Start(context.Context) error {
+	fmt.Println("Starting HTTP server")
+	go g.server.ListenAndServe() // nolint:errcheck
+	return nil
+}
+
+func (g *Greeter) Stop(ctx context.Context) error {
+	fmt.Println("Stopping HTTP server")
+	return g.server.Shutdown(ctx)
+}
+
 func Example() {
+	r := appx.NewRegistry()
+
 	// Typically located in `func init()` of package hi.
-	appx.MustRegister(
-		httpapp.New("hi").
-			MountOn("greeter").Pattern("/hi").
-			InitFunc(func(ctx appx.Context) error {
-				r := chi.NewRouter()
-				r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-					fmt.Println("Got a request for /hi")
-				})
-				ctx.App.Value = &httpapp.Value{
-					Router: r,
-				}
-				return nil
-			}),
-	)
+	r.MustRegister(httpapp.New("hi", new(Hi)).MountOn("greeter", "/hi").App)
 
 	// Typically located in `func init()` of package bye.
-	appx.MustRegister(
-		httpapp.New("bye").
-			MountOn("greeter").Pattern("/bye").
-			InitFunc(func(ctx appx.Context) error {
-				r := chi.NewRouter()
-				r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-					fmt.Println("Got a request for /bye")
-				})
-				ctx.App.Value = &httpapp.Value{
-					Router: r,
-				}
-				return nil
-			}),
-	)
+	r.MustRegister(httpapp.New("bye", new(Bye)).MountOn("greeter", "/bye").App)
 
 	// Typically located in `func init()` of package greeter.
-	appx.MustRegister(
-		httpapp.New("greeter").
-			InitFunc(func(ctx appx.Context) error {
-				r := chi.NewRouter()
-				server := &http.Server{
-					Addr:    ":8080",
-					Handler: r,
-				}
-				ctx.Lifecycle.Append(appx.Hook{
-					OnStart: func(context.Context) error {
-						fmt.Println("Starting HTTP server")
-						go server.ListenAndServe() // nolint:errcheck
-						return nil
-					},
-					OnStop: func(ctx context.Context) error {
-						fmt.Println("Stopping HTTP server")
-						return server.Shutdown(ctx)
-					},
-				})
-				ctx.App.Value = &httpapp.Value{
-					Router: r,
-				}
-				return nil
-			}),
-	)
+	r.MustRegister(httpapp.New("greeter", new(Greeter)).App)
 
 	// Typically located in `func main()` of package main.
-	appx.SetConfig(appx.Config{
+	r.SetOptions(&appx.Options{
 		ErrorHandler: func(err error) {
 			fmt.Printf("err: %v\n", err)
 		},
 	})
 
 	// Installs the applications.
-	if err := appx.Install(context.Background()); err != nil {
+	if err := r.Install(context.Background()); err != nil {
 		fmt.Printf("err: %v\n", err)
 		return
 	}
-	defer appx.Uninstall()
+	defer r.Uninstall()
 
 	// Start the greeter.
 	startCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	if err := appx.Start(startCtx); err != nil {
+	if err := r.Start(startCtx); err != nil {
 		fmt.Printf("err: %v\n", err)
 		return
 	}
@@ -101,7 +114,7 @@ func Example() {
 	// Stop the greeter.
 	stopCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	appx.Stop(stopCtx)
+	r.Stop(stopCtx)
 
 	// Output:
 	// Starting HTTP server
