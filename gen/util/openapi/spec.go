@@ -67,12 +67,16 @@ type Param struct {
 	inUse bool // Indicates this parameter already has a corresponding @kok(param).
 }
 
-func (p *Param) SetName(name string) {
+func (p *Param) SetName(name string, snakeCase bool) {
 	p.Name = name
 
 	// Set alias if it's not set.
 	if p.Alias == "" {
-		p.Alias = name
+		if snakeCase {
+			p.Alias = caseconv.ToSnakeCase(name)
+		} else {
+			p.Alias = caseconv.ToLowerCamelCase(name)
+		}
 	}
 }
 
@@ -105,7 +109,9 @@ func (p *Param) SetByAnnotation(a *annotation) {
 	if a.In != "" {
 		p.In = a.In
 	}
-	p.Alias = a.Name
+	if a.Name != "" {
+		p.Alias = a.Name
+	}
 	p.Required = a.Required
 	p.AliasType = a.Type
 	p.Description = a.Description
@@ -185,6 +191,7 @@ func (o *Operation) Req(mediaType string, schema interface{}) *Operation {
 	return o
 }
 
+// DEPRECATED?
 func (o *Operation) buildParam(text, name, typ string) *Param {
 	p := &Param{Type: typ}
 
@@ -207,7 +214,7 @@ func (o *Operation) buildParam(text, name, typ string) *Param {
 		case "required":
 			p.Required = value == "true"
 		case "name":
-			p.SetName(value)
+			p.SetName(value, false)
 		case "alias":
 			p.Alias = value
 		default:
@@ -219,7 +226,7 @@ func (o *Operation) buildParam(text, name, typ string) *Param {
 		p.In = InBody
 	}
 	if p.Name == "" && name != "" {
-		p.SetName(caseconv.LowerFirst(name))
+		p.SetName(caseconv.LowerFirst(name), false)
 	}
 
 	if p.In == InRequest && p.Alias != "RemoteAddr" {

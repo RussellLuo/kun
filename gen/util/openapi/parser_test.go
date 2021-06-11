@@ -46,7 +46,27 @@ func TestParser_Parse(t *testing.T) {
 				{
 					ArgName: "arg1",
 					In:      "query",
-					Name:    "arg1",
+					Type:    "int",
+				},
+			},
+		},
+		{
+			name: "int argument with name",
+			inParser: &Parser{
+				methodName: "Test",
+				params: map[string]*Param{
+					"arg1": {
+						Name:    "arg1",
+						RawType: types.Typ[types.Int],
+					},
+				},
+			},
+			inText: "arg1 < in:query,name:arg",
+			wantAnnotations: []*annotation{
+				{
+					ArgName: "arg1",
+					In:      "query",
+					Name:    "arg",
 					Type:    "int",
 				},
 			},
@@ -67,8 +87,28 @@ func TestParser_Parse(t *testing.T) {
 				{
 					ArgName: "arg1",
 					In:      "header",
-					Name:    "arg1",
 					Type:    "bool",
+				},
+			},
+		},
+		{
+			name: "required bool argument",
+			inParser: &Parser{
+				methodName: "Test",
+				params: map[string]*Param{
+					"arg1": {
+						Name:    "arg1",
+						RawType: types.Typ[types.Bool],
+					},
+				},
+			},
+			inText: "arg1 < in:header,required:true",
+			wantAnnotations: []*annotation{
+				{
+					ArgName:  "arg1",
+					In:       "header",
+					Type:     "bool",
+					Required: true,
 				},
 			},
 		},

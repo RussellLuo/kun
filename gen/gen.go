@@ -15,11 +15,11 @@ import (
 )
 
 type Options struct {
-	SchemaPtr         bool
-	SchemaTag         string
-	TagKeyToSnakeCase bool
-	Formatted         bool
-	EnableTracing     bool
+	SchemaPtr     bool
+	SchemaTag     string
+	Formatted     bool
+	SnakeCase     bool
+	EnableTracing bool
 }
 
 type Content struct {
@@ -36,38 +36,38 @@ type Generator struct {
 	httptest   *httptest.Generator
 	httpclient *httpclient.Generator
 	oasv2      *oasv2.Generator
+
+	opts *Options
 }
 
-func New(opts Options) *Generator {
+func New(opts *Options) *Generator {
 	return &Generator{
 		endpoint: endpoint.New(&endpoint.Options{
-			SchemaPtr:         opts.SchemaPtr,
-			SchemaTag:         opts.SchemaTag,
-			TagKeyToSnakeCase: opts.TagKeyToSnakeCase,
-			Formatted:         opts.Formatted,
+			SchemaPtr: opts.SchemaPtr,
+			SchemaTag: opts.SchemaTag,
+			Formatted: opts.Formatted,
+			SnakeCase: opts.SnakeCase,
 		}),
 		chi: chi.New(&chi.Options{
-			SchemaPtr:         opts.SchemaPtr,
-			SchemaTag:         opts.SchemaTag,
-			TagKeyToSnakeCase: opts.TagKeyToSnakeCase,
-			Formatted:         opts.Formatted,
-			EnableTracing:     opts.EnableTracing,
+			SchemaPtr:     opts.SchemaPtr,
+			SchemaTag:     opts.SchemaTag,
+			Formatted:     opts.Formatted,
+			EnableTracing: opts.EnableTracing,
 		}),
 		httptest: httptest.New(&httptest.Options{
 			Formatted: opts.Formatted,
 		}),
 		httpclient: httpclient.New(&httpclient.Options{
-			SchemaPtr:         opts.SchemaPtr,
-			SchemaTag:         opts.SchemaTag,
-			TagKeyToSnakeCase: opts.TagKeyToSnakeCase,
-			Formatted:         opts.Formatted,
+			SchemaPtr: opts.SchemaPtr,
+			SchemaTag: opts.SchemaTag,
+			Formatted: opts.Formatted,
 		}),
 		oasv2: oasv2.New(&oasv2.Options{
-			SchemaPtr:         opts.SchemaPtr,
-			SchemaTag:         opts.SchemaTag,
-			TagKeyToSnakeCase: opts.TagKeyToSnakeCase,
-			Formatted:         opts.Formatted,
+			SchemaPtr: opts.SchemaPtr,
+			SchemaTag: opts.SchemaTag,
+			Formatted: opts.Formatted,
 		}),
+		opts: opts,
 	}
 }
 
@@ -123,7 +123,7 @@ func (g *Generator) getSpec(result *reflector.Result, srcFilename, interfaceName
 		return nil, err
 	}
 
-	spec, err := openapi.FromDoc(result, doc)
+	spec, err := openapi.FromDoc(result, doc, g.opts.SnakeCase)
 	if err != nil {
 		return nil, err
 	}

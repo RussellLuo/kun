@@ -163,11 +163,10 @@ type Server struct {
 }
 
 type Options struct {
-	SchemaPtr         bool
-	SchemaTag         string
-	TagKeyToSnakeCase bool
-	Formatted         bool
-	EnableTracing     bool
+	SchemaPtr     bool
+	SchemaTag     string
+	Formatted     bool
+	EnableTracing bool
 }
 
 type Generator struct {

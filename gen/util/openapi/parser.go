@@ -36,7 +36,6 @@ func newParamAnnotation(text, prevParamName string) (*annotation, error) {
 
 	a := &annotation{
 		ArgName: name,
-		Name:    name,
 	}
 
 	if len(split) == 1 {

@@ -43,15 +43,17 @@ $ go get -u github.com/RussellLuo/kok/cmd/kokgen
 $ kokgen -h
 kokgen [flags] source-file interface-name
   -fmt
-    	whether to make code formatted (default true)
+        whether to make code formatted (default true)
   -out string
-    	output directory (default ".")
+        output directory (default ".")
   -pkg string
-    	package name (default will infer)
+        package name (default will infer)
+  -snake
+        whether to use snake-case for default names (default true)
   -test string
-    	the YAML file that provides test-cases for HTTP (default "./http.test.yaml")
+        the YAML file that provides test-cases for HTTP (default "./http.test.yaml")
   -trace
-    	whether to enable tracing
+        whether to enable tracing
 ```
 
 </details>
@@ -230,7 +232,7 @@ See more examples [here](examples).
             + This is a special case, and only one property `RemoteAddr` is available now.
             + Note that parameters located in **request** have no relationship with OAS.
     + **name**: The name of the corresponding request parameter.
-        - Optional: Defaults to **argName** if not specified.
+        - Optional: Defaults to **argName** (snake-case, or camel-case if `-snake=false`) if not specified.
     + **descr**: The OAS description of the corresponding request parameter.
         - Optional: Defaults to `""` if not specified.
     + **required**: Determines whether this parameter is mandatory.
@@ -322,7 +324,7 @@ See more examples [here](examples).
         - The special name `-` can be used, to define that there is no HTTP request body. As a result, every argument, which is not located in **path**/**query**/**header**, will automatically be mapped to one or more query parameters.
     + **argName**: The name of the method argument to be manipulated.
     + **name**: The name of the corresponding request parameter.
-        - Optional: Defaults to **argName** if not specified.
+        - Optional: Defaults to **argName** (snake-case, or camel-case if `-snake=false`) if not specified.
     + **descr**: The OAS description of the corresponding request parameter.
         - Optional: Defaults to `""` if not specified.
 - Example:

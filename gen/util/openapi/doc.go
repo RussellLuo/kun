@@ -22,7 +22,7 @@ var (
 	reSingleVarName = regexp.MustCompile(`^\w+$`)
 )
 
-func FromDoc(result *reflector.Result, doc *reflector.InterfaceDoc) (*Specification, error) {
+func FromDoc(result *reflector.Result, doc *reflector.InterfaceDoc, snakeCase bool) (*Specification, error) {
 	metadata, err := buildMetadata(doc.Doc)
 	if err != nil {
 		return nil, err
@@ -52,7 +52,7 @@ func FromDoc(result *reflector.Result, doc *reflector.InterfaceDoc) (*Specificat
 				RawType:   mp.RawType, // used for adding query parameters later
 				AliasType: mp.Type,
 			}
-			p.SetName(mp.Name)
+			p.SetName(mp.Name, snakeCase)
 			op.addParam(p)
 
 			// Build the mapping for later manipulation.
@@ -262,8 +262,8 @@ func manipulateByComments(op *Operation, params map[string]*Param, results map[s
 			continue
 		}
 
-		// Add this path parameter.
-		annotations, err := parser.Parse(name + " < in:path")
+		// Add this path parameter with the name specified in the path pattern.
+		annotations, err := parser.Parse(name + " < in:path,name:" + name)
 		if err != nil {
 			return err
 		}
@@ -298,6 +298,9 @@ func extractPathVarNames(pattern string) (names []string) {
 
 	for _, s := range result {
 		// Convert possible snake case to camel case.
+		//
+		// Some known issues:
+		// - "xx_id" will be converted to "xxId" (not the conventional "xxID").
 		name := caseconv.ToLowerCamelCase(s[1])
 		names = append(names, name)
 	}

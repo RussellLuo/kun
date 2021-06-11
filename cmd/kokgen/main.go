@@ -16,6 +16,7 @@ type userFlags struct {
 	pkgName       string
 	testFileName  string
 	formatted     bool
+	snakeCase     bool
 	enableTracing bool
 
 	args []string
@@ -27,6 +28,7 @@ func main() {
 	flag.StringVar(&flags.pkgName, "pkg", "", "package name (default will infer)")
 	flag.StringVar(&flags.testFileName, "test", "./http.test.yaml", "the YAML file that provides test-cases for HTTP")
 	flag.BoolVar(&flags.formatted, "fmt", true, "whether to make code formatted")
+	flag.BoolVar(&flags.snakeCase, "snake", true, "whether to use snake-case for default names")
 	flag.BoolVar(&flags.enableTracing, "trace", false, "whether to enable tracing")
 
 	flag.Usage = func() {
@@ -56,12 +58,12 @@ func run(flags userFlags) error {
 		return err
 	}
 
-	content, err := gen.New(gen.Options{
-		SchemaPtr:         true,
-		SchemaTag:         "json",
-		TagKeyToSnakeCase: true,
-		Formatted:         flags.formatted,
-		EnableTracing:     flags.enableTracing,
+	content, err := gen.New(&gen.Options{
+		SchemaPtr:     true,
+		SchemaTag:     "json",
+		SnakeCase:     flags.snakeCase,
+		Formatted:     flags.formatted,
+		EnableTracing: flags.enableTracing,
 	}).Generate(srcFilename, interfaceName, flags.pkgName, flags.testFileName)
 	if err != nil {
 		return err

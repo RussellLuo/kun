@@ -7,7 +7,6 @@ import (
 	"github.com/RussellLuo/kok/gen/util/generator"
 	"github.com/RussellLuo/kok/gen/util/openapi"
 	"github.com/RussellLuo/kok/gen/util/reflector"
-	"github.com/RussellLuo/kok/pkg/caseconv"
 )
 
 var (
@@ -147,10 +146,9 @@ func OASv2APIDoc(schema oasv2.Schema) string {
 )
 
 type Options struct {
-	SchemaPtr         bool
-	SchemaTag         string
-	TagKeyToSnakeCase bool
-	Formatted         bool
+	SchemaPtr bool
+	SchemaTag string
+	Formatted bool
 }
 
 type Generator struct {
@@ -297,8 +295,6 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 
 				if typ == "error" {
 					name = "-"
-				} else if g.opts.TagKeyToSnakeCase {
-					name = caseconv.ToSnakeCase(name)
 				}
 
 				return fmt.Sprintf("`%s:\"%s\"`", g.opts.SchemaTag, name)

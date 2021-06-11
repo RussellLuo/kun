@@ -112,10 +112,10 @@ func MakeEndpointOf{{.Name}}(s {{$srcPkgPrefix}}{{$interfaceName}}) endpoint.End
 )
 
 type Options struct {
-	SchemaPtr         bool
-	SchemaTag         string
-	TagKeyToSnakeCase bool
-	Formatted         bool
+	SchemaPtr bool
+	SchemaTag string
+	Formatted bool
+	SnakeCase bool
 }
 
 type Generator struct {
@@ -224,8 +224,13 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 
 				if name == "" || typ == "error" {
 					name = "-"
-				} else if g.opts.TagKeyToSnakeCase {
-					name = caseconv.ToSnakeCase(name)
+				} else {
+					// Only useful for adding correct tags for Response fields.
+					if g.opts.SnakeCase {
+						name = caseconv.ToSnakeCase(name)
+					} else {
+						name = caseconv.ToLowerCamelCase(name)
+					}
 				}
 
 				return fmt.Sprintf("`%s:\"%s\"`", g.opts.SchemaTag, name)
