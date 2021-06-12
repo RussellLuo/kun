@@ -262,8 +262,15 @@ func manipulateByComments(op *Operation, params map[string]*Param, results map[s
 			continue
 		}
 
-		// Add this path parameter with the name specified in the path pattern.
-		annotations, err := parser.Parse(name + " < in:path,name:" + name)
+		// Get the method argument name by always converting the path variable
+		// name to lowerCamelCase (the naming convention in Go).
+		//
+		// Known issues:
+		// - "xx_id" will be converted to "xxId" (not the conventional "xxID").
+		argName := caseconv.ToLowerCamelCase(name)
+
+		// Bind this path parameter to the method argument named argName.
+		annotations, err := parser.Parse(argName + " < in:path,name:" + name)
 		if err != nil {
 			return err
 		}
@@ -297,12 +304,7 @@ func extractPathVarNames(pattern string) (names []string) {
 	}
 
 	for _, s := range result {
-		// Convert possible snake case to camel case.
-		//
-		// Some known issues:
-		// - "xx_id" will be converted to "xxId" (not the conventional "xxID").
-		name := caseconv.ToLowerCamelCase(s[1])
-		names = append(names, name)
+		names = append(names, s[1])
 	}
 	return
 }

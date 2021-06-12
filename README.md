@@ -197,7 +197,7 @@ See more examples [here](examples).
 - Value: `<method> <pattern>`
     + **method**: The request method
     + **pattern**: The request URL
-        - NOTE: All variables (snake-case or camel-case) in **pattern** will automatically be bound to their corresponding method arguments (matches by name), as **path** parameters, if the variables are not specified as path parameters explicitly by `@kok(param)`.
+        - NOTE: All variables in **pattern** will automatically be bound to their corresponding method arguments (matches by name in *lower camel case*), as **path** parameters, if the variables are not yet specified as path parameters explicitly by `@kok(param)`.
 - Example:
 
     ```go
@@ -222,7 +222,7 @@ See more examples [here](examples).
             + You do not need to repeat the **argName**, only the first one is required.
     + **in**:
         - **path**: The method argument is sourced from a [path parameter](https://swagger.io/docs/specification/describing-parameters/#path-parameters).
-            + Optional: All variables (snake-case or camel-case) in **pattern** will automatically be bound to their corresponding method arguments (matches by name), as **path** parameters.
+            + Optional: All variables in **pattern** will automatically be bound to their corresponding method arguments (matches by name in *lower camel case*), as **path** parameters.
         - **query**: The method argument is sourced from a [query parameter](https://swagger.io/docs/specification/describing-parameters/#query-parameters).
             + To receive values from a multi-valued query parameter, the method argument can be defined as a slice of basic type.
         - **header**: The method argument is sourced from a [header parameter](https://swagger.io/docs/specification/describing-parameters/#header-parameters).
@@ -232,7 +232,7 @@ See more examples [here](examples).
             + This is a special case, and only one property `RemoteAddr` is available now.
             + Note that parameters located in **request** have no relationship with OAS.
     + **name**: The name of the corresponding request parameter.
-        - Optional: Defaults to **argName** (snake-case, or camel-case if `-snake=false`) if not specified.
+        - Optional: Defaults to **argName** (snake-case, or lower-camel-case if `-snake=false`) if not specified.
     + **descr**: The OAS description of the corresponding request parameter.
         - Optional: Defaults to `""` if not specified.
     + **required**: Determines whether this parameter is mandatory.
@@ -324,7 +324,7 @@ See more examples [here](examples).
         - The special name `-` can be used, to define that there is no HTTP request body. As a result, every argument, which is not located in **path**/**query**/**header**, will automatically be mapped to one or more query parameters.
     + **argName**: The name of the method argument to be manipulated.
     + **name**: The name of the corresponding request parameter.
-        - Optional: Defaults to **argName** (snake-case, or camel-case if `-snake=false`) if not specified.
+        - Optional: Defaults to **argName** (snake-case, or lower-camel-case if `-snake=false`) if not specified.
     + **descr**: The OAS description of the corresponding request parameter.
         - Optional: Defaults to `""` if not specified.
 - Example:
