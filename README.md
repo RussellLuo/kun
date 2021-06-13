@@ -36,7 +36,7 @@ The toolkit of [Go kit][1].
 $ go get -u github.com/RussellLuo/kok/cmd/kokgen
 ```
 
-<details>
+<details open>
   <summary> Usage </summary>
 
 ```bash
@@ -123,7 +123,7 @@ kokgen [flags] source-file interface-name
 6. See the OAS documentation
 
     <details>
-      <summary> (Click to show details) </summary>
+      <summary> (Click to expand) </summary>
 
     ```bash
     $ http GET :8080/api
@@ -190,7 +190,7 @@ See more examples [here](examples).
 
 ### Annotations
 
-<details>
+<details open>
   <summary> Define the HTTP request operation </summary>
 
 - Key: `@kok(op)`
@@ -212,7 +212,7 @@ See more examples [here](examples).
 
 </details>
 
-<details>
+<details open>
   <summary> Define the HTTP request parameters </summary>
 
 - Key: `@kok(param)`
@@ -314,7 +314,7 @@ See more examples [here](examples).
 
 </details>
 
-<details>
+<details open>
   <summary> Define the HTTP request body </summary>
 
 - Key: `@kok(body)`
@@ -379,7 +379,7 @@ See more examples [here](examples).
 
 </details>
 
-<details>
+<details open>
   <summary> Define the success HTTP response </summary>
 
 
