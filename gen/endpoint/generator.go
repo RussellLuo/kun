@@ -126,7 +126,7 @@ func New(opts *Options) *Generator {
 	return &Generator{opts: opts}
 }
 
-func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specification) ([]byte, error) {
+func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specification) (*generator.File, error) {
 	operationMap := make(map[string]*openapi.Operation)
 	for _, op := range spec.Operations {
 		operationMap[op.Name] = op
@@ -236,6 +236,7 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 				return fmt.Sprintf("`%s:\"%s\"`", g.opts.SchemaTag, name)
 			},
 		},
-		Formatted: g.opts.Formatted,
+		Formatted:      g.opts.Formatted,
+		TargetFileName: "endpoint.go",
 	})
 }

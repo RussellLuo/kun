@@ -177,7 +177,7 @@ func New(opts *Options) *Generator {
 	return &Generator{opts: opts}
 }
 
-func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specification) ([]byte, error) {
+func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specification) (*generator.File, error) {
 	data := struct {
 		Result *reflector.Result
 		Spec   *openapi.Specification
@@ -304,6 +304,7 @@ func (g *Generator) Generate(result *reflector.Result, spec *openapi.Specificati
 				return ""
 			},
 		},
-		Formatted: g.opts.Formatted,
+		Formatted:      g.opts.Formatted,
+		TargetFileName: "http.go",
 	})
 }
