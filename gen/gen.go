@@ -103,20 +103,23 @@ func (g *Generator) generateHTTP(result *reflector.Result, spec *openapi.Specifi
 	if err := ensureDir(outDir); err != nil {
 		return files, err
 	}
+	defer func() {
+		moveTo(outDir, files)
+	}()
 
 	// Generate the HTTP server code.
 	f, err := g.chi.Generate(result, spec)
 	if err != nil {
 		return files, err
 	}
-	files = append(files, moveTo(f, outDir))
+	files = append(files, f)
 
 	// Generate the HTTP client code.
 	f, err = g.httpclient.Generate(result, spec)
 	if err != nil {
 		return files, err
 	}
-	files = append(files, moveTo(f, outDir))
+	files = append(files, f)
 
 	// Generate the HTTP tests code.
 	f, err = g.httptest.Generate(result, testFilename)
@@ -127,7 +130,7 @@ func (g *Generator) generateHTTP(result *reflector.Result, spec *openapi.Specifi
 		fmt.Printf("WARNING: Skip generating the HTTP tests due to an error (%v)\n", err)
 	}
 	if f != nil {
-		files = append(files, moveTo(f, outDir))
+		files = append(files, f)
 	}
 
 	// Generate the helper OASv2 code.
@@ -135,7 +138,7 @@ func (g *Generator) generateHTTP(result *reflector.Result, spec *openapi.Specifi
 	if err != nil {
 		return files, err
 	}
-	files = append(files, moveTo(f, outDir))
+	files = append(files, f)
 
 	return files, nil
 }
@@ -144,7 +147,8 @@ func ensureDir(path string) error {
 	return os.MkdirAll(path, 0755)
 }
 
-func moveTo(f *generator.File, dir string) *generator.File {
-	f.Name = filepath.Join(dir, f.Name)
-	return f
+func moveTo(dir string, files []*generator.File) {
+	for _, f := range files {
+		f.Name = filepath.Join(dir, f.Name)
+	}
 }
