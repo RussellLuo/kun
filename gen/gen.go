@@ -10,6 +10,7 @@ import (
 	"github.com/RussellLuo/kok/gen/http/httpclient"
 	"github.com/RussellLuo/kok/gen/http/httptest"
 	"github.com/RussellLuo/kok/gen/http/oasv2"
+	"github.com/RussellLuo/kok/gen/util/generator"
 	"github.com/RussellLuo/kok/gen/util/openapi"
 	"github.com/RussellLuo/kok/gen/util/reflector"
 )
@@ -20,14 +21,7 @@ type Options struct {
 	Formatted     bool
 	SnakeCase     bool
 	EnableTracing bool
-}
-
-type Content struct {
-	Endpoint   []byte
-	HTTP       []byte
-	HTTPTest   []byte
-	HTTPClient []byte
-	OASv2      []byte
+	OutDir        string
 }
 
 type Generator struct {
@@ -71,53 +65,12 @@ func New(opts *Options) *Generator {
 	}
 }
 
-func (g *Generator) Generate(srcFilename, interfaceName, dstPkgName, testFilename string) (content Content, err error) {
+func (g *Generator) Generate(srcFilename, interfaceName, dstPkgName, testFilename string) (files []*generator.File, err error) {
 	result, err := reflector.ReflectInterface(filepath.Dir(srcFilename), dstPkgName, interfaceName)
 	if err != nil {
-		return content, err
+		return nil, err
 	}
 
-	spec, err := g.getSpec(result, srcFilename, interfaceName)
-	if err != nil {
-		return content, err
-	}
-
-	// Generate the endpoint code.
-	content.Endpoint, err = g.endpoint.Generate(result, spec)
-	if err != nil {
-		return content, err
-	}
-
-	// Generate the HTTP code.
-	content.HTTP, err = g.chi.Generate(result, spec)
-	if err != nil {
-		return content, err
-	}
-
-	// Generate the HTTP client code.
-	content.HTTPClient, err = g.httpclient.Generate(result, spec)
-	if err != nil {
-		return content, err
-	}
-
-	// Generate the HTTP tests code.
-	content.HTTPTest, err = g.httptest.Generate(result, testFilename)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return content, err
-		}
-		fmt.Printf("WARNING: Skip generating the HTTP tests due to an error (%v)\n", err)
-	}
-
-	content.OASv2, err = g.oasv2.Generate(result, spec)
-	if err != nil {
-		return content, err
-	}
-
-	return content, nil
-}
-
-func (g *Generator) getSpec(result *reflector.Result, srcFilename, interfaceName string) (*openapi.Specification, error) {
 	doc, err := reflector.NewInterfaceDoc(srcFilename, interfaceName)
 	if err != nil {
 		return nil, err
@@ -128,5 +81,70 @@ func (g *Generator) getSpec(result *reflector.Result, srcFilename, interfaceName
 		return nil, err
 	}
 
-	return spec, nil
+	// Generate the endpoint code.
+	f, err := g.endpoint.Generate(result, spec)
+	if err != nil {
+		return files, err
+	}
+	files = append(files, f)
+
+	// Generate the HTTP code.
+	httpFiles, err := g.generateHTTP(result, spec, testFilename)
+	if err != nil {
+		return files, err
+	}
+	files = append(files, httpFiles...)
+
+	return files, nil
+}
+
+func (g *Generator) generateHTTP(result *reflector.Result, spec *openapi.Specification, testFilename string) (files []*generator.File, err error) {
+	outDir := g.opts.OutDir
+	if err := ensureDir(outDir); err != nil {
+		return files, err
+	}
+
+	// Generate the HTTP server code.
+	f, err := g.chi.Generate(result, spec)
+	if err != nil {
+		return files, err
+	}
+	files = append(files, moveTo(f, outDir))
+
+	// Generate the HTTP client code.
+	f, err = g.httpclient.Generate(result, spec)
+	if err != nil {
+		return files, err
+	}
+	files = append(files, moveTo(f, outDir))
+
+	// Generate the HTTP tests code.
+	f, err = g.httptest.Generate(result, testFilename)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return files, err
+		}
+		fmt.Printf("WARNING: Skip generating the HTTP tests due to an error (%v)\n", err)
+	}
+	if f != nil {
+		files = append(files, moveTo(f, outDir))
+	}
+
+	// Generate the helper OASv2 code.
+	f, err = g.oasv2.Generate(result, spec)
+	if err != nil {
+		return files, err
+	}
+	files = append(files, moveTo(f, outDir))
+
+	return files, nil
+}
+
+func ensureDir(path string) error {
+	return os.MkdirAll(path, 0755)
+}
+
+func moveTo(f *generator.File, dir string) *generator.File {
+	f.Name = filepath.Join(dir, f.Name)
+	return f
 }

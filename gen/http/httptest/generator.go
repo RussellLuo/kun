@@ -224,7 +224,7 @@ func New(opts *Options) *Generator {
 	return &Generator{opts: opts}
 }
 
-func (g *Generator) Generate(result *reflector.Result, testFilename string) ([]byte, error) {
+func (g *Generator) Generate(result *reflector.Result, testFilename string) (*generator.File, error) {
 	testSpec, err := getTestSpec(testFilename)
 	if err != nil {
 		return nil, err
@@ -277,6 +277,7 @@ func (g *Generator) Generate(result *reflector.Result, testFilename string) ([]b
 				return
 			},
 		},
-		Formatted: g.opts.Formatted,
+		Formatted:      g.opts.Formatted,
+		TargetFileName: "http_test.go",
 	})
 }

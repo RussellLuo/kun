@@ -58,13 +58,15 @@ func run(flags userFlags) error {
 		return err
 	}
 
-	content, err := gen.New(&gen.Options{
+	generator := gen.New(&gen.Options{
 		SchemaPtr:     true,
 		SchemaTag:     "json",
 		SnakeCase:     flags.snakeCase,
 		Formatted:     flags.formatted,
 		EnableTracing: flags.enableTracing,
-	}).Generate(srcFilename, interfaceName, flags.pkgName, flags.testFileName)
+		OutDir:        flags.outDir,
+	})
+	files, err := generator.Generate(srcFilename, interfaceName, flags.pkgName, flags.testFileName)
 	if err != nil {
 		return err
 	}
@@ -75,19 +77,12 @@ func run(flags userFlags) error {
 		}
 	}
 
-	files := map[string][]byte{
-		"endpoint.go":    content.Endpoint,
-		"http.go":        content.HTTP,
-		"http_test.go":   content.HTTPTest,
-		"http_client.go": content.HTTPClient,
-		"oasv2.go":       content.OASv2,
-	}
-	for name, data := range files {
-		if len(data) == 0 {
+	for _, f := range files {
+		if len(f.Content) == 0 {
 			continue
 		}
 
-		if err := ioutil.WriteFile(filepath.Join(flags.outDir, name), data, 0644); err != nil {
+		if err := ioutil.WriteFile(f.Name, f.Content, 0644); err != nil {
 			return err
 		}
 	}

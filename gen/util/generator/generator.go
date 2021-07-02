@@ -7,13 +7,19 @@ import (
 
 var formatters = []Formatter{Gofmt, Goimports}
 
-type Options struct {
-	Name      string
-	Funcs     template.FuncMap
-	Formatted bool
+type File struct {
+	Name    string
+	Content []byte
 }
 
-func Generate(text string, data interface{}, opts Options) ([]byte, error) {
+type Options struct {
+	Name           string
+	Funcs          template.FuncMap
+	Formatted      bool
+	TargetFileName string
+}
+
+func Generate(text string, data interface{}, opts Options) (*File, error) {
 	tmpl, err := template.New(opts.Name).Funcs(opts.Funcs).Parse(text)
 	if err != nil {
 		return nil, err
@@ -34,5 +40,8 @@ func Generate(text string, data interface{}, opts Options) ([]byte, error) {
 		}
 	}
 
-	return b, nil
+	return &File{
+		Name:    opts.TargetFileName,
+		Content: b,
+	}, nil
 }
