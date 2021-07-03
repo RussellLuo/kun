@@ -16,12 +16,13 @@ import (
 )
 
 type Options struct {
+	OutDir        string
+	FlatLayout    bool
 	SchemaPtr     bool
 	SchemaTag     string
 	Formatted     bool
 	SnakeCase     bool
 	EnableTracing bool
-	OutDir        string
 }
 
 type Generator struct {
@@ -65,8 +66,8 @@ func New(opts *Options) *Generator {
 	}
 }
 
-func (g *Generator) Generate(srcFilename, interfaceName, dstPkgName, testFilename string) (files []*generator.File, err error) {
-	result, err := reflector.ReflectInterface(filepath.Dir(srcFilename), dstPkgName, interfaceName)
+func (g *Generator) Generate(srcFilename, interfaceName, testFilename string) (files []*generator.File, err error) {
+	result, err := g.getInterfaceResult(srcFilename, interfaceName)
 	if err != nil {
 		return nil, err
 	}
@@ -82,11 +83,11 @@ func (g *Generator) Generate(srcFilename, interfaceName, dstPkgName, testFilenam
 	}
 
 	// Generate the endpoint code.
-	f, err := g.endpoint.Generate(result, spec)
+	epFile, err := g.generateEndpoint(result, spec)
 	if err != nil {
 		return files, err
 	}
-	files = append(files, f)
+	files = append(files, epFile)
 
 	// Generate the HTTP code.
 	httpFiles, err := g.generateHTTP(result, spec, testFilename)
@@ -98,31 +99,55 @@ func (g *Generator) Generate(srcFilename, interfaceName, dstPkgName, testFilenam
 	return files, nil
 }
 
+func (g *Generator) generateEndpoint(result *reflector.Result, spec *openapi.Specification) (file *generator.File, err error) {
+	outDir := g.getOutDir("endpoint")
+	if err = ensureDir(outDir); err != nil {
+		return
+	}
+	defer func() {
+		if file != nil {
+			moveTo(outDir, file)
+		}
+	}()
+
+	pkgInfo := g.getPkgInfo(outDir)
+	file, err = g.endpoint.Generate(pkgInfo, result, spec)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
 func (g *Generator) generateHTTP(result *reflector.Result, spec *openapi.Specification, testFilename string) (files []*generator.File, err error) {
-	outDir := g.opts.OutDir
+	outDir := g.getOutDir("http")
 	if err := ensureDir(outDir); err != nil {
 		return files, err
 	}
 	defer func() {
-		moveTo(outDir, files)
+		for _, f := range files {
+			moveTo(outDir, f)
+		}
 	}()
 
+	pkgInfo := g.getPkgInfo(outDir)
+
 	// Generate the HTTP server code.
-	f, err := g.chi.Generate(result, spec)
+	f, err := g.chi.Generate(pkgInfo, result, spec)
 	if err != nil {
 		return files, err
 	}
 	files = append(files, f)
 
 	// Generate the HTTP client code.
-	f, err = g.httpclient.Generate(result, spec)
+	f, err = g.httpclient.Generate(pkgInfo, result, spec)
 	if err != nil {
 		return files, err
 	}
 	files = append(files, f)
 
 	// Generate the HTTP tests code.
-	f, err = g.httptest.Generate(result, testFilename)
+	f, err = g.httptest.Generate(pkgInfo, result, testFilename)
 	if err != nil {
 		if !os.IsNotExist(err) {
 			return files, err
@@ -134,7 +159,7 @@ func (g *Generator) generateHTTP(result *reflector.Result, spec *openapi.Specifi
 	}
 
 	// Generate the helper OASv2 code.
-	f, err = g.oasv2.Generate(result, spec)
+	f, err = g.oasv2.Generate(pkgInfo, result, spec)
 	if err != nil {
 		return files, err
 	}
@@ -143,12 +168,44 @@ func (g *Generator) generateHTTP(result *reflector.Result, spec *openapi.Specifi
 	return files, nil
 }
 
+func (g *Generator) getInterfaceResult(srcFilename, interfaceName string) (*reflector.Result, error) {
+	pkgName := ""
+	if !g.opts.FlatLayout {
+		// Non-empty pkgName makes all type names used in the interface full-qualified.
+		pkgName = "x"
+	}
+
+	result, err := reflector.ReflectInterface(filepath.Dir(srcFilename), pkgName, interfaceName)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (g *Generator) getOutDir(sub string) string {
+	dir := g.opts.OutDir
+	if !g.opts.FlatLayout {
+		dir = filepath.Join(dir, sub)
+	}
+	return dir
+}
+
+func (g *Generator) getPkgInfo(dir string) *generator.PkgInfo {
+	pkgInfo := &generator.PkgInfo{
+		CurrentPkgName: reflector.PkgNameFromDir(dir),
+	}
+	if !g.opts.FlatLayout {
+		pkgInfo.EndpointPkgPrefix = reflector.PkgNameFromDir(g.getOutDir("endpoint")) + "."
+		pkgInfo.EndpointPkgPath = reflector.PkgPathFromDir(g.getOutDir("endpoint"))
+	}
+	return pkgInfo
+}
+
 func ensureDir(path string) error {
 	return os.MkdirAll(path, 0755)
 }
 
-func moveTo(dir string, files []*generator.File) {
-	for _, f := range files {
-		f.Name = filepath.Join(dir, f.Name)
-	}
+func moveTo(dir string, f *generator.File) {
+	f.Name = filepath.Join(dir, f.Name)
 }

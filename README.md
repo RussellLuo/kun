@@ -42,12 +42,12 @@ $ go get -u github.com/RussellLuo/kok/cmd/kokgen
 ```bash
 $ kokgen -h
 kokgen [flags] source-file interface-name
+  -flat
+        whether to use flat layout (default true)
   -fmt
         whether to make code formatted (default true)
   -out string
         output directory (default ".")
-  -pkg string
-        package name (default will infer)
   -snake
         whether to use snake-case for default names (default true)
   -test string

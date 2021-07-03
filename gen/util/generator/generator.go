@@ -12,6 +12,12 @@ type File struct {
 	Content []byte
 }
 
+type PkgInfo struct {
+	CurrentPkgName    string
+	EndpointPkgPrefix string
+	EndpointPkgPath   string
+}
+
 type Options struct {
 	Name           string
 	Funcs          template.FuncMap

@@ -112,6 +112,7 @@ func (q *qualifier) Imports() (imports []string) {
 
 type Result struct {
 	SrcPkgPrefix string
+	SrcPkgName   string
 	PkgName      string
 	Imports      []string
 	Interface    *Interface
@@ -123,7 +124,7 @@ type Interface struct {
 }
 
 func ReflectInterface(srcDir, pkgName, objName string) (*Result, error) {
-	srcPkgType, pkgPath, pkgName := GetPkgInfo(srcDir, pkgName)
+	srcPkgType, pkgPath, pkgName := getPkgInfo(srcDir, pkgName)
 	obj := srcPkgType.Scope().Lookup(objName)
 	if obj == nil {
 		return nil, fmt.Errorf("cannot find interface %s", objName)
@@ -158,6 +159,7 @@ func ReflectInterface(srcDir, pkgName, objName string) (*Result, error) {
 
 	return &Result{
 		SrcPkgPrefix: srcPkgPrefix,
+		SrcPkgName:   srcPkgType.Name(),
 		PkgName:      pkgName,
 		Imports:      imports,
 		Interface: &Interface{
@@ -167,7 +169,29 @@ func ReflectInterface(srcDir, pkgName, objName string) (*Result, error) {
 	}, nil
 }
 
-func GetPkgInfo(srcDir, pkgName string) (*types.Package, string, string) {
+func PkgPathFromDir(dir string) (pkgPath string) {
+	abs, err := filepath.Abs(dir)
+	if err == nil {
+		pkgPath = stripGopath(abs)
+	}
+	return
+}
+
+func PkgNameFromDir(dir string) string {
+	pkg, _ := pkgInfoFromPath(dir, packages.NeedName)
+	if pkg != nil && pkg.Name != "" {
+		return pkg.Name
+	}
+
+	// Default to the directory name.
+	abs, err := filepath.Abs(dir)
+	if err != nil {
+		panic(err)
+	}
+	return filepath.Base(abs)
+}
+
+func getPkgInfo(srcDir, pkgName string) (*types.Package, string, string) {
 	srcPkg, err := pkgInfoFromPath(srcDir, packages.NeedName|packages.NeedTypes|packages.NeedTypesInfo)
 	if err != nil {
 		panic(fmt.Errorf("couldn't load source package: %s", err))

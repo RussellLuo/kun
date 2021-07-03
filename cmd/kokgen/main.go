@@ -13,7 +13,7 @@ import (
 
 type userFlags struct {
 	outDir        string
-	pkgName       string
+	flatLayout    bool
 	testFileName  string
 	formatted     bool
 	snakeCase     bool
@@ -25,7 +25,7 @@ type userFlags struct {
 func main() {
 	var flags userFlags
 	flag.StringVar(&flags.outDir, "out", ".", "output directory")
-	flag.StringVar(&flags.pkgName, "pkg", "", "package name (default will infer)")
+	flag.BoolVar(&flags.flatLayout, "flat", true, "whether to use flat layout")
 	flag.StringVar(&flags.testFileName, "test", "./http.test.yaml", "the YAML file that provides test-cases for HTTP")
 	flag.BoolVar(&flags.formatted, "fmt", true, "whether to make code formatted")
 	flag.BoolVar(&flags.snakeCase, "snake", true, "whether to use snake-case for default names")
@@ -59,22 +59,17 @@ func run(flags userFlags) error {
 	}
 
 	generator := gen.New(&gen.Options{
+		OutDir:        flags.outDir,
+		FlatLayout:    flags.flatLayout,
 		SchemaPtr:     true,
 		SchemaTag:     "json",
 		SnakeCase:     flags.snakeCase,
 		Formatted:     flags.formatted,
 		EnableTracing: flags.enableTracing,
-		OutDir:        flags.outDir,
 	})
-	files, err := generator.Generate(srcFilename, interfaceName, flags.pkgName, flags.testFileName)
+	files, err := generator.Generate(srcFilename, interfaceName, flags.testFileName)
 	if err != nil {
 		return err
-	}
-
-	if flags.outDir != "." {
-		if err = os.MkdirAll(flags.outDir, 0755); err != nil {
-			return err
-		}
 	}
 
 	for _, f := range files {
