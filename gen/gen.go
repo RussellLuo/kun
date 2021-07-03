@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/RussellLuo/kok/gen/endpoint"
+	"github.com/RussellLuo/kok/gen/grpc/proto"
 	"github.com/RussellLuo/kok/gen/http/chi"
 	"github.com/RussellLuo/kok/gen/http/httpclient"
 	"github.com/RussellLuo/kok/gen/http/httptest"
@@ -31,6 +32,7 @@ type Generator struct {
 	httptest   *httptest.Generator
 	httpclient *httpclient.Generator
 	oasv2      *oasv2.Generator
+	proto      *proto.Generator
 
 	opts *Options
 }
@@ -62,6 +64,11 @@ func New(opts *Options) *Generator {
 			SchemaTag: opts.SchemaTag,
 			Formatted: opts.Formatted,
 		}),
+		proto: proto.New(&proto.Options{
+			SchemaPtr: opts.SchemaPtr,
+			SchemaTag: opts.SchemaTag,
+			Formatted: opts.Formatted,
+		}),
 		opts: opts,
 	}
 }
@@ -77,28 +84,50 @@ func (g *Generator) Generate(srcFilename, interfaceName, testFilename string) (f
 		return nil, err
 	}
 
-	spec, err := openapi.FromDoc(result, doc, g.opts.SnakeCase)
+	spec, transports, err := openapi.FromDoc(result, doc, g.opts.SnakeCase)
 	if err != nil {
 		return nil, err
 	}
 
-	// Generate the endpoint code.
 	epFile, err := g.generateEndpoint(result, spec)
 	if err != nil {
 		return files, err
 	}
 	files = append(files, epFile)
 
-	// Generate the HTTP code.
-	httpFiles, err := g.generateHTTP(result, spec, testFilename)
-	if err != nil {
-		return files, err
+	switch mergeTransports(transports) {
+	case openapi.TransportHTTP:
+		httpFiles, err := g.generateHTTP(result, spec, testFilename)
+		if err != nil {
+			return files, err
+		}
+		files = append(files, httpFiles...)
+
+	case openapi.TransportGRPC:
+		grpcFiles, err := g.generateGRPC(result, doc)
+		if err != nil {
+			return files, err
+		}
+		files = append(files, grpcFiles...)
+
+	case openapi.TransportAll:
+		httpFiles, err := g.generateHTTP(result, spec, testFilename)
+		if err != nil {
+			return files, err
+		}
+		files = append(files, httpFiles...)
+
+		grpcFiles, err := g.generateGRPC(result, doc)
+		if err != nil {
+			return files, err
+		}
+		files = append(files, grpcFiles...)
 	}
-	files = append(files, httpFiles...)
 
 	return files, nil
 }
 
+// generateEndpoint generates the endpoint code.
 func (g *Generator) generateEndpoint(result *reflector.Result, spec *openapi.Specification) (file *generator.File, err error) {
 	outDir := g.getOutDir("endpoint")
 	if err = ensureDir(outDir); err != nil {
@@ -119,6 +148,7 @@ func (g *Generator) generateEndpoint(result *reflector.Result, spec *openapi.Spe
 	return
 }
 
+// generateHTTP generates the HTTP code.
 func (g *Generator) generateHTTP(result *reflector.Result, spec *openapi.Specification, testFilename string) (files []*generator.File, err error) {
 	outDir := g.getOutDir("http")
 	if err := ensureDir(outDir); err != nil {
@@ -168,6 +198,29 @@ func (g *Generator) generateHTTP(result *reflector.Result, spec *openapi.Specifi
 	return files, nil
 }
 
+// generateGRPC generates the gRPC code.
+func (g *Generator) generateGRPC(result *reflector.Result, doc *reflector.InterfaceDoc) (files []*generator.File, err error) {
+	outDir := g.getOutDir("grpc")
+	if err = ensureDir(outDir); err != nil {
+		return files, err
+	}
+	defer func() {
+		for _, f := range files {
+			moveTo(outDir, f)
+		}
+	}()
+
+	// Generate the `.proto` file.
+	pkgPath := reflector.PkgPathFromDir(outDir)
+	f, err := g.proto.Generate(pkgPath, result, doc)
+	if err != nil {
+		return files, err
+	}
+	files = append(files, f)
+
+	return files, nil
+}
+
 func (g *Generator) getInterfaceResult(srcFilename, interfaceName string) (*reflector.Result, error) {
 	pkgName := ""
 	if !g.opts.FlatLayout {
@@ -200,6 +253,13 @@ func (g *Generator) getPkgInfo(dir string) *generator.PkgInfo {
 		pkgInfo.EndpointPkgPath = reflector.PkgPathFromDir(g.getOutDir("endpoint"))
 	}
 	return pkgInfo
+}
+
+func mergeTransports(transports []openapi.Transport) (result openapi.Transport) {
+	for _, t := range transports {
+		result = result | t
+	}
+	return result
 }
 
 func ensureDir(path string) error {
