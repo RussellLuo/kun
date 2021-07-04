@@ -237,7 +237,9 @@ func (g *Generator) generateGRPC(result *reflector.Result, doc *reflector.Interf
 	}
 	// Write the `proto` file at once.
 	moveTo(pbOutDir, f)
-	WriteFile(f)
+	if err := WriteFile(f); err != nil {
+		return files, err
+	}
 
 	// Compile the `.proto` file to the gRPC definition.
 	// See https://grpc.io/docs/languages/go/basics/#generating-client-and-server-code
