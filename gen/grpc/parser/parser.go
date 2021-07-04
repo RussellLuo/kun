@@ -126,7 +126,7 @@ func parse(params []*reflector.Param) ([]*Field, error) {
 
 		i++
 		fields = append(fields, &Field{
-			Name: caseconv.ToSnakeCase(p.Name),
+			Name: p.Name,
 			Type: typ,
 			Num:  i,
 		})
@@ -206,7 +206,7 @@ func parseStructType(name string, typ types.Type, t *types.Struct) (*Type, error
 		}
 
 		fields = append(fields, &Field{
-			Name: caseconv.ToSnakeCase(fieldName),
+			Name: fieldName,
 			Type: fieldType,
 			Num:  i + 1,
 		})

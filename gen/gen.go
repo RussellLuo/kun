@@ -2,10 +2,14 @@ package gen
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/RussellLuo/kok/gen/endpoint"
+	"github.com/RussellLuo/kok/gen/grpc/grpc"
+	"github.com/RussellLuo/kok/gen/grpc/parser"
 	"github.com/RussellLuo/kok/gen/grpc/proto"
 	"github.com/RussellLuo/kok/gen/http/chi"
 	"github.com/RussellLuo/kok/gen/http/httpclient"
@@ -33,6 +37,7 @@ type Generator struct {
 	httpclient *httpclient.Generator
 	oasv2      *oasv2.Generator
 	proto      *proto.Generator
+	grpc       *grpc.Generator
 
 	opts *Options
 }
@@ -65,6 +70,11 @@ func New(opts *Options) *Generator {
 			Formatted: opts.Formatted,
 		}),
 		proto: proto.New(&proto.Options{
+			SchemaPtr: opts.SchemaPtr,
+			SchemaTag: opts.SchemaTag,
+			Formatted: opts.Formatted,
+		}),
+		grpc: grpc.New(&grpc.Options{
 			SchemaPtr: opts.SchemaPtr,
 			SchemaTag: opts.SchemaTag,
 			Formatted: opts.Formatted,
@@ -210,9 +220,39 @@ func (g *Generator) generateGRPC(result *reflector.Result, doc *reflector.Interf
 		}
 	}()
 
+	service, err := parser.Parse(result, doc)
+	if err != nil {
+		return files, err
+	}
+
 	// Generate the `.proto` file.
-	pkgPath := reflector.PkgPathFromDir(outDir)
-	f, err := g.proto.Generate(pkgPath, result, doc)
+	pbOutDir := filepath.Join(outDir, "pb")
+	if err = ensureDir(pbOutDir); err != nil {
+		return files, err
+	}
+	pbPkgPath := reflector.PkgPathFromDir(pbOutDir)
+	f, err := g.proto.Generate(pbPkgPath, result, service)
+	if err != nil {
+		return files, err
+	}
+	// Write the `proto` file at once.
+	moveTo(pbOutDir, f)
+	WriteFile(f)
+
+	// Compile the `.proto` file to the gRPC definition.
+	// See https://grpc.io/docs/languages/go/basics/#generating-client-and-server-code
+	cmd := exec.Command("protoc",
+		"--go_out=.", "--go_opt=paths=source_relative",
+		"--go-grpc_out=.", "--go-grpc_opt=paths=source_relative",
+		filepath.Join(pbOutDir, result.SrcPkgName+".proto"),
+	)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return files, fmt.Errorf("failed to compile proto: %s", out)
+	}
+
+	// Generate the glue code for adapting the gRPC definition to Go kit.
+	pkgInfo := g.getPkgInfo(outDir)
+	f, err = g.grpc.Generate(pkgInfo, pbPkgPath, result, service)
 	if err != nil {
 		return files, err
 	}
@@ -268,4 +308,8 @@ func ensureDir(path string) error {
 
 func moveTo(dir string, f *generator.File) {
 	f.Name = filepath.Join(dir, f.Name)
+}
+
+func WriteFile(f *generator.File) error {
+	return ioutil.WriteFile(f.Name, f.Content, 0644)
 }

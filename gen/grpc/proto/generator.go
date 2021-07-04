@@ -4,6 +4,7 @@ import (
 	"github.com/RussellLuo/kok/gen/grpc/parser"
 	"github.com/RussellLuo/kok/gen/util/generator"
 	"github.com/RussellLuo/kok/gen/util/reflector"
+	"github.com/RussellLuo/kok/pkg/caseconv"
 )
 
 var (
@@ -14,7 +15,7 @@ syntax = "proto3";
 
 option go_package = "{{.PkgPath}}";
 
-package {{.Result.SrcPkgName}};
+package {{.PkgName}};
 
 {{range .Service.Descriptions -}}
 {{.}}
@@ -33,14 +34,14 @@ service {{.Service.Name}} {
 // The request message of {{.Name}}.
 message {{.Request.Name}} {
   {{- range .Request.Fields}}
-  {{if .Type.Repeated}}repeated {{end}}{{.Type.Name}} {{.Name}} = {{.Num}};
+  {{if .Type.Repeated}}repeated {{end}}{{.Type.Name}} {{snakeCase .Name}} = {{.Num}};
   {{- end}} {{/* range .Request.Fields */}}
 }
 
 // The response message of {{.Name}}.
 message {{.Response.Name}} {
   {{- range .Response.Fields}}
-  {{if .Type.Repeated}}repeated {{end}}{{.Type.Name}} {{.Name}} = {{.Num}};
+  {{if .Type.Repeated}}repeated {{end}}{{.Type.Name}} {{snakeCase .Name}} = {{.Num}};
   {{- end}} {{/* range .Response.Fields */}}
 }
 {{- end}} {{/* range .Service.RPCs */}}
@@ -50,7 +51,7 @@ message {{.Response.Name}} {
 {{if .Fields -}}
 message {{.Name}} {
   {{- range .Fields}}
-  {{if .Type.Repeated}}repeated {{end}}{{.Type.Name}} {{.Name}} = {{.Num}};
+  {{if .Type.Repeated}}repeated {{end}}{{.Type.Name}} {{snakeCase .Name}} = {{.Num}};
   {{- end}} {{/* range .Fields */}}
 }
 {{- end}}{{/* if .Fields */}}
@@ -73,25 +74,25 @@ func New(opts *Options) *Generator {
 	return &Generator{opts: opts}
 }
 
-func (g *Generator) Generate(pkgPath string, result *reflector.Result, doc *reflector.InterfaceDoc) (*generator.File, error) {
-	service, err := parser.Parse(result, doc)
-	if err != nil {
-		return nil, err
-	}
-
+func (g *Generator) Generate(pkgPath string, result *reflector.Result, service *parser.Service) (*generator.File, error) {
 	data := struct {
 		PkgPath  string
+		PkgName  string
 		Result   *reflector.Result
 		Service  *parser.Service
 		Messages map[string]*parser.Type
 	}{
 		PkgPath:  pkgPath,
+		PkgName:  reflector.PkgNameFromDir(pkgPath),
 		Result:   result,
 		Service:  service,
 		Messages: getMessages(service),
 	}
 
 	return generator.Generate(template, data, generator.Options{
+		Funcs: map[string]interface{}{
+			"snakeCase": caseconv.ToSnakeCase,
+		},
 		TargetFileName: result.SrcPkgName + ".proto",
 	})
 }
