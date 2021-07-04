@@ -10,8 +10,14 @@ import (
 	"github.com/RussellLuo/kok/pkg/caseconv"
 )
 
+type Transport int
+
 const (
 	OptionNoBody = "-"
+
+	TransportHTTP Transport = 0b0001
+	TransportGRPC Transport = 0b0010
+	TransportAll  Transport = 0b0011
 )
 
 var (
@@ -22,21 +28,30 @@ var (
 	reSingleVarName = regexp.MustCompile(`^\w+$`)
 )
 
-func FromDoc(result *reflector.Result, doc *reflector.InterfaceDoc, snakeCase bool) (*Specification, error) {
+func FromDoc(result *reflector.Result, doc *reflector.InterfaceDoc, snakeCase bool) (*Specification, []Transport, error) {
 	metadata, err := buildMetadata(doc.Doc)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	spec := &Specification{
 		Metadata: metadata,
 	}
 
+	var transports []Transport
+
 	for _, m := range result.Interface.Methods {
 		comments, ok := doc.MethodDocs[m.Name]
-		if !ok || !hasKokAnnotations(comments) {
+		if !ok {
 			continue
 		}
+
+		transport := getTransportPerKokAnnotations(comments)
+		if transport == 0 {
+			// Empty transport indicates that there are no kok annotations.
+			continue
+		}
+		transports = append(transports, transport)
 
 		op := &Operation{
 			Name:        m.Name,
@@ -67,14 +82,16 @@ func FromDoc(result *reflector.Result, doc *reflector.InterfaceDoc, snakeCase bo
 		// Set a default success response.
 		op.Resp(http.StatusOK, MediaTypeJSON, nil)
 
-		if err := manipulateByComments(op, params, results, comments); err != nil {
-			return nil, err
+		if transport == TransportHTTP || transport == TransportAll {
+			if err := manipulateByComments(op, params, results, comments); err != nil {
+				return nil, nil, err
+			}
 		}
 
 		spec.Operations = append(spec.Operations, op)
 	}
 
-	return spec, nil
+	return spec, transports, nil
 }
 
 func getDescriptionFromDoc(doc []string) string {
@@ -88,19 +105,27 @@ func getDescriptionFromDoc(doc []string) string {
 	return strings.Join(comments, "\\n")
 }
 
-func hasKokAnnotations(comments []string) bool {
+func getTransportPerKokAnnotations(comments []string) (t Transport) {
 	for _, comment := range comments {
-		if isKokAnnotation(comment) {
-			return true
+		if isKokGRPCAnnotation(comment) {
+			t = t | TransportGRPC
+		} else if isKokAnnotation(comment) {
+			t = t | TransportHTTP
 		}
 	}
-	return false
+	return t
 }
 
 func isKokAnnotation(comment string) bool {
 	content := strings.TrimPrefix(comment, "//")
 	trimmed := strings.TrimSpace(content)
 	return strings.HasPrefix(trimmed, "@kok")
+}
+
+func isKokGRPCAnnotation(comment string) bool {
+	content := strings.TrimPrefix(comment, "//")
+	trimmed := strings.TrimSpace(content)
+	return strings.HasPrefix(trimmed, "@kok(grpc)")
 }
 
 func manipulateByComments(op *Operation, params map[string]*Param, results map[string]*reflector.Param, comments []string) error {
@@ -137,7 +162,7 @@ func manipulateByComments(op *Operation, params map[string]*Param, results map[s
 	}
 
 	for _, comment := range comments {
-		if !isKokAnnotation(comment) {
+		if !isKokAnnotation(comment) || isKokGRPCAnnotation(comment) {
 			continue
 		}
 

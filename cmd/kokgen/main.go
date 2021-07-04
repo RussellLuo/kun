@@ -4,7 +4,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -77,7 +76,7 @@ func run(flags userFlags) error {
 			continue
 		}
 
-		if err := ioutil.WriteFile(f.Name, f.Content, 0644); err != nil {
+		if err := gen.WriteFile(f); err != nil {
 			return err
 		}
 	}

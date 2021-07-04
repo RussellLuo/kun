@@ -20,7 +20,9 @@ The toolkit of [Go kit][1].
             + [x] HTTP Test
             + [x] HTTP Client
             + [x] [OAS-v2][2] Documentation
-        - [ ] gRPC
+        - [x] gRPC
+            + [x] gRPC Server
+            + [ ] gRPC Client
 
 2. Useful Packages
 
@@ -60,6 +62,8 @@ kokgen [flags] source-file interface-name
 
 
 ## Quick Start
+
+### HTTP
 
 **NOTE**: The following code is located in [helloworld](examples/helloworld).
 
@@ -182,6 +186,62 @@ kokgen [flags] source-file interface-name
     ```
 
     </details>
+
+### gRPC
+
+**NOTE**: The following code is located in [helloworldgrpc](examples/helloworldgrpc).
+
+1. Define the interface
+
+    ```go
+    type Service interface {
+        SayHello(ctx context.Context, name string) (message string, err error)
+    }
+    ```
+
+2. Implement the service
+
+    ```go
+    type Greeter struct{}
+
+    func (g *Greeter) SayHello(ctx context.Context, name string) (string, error) {
+        return "Hello " + name, nil
+    }
+    ```
+
+3. Add gRPC annotations
+
+    ```go
+    type Service interface {
+        // @kok(grpc)
+        SayHello(ctx context.Context, name string) (message string, err error)
+    }
+    ```
+
+4. Generate the gRPC code
+
+    ```bash
+    $ cd examples/helloworldgrpc
+    $ kokgen ./service.go Service
+    ```
+
+5. Consume the service
+
+    Run the gRPC server:
+
+    ```bash
+    $ go run cmd/main.go
+    2020/09/15 18:06:22 transport=HTTP addr=:8080
+    ```
+
+    Consume by [grpcurl][3]:
+
+    ```bash
+    $ grpcurl -plaintext -d '{"name": "Tracey"}' :8080 pb.Service/SayHello
+    {
+      "message": "Hello Tracey"
+    }
+    ```
 
 See more examples [here](examples).
 
@@ -416,6 +476,13 @@ Also see [here](https://github.com/RussellLuo/kok/issues/8) for examples.
 ### OAS Schema
 
 See the [OAS Schema](https://github.com/RussellLuo/kok/blob/master/pkg/oasv2/schema.go#L18-L21) interface.
+
+
+## gRPC
+
+### Annotations
+
+- Key: `@kok(grpc)`
 
 
 ## Documentation
