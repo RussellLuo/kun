@@ -42,8 +42,8 @@ func (s *grpcServer) {{.Name}}(ctx context.Context, req *{{$pbPkgPrefix}}{{.Requ
 {{- end}} {{/* range .Service.RPCs */}}
 
 func NewGRPCServer(svc {{.Result.SrcPkgPrefix}}{{$serviceName}}, codecs grpccodec.Codecs) {{$pbPkgPrefix}}{{$serviceName}}Server {
-	s := new(grpcServer)
 	var codec grpccodec.Codec
+	s := new(grpcServer)
 
 	{{- range .Service.RPCs}}
 
@@ -130,14 +130,7 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, pbPkgPath string, resul
 				}
 				return ""
 			},
-			"upperCamelCase": caseconv.ToUpperCamelCase,
-			"lowerFirst":     caseconv.LowerFirst,
-			"pbFieldName": func(s string) string {
-				// Convert naming convention from Go's to Protocol Buffer's.
-				// e.g. "ID" -> "Id"
-				s = caseconv.ToSnakeCase(s)
-				return caseconv.ToUpperCamelCase(s)
-			},
+			"lowerFirst": caseconv.LowerFirst,
 		},
 		Formatted:      g.opts.Formatted,
 		TargetFileName: "grpc.go",

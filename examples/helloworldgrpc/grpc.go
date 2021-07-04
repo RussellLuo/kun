@@ -26,8 +26,8 @@ func (s *grpcServer) SayHello(ctx context.Context, req *pb.SayHelloRequest) (*pb
 }
 
 func NewGRPCServer(svc Service, codecs grpccodec.Codecs) pb.ServiceServer {
-	s := new(grpcServer)
 	var codec grpccodec.Codec
+	s := new(grpcServer)
 
 	codec = codecs.EncodeDecoder("SayHello")
 	s.sayHello = kitgrpc.NewServer(
