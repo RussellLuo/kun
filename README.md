@@ -485,9 +485,38 @@ See the [OAS Schema](https://github.com/RussellLuo/kok/blob/master/pkg/oasv2/sch
 - Key: `@kok(grpc)`
 - Value: `request:<request>,response:<response>`
     + **request**: The name of the method argument whose value is mapped to the gRPC request.
-        - Optional: When omitted, a struct containing all the arguments (except `ctx context.Context`), will automatically be mapped to the gRPC request.
+        - Optional: When omitted, a struct containing all the arguments (except context.Context) will automatically be mapped to the gRPC request.
     + **response**: The name of the method result whose value is mapped to the gRPC response.
-        - Optional: When omitted, a struct containing all the results (except `err error`), will automatically be mapped to the gRPC response.
+        - Optional: When omitted, a struct containing all the results (except error) will automatically be mapped to the gRPC response.
+- Example:
+    + Omitted:
+
+        ```go
+        type Service interface {
+            // @kok(grpc)
+            CreateUser(ctx context.Context, name string, age int) (err error)
+        }
+
+        // gRPC request:
+        // $ grpcurl -d '{"name": "tracey", "age": 1}' ... pb.Service/CreateUser
+        ```
+
+    + Specified:
+
+        ```go
+        type User struct {
+            Name string `json:"name"`
+            Age  int    `json:"age"`
+        }
+
+        type Service interface {
+            // @kok(grpc): request:user
+            CreateUser(ctx context.Context, user User) (err error)
+        }
+
+        // gRPC request:
+        // $ grpcurl -d '{"name": "tracey", "age": 1}' ... pb.Service/CreateUser
+        ```
 
 
 ## Documentation
