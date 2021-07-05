@@ -22,6 +22,7 @@ var (
 		"int64":   "int64",  // sint64, sfixed64
 		"uint32":  "uint32", // fixed32
 		"uint64":  "uint64", // fixed64
+		"int":     "int64",
 		"bool":    "bool",
 		"string":  "string",
 		"[]byte":  "bytes",
@@ -56,8 +57,9 @@ type Field struct {
 
 type Type struct {
 	Name     string
-	Repeated bool
-	Fields   []*Field
+	Repeated bool     // true for slice: []Type
+	MapKey   string   // non-empty for map: map[key]Type
+	Fields   []*Field // non-empty for struct
 }
 
 // Squash does a pre-order walk of t and returns all the composite types
@@ -144,6 +146,26 @@ func parseType(name string, typ types.Type) (*Type, error) {
 		}
 		return st, nil
 
+	case *types.Map:
+		k := t.Key()
+		bt, ok := k.(*types.Basic)
+		if !ok {
+			return nil, fmt.Errorf("unsupported map key %T", k)
+		}
+		kt := parseBasicType(bt)
+
+		// TODO: Add support for map[string]interface{}?
+		vt, err := parseType("", t.Elem())
+		if err != nil {
+			return nil, err
+		}
+
+		return &Type{
+			Name:   vt.Name,
+			MapKey: kt.Name,   // type name of the map key
+			Fields: vt.Fields, // possible fields from the map value.
+		}, nil
+
 	case *types.Struct:
 		st, err := parseStructType(name, typ, t)
 		if err != nil {
@@ -158,6 +180,7 @@ func parseType(name string, typ types.Type) (*Type, error) {
 			return nil, err
 		}
 		return et, nil
+
 	default:
 		return nil, fmt.Errorf("unsupported %T", t)
 	}
@@ -196,7 +219,7 @@ func parseStructType(name string, typ types.Type, t *types.Struct) (*Type, error
 			return nil, nil
 		}
 
-		fieldType, err := getFieldType(t, i, fieldName)
+		fieldType, err := parseType(fieldName, t.Field(i).Type())
 		if err != nil {
 			return nil, err
 		}
@@ -223,32 +246,6 @@ func getFieldName(t *types.Struct, i int) string {
 
 	parts := strings.SplitN(kokField.Name, ".", 2)
 	return parts[1]
-}
-
-func getFieldType(t *types.Struct, i int, fieldName string) (*Type, error) {
-	typ := t.Field(i).Type()
-
-	switch ft := typ.Underlying().(type) {
-	case *types.Basic:
-		return parseBasicType(ft), nil
-
-	case *types.Slice:
-		st, err := parseSliceType(fieldName, ft)
-		if err != nil {
-			return nil, err
-		}
-		return st, nil
-
-	case *types.Struct:
-		st, err := parseStructType(fieldName, typ, ft)
-		if err != nil {
-			return nil, err
-		}
-		return st, nil
-
-	default:
-		return nil, fmt.Errorf("unsupported %T", ft)
-	}
 }
 
 func getDescriptionsFromDoc(doc []string) (comments []string) {

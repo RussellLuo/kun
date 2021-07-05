@@ -1,6 +1,8 @@
 package proto
 
 import (
+	"fmt"
+
 	"github.com/RussellLuo/kok/gen/grpc/parser"
 	"github.com/RussellLuo/kok/gen/util/generator"
 	"github.com/RussellLuo/kok/gen/util/reflector"
@@ -34,14 +36,14 @@ service {{.Service.Name}} {
 // The request message of {{.Name}}.
 message {{.Request.Name}} {
   {{- range .Request.Fields}}
-  {{if .Type.Repeated}}repeated {{end}}{{.Type.Name}} {{snakeCase .Name}} = {{.Num}};
+  {{fullTypeName .Type}} {{snakeCase .Name}} = {{.Num}};
   {{- end}} {{/* range .Request.Fields */}}
 }
 
 // The response message of {{.Name}}.
 message {{.Response.Name}} {
   {{- range .Response.Fields}}
-  {{if .Type.Repeated}}repeated {{end}}{{.Type.Name}} {{snakeCase .Name}} = {{.Num}};
+  {{fullTypeName .Type}} {{snakeCase .Name}} = {{.Num}};
   {{- end}} {{/* range .Response.Fields */}}
 }
 {{- end}} {{/* range .Service.RPCs */}}
@@ -51,7 +53,7 @@ message {{.Response.Name}} {
 {{if .Fields -}}
 message {{.Name}} {
   {{- range .Fields}}
-  {{if .Type.Repeated}}repeated {{end}}{{.Type.Name}} {{snakeCase .Name}} = {{.Num}};
+  {{fullTypeName .Type}} {{snakeCase .Name}} = {{.Num}};
   {{- end}} {{/* range .Fields */}}
 }
 {{- end}}{{/* if .Fields */}}
@@ -92,6 +94,19 @@ func (g *Generator) Generate(pkgPath string, result *reflector.Result, service *
 	return generator.Generate(template, data, generator.Options{
 		Funcs: map[string]interface{}{
 			"snakeCase": caseconv.ToSnakeCase,
+			"fullTypeName": func(typ *parser.Type) string {
+				name := typ.Name
+
+				if typ.MapKey != "" {
+					name = fmt.Sprintf("map<%s, %s>", typ.MapKey, typ.Name)
+				}
+
+				if typ.Repeated {
+					name = "repeated " + name
+				}
+
+				return name
+			},
 		},
 		TargetFileName: result.SrcPkgName + ".proto",
 	})
