@@ -234,7 +234,7 @@ kokgen [flags] source-file interface-name
     2020/09/15 18:06:22 transport=HTTP addr=:8080
     ```
 
-    Consume by [grpcurl][3]:
+    Consume by [grpcurl](https://github.com/fullstorydev/grpcurl):
 
     ```bash
     $ grpcurl -plaintext -d '{"name": "Tracey"}' :8080 pb.Service/SayHello
@@ -483,6 +483,11 @@ See the [OAS Schema](https://github.com/RussellLuo/kok/blob/master/pkg/oasv2/sch
 ### Annotations
 
 - Key: `@kok(grpc)`
+- Value: `request:<request>,response:<response>`
+    + **request**: The name of the method argument whose value is mapped to the gRPC request.
+        - Optional: When omitted, a struct containing all the arguments (except `ctx context.Context`), will automatically be mapped to the gRPC request.
+    + **response**: The name of the method result whose value is mapped to the gRPC response.
+        - Optional: When omitted, a struct containing all the results (except `err error`), will automatically be mapped to the gRPC response.
 
 
 ## Documentation

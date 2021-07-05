@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/types"
 	"reflect"
+	"regexp"
 	"strings"
 
 	"github.com/RussellLuo/kok/gen/util/reflector"
@@ -25,6 +26,8 @@ var (
 		"string":  "string",
 		"[]byte":  "bytes",
 	}
+
+	reKok = regexp.MustCompile(`@kok\(grpc\)(:\s*(.+))?$`)
 )
 
 type Service struct {
@@ -84,12 +87,7 @@ func Parse(result *reflector.Result, doc *reflector.InterfaceDoc) (*Service, err
 			continue
 		}
 
-		reqFields, err := parse(m.Params)
-		if err != nil {
-			return nil, err
-		}
-
-		respFields, err := parse(m.Returns)
+		rpcFields, err := parseRPCFields(m, comments)
 		if err != nil {
 			return nil, err
 		}
@@ -99,11 +97,11 @@ func Parse(result *reflector.Result, doc *reflector.InterfaceDoc) (*Service, err
 			Descriptions: getDescriptionsFromDoc(comments),
 			Request: &Message{
 				Name:   m.Name + "Request",
-				Fields: reqFields,
+				Fields: rpcFields.Request,
 			},
 			Response: &Message{
 				Name:   m.Name + "Response",
-				Fields: respFields,
+				Fields: rpcFields.Response,
 			},
 		})
 	}
@@ -275,4 +273,116 @@ func isKokAnnotation(comment, anno string) bool {
 	content := strings.TrimPrefix(comment, "//")
 	trimmed := strings.TrimSpace(content)
 	return strings.HasPrefix(trimmed, anno)
+}
+
+type rpcFields struct {
+	Request  []*Field
+	Response []*Field
+}
+
+func parseRPCFields(method *reflector.Method, comments []string) (*rpcFields, error) {
+	reqFields, err := parse(method.Params)
+	if err != nil {
+		return nil, err
+	}
+
+	respFields, err := parse(method.Returns)
+	if err != nil {
+		return nil, err
+	}
+
+	rpcFields := &rpcFields{
+		Request:  reqFields,
+		Response: respFields,
+	}
+
+	if err := rpcFields.manipulateByComments(method, comments); err != nil {
+		return nil, err
+	}
+
+	return rpcFields, nil
+}
+
+func (rf *rpcFields) manipulateByComments(method *reflector.Method, comments []string) error {
+	params := make(map[string]*reflector.Param)
+	for _, p := range method.Params {
+		params[p.Name] = p
+	}
+
+	returns := make(map[string]*reflector.Param)
+	for _, p := range method.Returns {
+		returns[p.Name] = p
+	}
+
+	for _, comment := range comments {
+		if !isKokAnnotation(comment, "@kok(grpc)") {
+			continue
+		}
+
+		result := reKok.FindStringSubmatch(comment)
+		if len(result) != 3 {
+			return fmt.Errorf("invalid kok comment: %s", comment)
+		}
+		value := strings.TrimSpace(result[2])
+		if value == "" {
+			continue
+		}
+
+		fields := strings.Split(value, ",")
+		for _, f := range fields {
+			parts := strings.Split(f, ":")
+			if len(parts) != 2 {
+				return fmt.Errorf(`%q does not match the expected format: <key>:<value>`, f)
+			}
+			k, v := parts[0], parts[1]
+
+			switch k {
+			case "request":
+				p, ok := params[v]
+				if !ok {
+					return fmt.Errorf("no param `%s` declared in the method %s", v, method.Name)
+				}
+				if !isStructType(p.RawType) {
+					return fmt.Errorf("non-struct param `%s` in the method %s cannot be mapped to a gRPC request", v, method.Name)
+				}
+
+				structType, err := parseType(p.Name, p.RawType)
+				if err != nil {
+					return err
+				}
+				rf.Request = structType.Fields
+
+			case "response":
+				p, ok := returns[v]
+				if !ok {
+					return fmt.Errorf("no result `%s` declared in the method %s", v, method.Name)
+				}
+				if !isStructType(p.RawType) {
+					return fmt.Errorf("non-struct result `%s` in the method %s cannot be mapped to a gRPC response", v, method.Name)
+				}
+
+				structType, err := parseType(p.Name, p.RawType)
+				if err != nil {
+					return err
+				}
+				rf.Response = structType.Fields
+
+			default:
+				return fmt.Errorf(`unrecognized kok key "%s" in comment: %s`, k, comment)
+			}
+		}
+	}
+
+	return nil
+}
+
+func isStructType(typ types.Type) bool {
+	switch t := typ.Underlying().(type) {
+	case *types.Struct:
+		return true
+	case *types.Pointer:
+		return isStructType(t.Elem())
+	default:
+		return false
+	}
 }
