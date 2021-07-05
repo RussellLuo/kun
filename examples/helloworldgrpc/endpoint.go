@@ -12,7 +12,7 @@ import (
 )
 
 type SayHelloRequest struct {
-	Name []string `json:"name"`
+	Name string `json:"name"`
 }
 
 // ValidateSayHelloRequest creates a validator for SayHelloRequest.

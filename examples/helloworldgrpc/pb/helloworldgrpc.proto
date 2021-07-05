@@ -15,7 +15,7 @@ service Service {
 
 // The request message of SayHello.
 message SayHelloRequest {
-  repeated string name = 1; 
+  string name = 1; 
 }
 
 // The response message of SayHello.
