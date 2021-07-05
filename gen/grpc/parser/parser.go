@@ -153,15 +153,13 @@ func parseType(name string, typ types.Type) (*Type, error) {
 		}
 		return st, nil
 
-		//case *types.Pointer:
-		//	// Dereference the pointer to parse the element type.
-		//	nts, err := p.parseTypes(name, t.Elem())
-		//	if err != nil {
-		//		return nil, err
-		//	}
-		//	for n, t := range nts {
-		//		nameTypes[n] = t
-		//	}
+	case *types.Pointer:
+		// Dereference the pointer to parse the element type.
+		et, err := parseType(name, t.Elem())
+		if err != nil {
+			return nil, err
+		}
+		return et, nil
 	default:
 		return nil, fmt.Errorf("unsupported %T", t)
 	}
