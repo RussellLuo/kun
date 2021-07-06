@@ -1,10 +1,11 @@
 # kok
 
-The toolkit of [Go kit][1].
+kok (pronounced keɪ-oʊ-keɪ) is a toolkit of [Go kit][1].
 
 
 ## Zen
 
+- Embrace [the Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html) for non-trivial applications.
 - Just write code for your business logic, generate everything else.
 - Implement the service once, consume it in various ways (in-process function call or RPC).
 
