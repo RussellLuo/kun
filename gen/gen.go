@@ -2,7 +2,6 @@ package gen
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -145,7 +144,7 @@ func (g *Generator) generateEndpoint(result *reflector.Result, spec *openapi.Spe
 	}
 	defer func() {
 		if file != nil {
-			moveTo(outDir, file)
+			file.MoveTo(outDir)
 		}
 	}()
 
@@ -166,7 +165,7 @@ func (g *Generator) generateHTTP(result *reflector.Result, spec *openapi.Specifi
 	}
 	defer func() {
 		for _, f := range files {
-			moveTo(outDir, f)
+			f.MoveTo(outDir)
 		}
 	}()
 
@@ -216,7 +215,7 @@ func (g *Generator) generateGRPC(result *reflector.Result, doc *reflector.Interf
 	}
 	defer func() {
 		for _, f := range files {
-			moveTo(outDir, f)
+			f.MoveTo(outDir)
 		}
 	}()
 
@@ -236,8 +235,8 @@ func (g *Generator) generateGRPC(result *reflector.Result, doc *reflector.Interf
 		return files, err
 	}
 	// Write the `proto` file at once.
-	moveTo(pbOutDir, f)
-	if err := WriteFile(f); err != nil {
+	f.MoveTo(pbOutDir)
+	if err := f.Write(); err != nil {
 		return files, err
 	}
 
@@ -306,12 +305,4 @@ func mergeTransports(transports []openapi.Transport) (result openapi.Transport) 
 
 func ensureDir(path string) error {
 	return os.MkdirAll(path, 0755)
-}
-
-func moveTo(dir string, f *generator.File) {
-	f.Name = filepath.Join(dir, f.Name)
-}
-
-func WriteFile(f *generator.File) error {
-	return ioutil.WriteFile(f.Name, f.Content, 0644)
 }

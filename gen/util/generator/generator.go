@@ -2,6 +2,8 @@ package generator
 
 import (
 	"bytes"
+	"io/ioutil"
+	"path/filepath"
 	"text/template"
 )
 
@@ -10,6 +12,14 @@ var formatters = []Formatter{Gofmt, Goimports}
 type File struct {
 	Name    string
 	Content []byte
+}
+
+func (f *File) MoveTo(dir string) {
+	f.Name = filepath.Join(dir, f.Name)
+}
+
+func (f *File) Write() error {
+	return ioutil.WriteFile(f.Name, f.Content, 0644)
 }
 
 type PkgInfo struct {

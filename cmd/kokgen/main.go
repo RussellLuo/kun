@@ -72,11 +72,7 @@ func run(flags userFlags) error {
 	}
 
 	for _, f := range files {
-		if len(f.Content) == 0 {
-			continue
-		}
-
-		if err := gen.WriteFile(f); err != nil {
+		if err := f.Write(); err != nil {
 			return err
 		}
 	}
