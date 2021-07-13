@@ -34,6 +34,11 @@ func FromDoc(result *reflector.Result, doc *reflector.InterfaceDoc, snakeCase bo
 		return nil, nil, err
 	}
 
+	aliases, err := newAliases(doc.Doc)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	spec := &Specification{
 		Metadata: metadata,
 	}
@@ -83,7 +88,7 @@ func FromDoc(result *reflector.Result, doc *reflector.InterfaceDoc, snakeCase bo
 		op.Resp(http.StatusOK, MediaTypeJSON, nil)
 
 		if transport == TransportHTTP || transport == TransportAll {
-			if err := manipulateByComments(op, params, results, comments); err != nil {
+			if err := manipulateByComments(op, params, results, aliases, comments); err != nil {
 				return nil, nil, err
 			}
 		}
@@ -128,10 +133,11 @@ func isKokGRPCAnnotation(comment string) bool {
 	return strings.HasPrefix(trimmed, "@kok(grpc)")
 }
 
-func manipulateByComments(op *Operation, params map[string]*Param, results map[string]*reflector.Param, comments []string) error {
+func manipulateByComments(op *Operation, params map[string]*Param, results map[string]*reflector.Param, aliases Aliases, comments []string) error {
 	parser := &Parser{
 		methodName: op.Name,
 		params:     params,
+		aliases:    aliases,
 	}
 
 	setParamByAnnotation := func(a *annotation) error {

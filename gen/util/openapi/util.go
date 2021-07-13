@@ -64,6 +64,9 @@ func buildMetadata(comments []string) (m *Metadata, err error) {
 
 		result := reKok.FindStringSubmatch(comment)
 		if len(result) != 3 || result[1] != "oas" {
+			if result[1] == "alias" {
+				continue
+			}
 			return nil, fmt.Errorf("invalid kok comment: %s", comment)
 		}
 

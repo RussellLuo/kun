@@ -467,6 +467,43 @@ See more examples [here](examples).
 
 </details>
 
+<details open>
+  <summary> Define the annotation alias </summary>
+
+
+- Key: `@kok(alias)`
+- Value: ``<name>=`<value>` ``
+    + `<name>`: The name of the alias.
+    + `<value>`: The string value that the alias represents.
+- Example:
+
+    ```go
+    type Service interface {
+        // @kok(op): POST /users
+        // @kok(param): operatorID < in:header,name:Authorization,required:true
+        CreateUser(ctx context.Context, operatorID int) (err error)
+
+        // @kok(op): DELETE /users/{id}
+        // @kok(param): operatorID < in:header,name:Authorization,required:true
+        DeleteUser(ctx context.Context, id, operatorID int) (err error)
+    }
+
+    // The equivalent annotations =>
+
+    // @kok(alias): opID=`operatorID < in:header,name:Authorization,required:true`
+    type Service interface {
+        // @kok(op): POST /users
+        // @kok(param): $opID
+        CreateUser(ctx context.Context, operatorID int) (err error)
+
+        // @kok(op): DELETE /users/{id}
+        // @kok(param): $opID
+        DeleteUser(ctx context.Context, id, operatorID int) (err error)
+    }
+    ```
+
+</details>
+
 ### Encoding and decoding
 
 See the [HTTP Codec](https://github.com/RussellLuo/kok/blob/master/pkg/codec/httpcodec/codec.go#L8-L22) interface.

@@ -97,10 +97,18 @@ type Parser struct {
 	methodName string
 	params     map[string]*Param
 
+	// aliases are mainly used for simplifying the annotations in @kok(param).
+	aliases Aliases
+
 	prevArgName string
 }
 
 func (p *Parser) Parse(text string) ([]*annotation, error) {
+	text, err := p.aliases.Eval(text)
+	if err != nil {
+		return nil, err
+	}
+
 	a, err := newParamAnnotation(text, p.prevArgName)
 	if err != nil {
 		return nil, err
