@@ -86,7 +86,7 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 	{{if $queryParams -}}
 	q := u.Query()
 	{{- range $queryParams}}
-	for _, v := range codec.EncodeRequestParam("{{.Name}}", {{.Name}}) {
+	for _, v := range codec.EncodeRequestParam("{{.Name}}", {{paramVar .}}) {
 		q.Add("{{.Alias}}", v)
 	}
 	{{- end}}
@@ -121,7 +121,7 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 		_req.Header.Set(k, v)
 	}
 	{{- range $headerParams}}
-	for _, v := range codec.EncodeRequestParam("{{.Name}}", {{.Name}}) {
+	for _, v := range codec.EncodeRequestParam("{{.Name}}", {{paramVar .}}) {
 		_req.Header.Add("{{.Alias}}", v)
 	}
 	{{end}}
@@ -133,7 +133,7 @@ func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joi
 		return {{returnErr .Returns}}
 	}
 	{{- range $headerParams}}
-	for _, v := range codec.EncodeRequestParam("{{.Name}}", {{.Name}}) {
+	for _, v := range codec.EncodeRequestParam("{{.Name}}", {{paramVar .}}) {
 		_req.Header.Add("{{.Alias}}", v)
 	}
 	{{end}}
@@ -350,6 +350,12 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, result *reflector.Resul
 					}
 				}
 				return
+			},
+			"paramVar": func(param *openapi.Param) string {
+				if param.IsBlank {
+					return "nil"
+				}
+				return param.Name
 			},
 			"returnErr": func(params []*reflector.Param) string {
 				emptyValue := func(typ string) string {

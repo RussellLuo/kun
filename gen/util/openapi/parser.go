@@ -106,9 +106,9 @@ func (p *Parser) Parse(text string) ([]*annotation, error) {
 		return nil, err
 	}
 
-	param, ok := p.params[a.ArgName]
-	if !ok {
-		return nil, fmt.Errorf("no param `%s` declared in the method %s", a.ArgName, p.methodName)
+	param, err := p.GetParam(a.ArgName)
+	if err != nil {
+		return nil, err
 	}
 
 	annotations, err := p.completeAnnotations(param.RawType, a)
@@ -120,6 +120,24 @@ func (p *Parser) Parse(text string) ([]*annotation, error) {
 	p.prevArgName = a.ArgName
 
 	return annotations, nil
+}
+
+func (p *Parser) GetParam(name string) (*Param, error) {
+	if param, ok := p.params[name]; ok {
+		return param, nil
+	}
+
+	// This is a blank identifier.
+	if strings.HasPrefix(name, "__") {
+		return &Param{
+			Name:    name,
+			RawType: types.Typ[types.String], // Defaults to string.
+			IsBlank: true,
+			inUse:   true, // Force to add this parameter to the operation.
+		}, nil
+	}
+
+	return nil, fmt.Errorf("no param `%s` declared in the method %s", name, p.methodName)
 }
 
 // completeAnnotationsPerType builds the complete annotations according to the type

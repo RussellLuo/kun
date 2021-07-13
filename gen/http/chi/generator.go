@@ -115,7 +115,7 @@ func decode{{.Name}}Request(codec httpcodec.Codec, validator httpoption.Validato
 			"{{.In}}.{{.Alias}}": {{extractParam .}},
 			{{- end}}
 		}
-		if err := codec.DecodeRequestParams("{{.Name}}", {{.Name}}, &_req.{{title .Name}}); err != nil {
+		if err := codec.DecodeRequestParams("{{.Name}}", {{.Name}}, {{paramVar "_req" .}}); err != nil {
 			return nil, err
 		}
 
@@ -123,12 +123,12 @@ func decode{{.Name}}Request(codec httpcodec.Codec, validator httpoption.Validato
 		{{- $property := index .Properties 0}}
 		{{.Name}} := {{$property | extractParam}}
 		{{- if $property.Required}}
-		if err := codec.DecodeRequestParam("{{.Name}}", {{.Name}}, &_req.{{title .Name}}); err != nil {
+		if err := codec.DecodeRequestParam("{{.Name}}", {{.Name}}, {{paramVar "_req" .}}); err != nil {
 			return nil, err
 		}
 		{{- else}} {{/* if $property.Required */}}
 		if len({{.Name}}) > 0 {
-			if err := codec.DecodeRequestParam("{{.Name}}", {{.Name}}, &_req.{{title .Name}}); err != nil {
+			if err := codec.DecodeRequestParam("{{.Name}}", {{.Name}}, {{paramVar "_req" .}}); err != nil {
 				return nil, err
 			}
 		}
@@ -208,6 +208,7 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, result *reflector.Resul
 
 	type ParamsGroupByName struct {
 		Name        string
+		IsBlank     bool
 		Aggregation bool
 		Properties  []ParamProperty
 	}
@@ -244,7 +245,7 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, result *reflector.Resul
 					if p.In != openapi.InBody {
 						grouped, ok := params[p.Name]
 						if !ok {
-							grouped = &ParamsGroupByName{Name: p.Name}
+							grouped = &ParamsGroupByName{Name: p.Name, IsBlank: p.IsBlank}
 
 							names = append(names, p.Name)
 							params[p.Name] = grouped
@@ -309,6 +310,12 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, result *reflector.Resul
 					return name
 				}
 				return ""
+			},
+			"paramVar": func(reqVar string, param *ParamsGroupByName) string {
+				if param.IsBlank {
+					return "nil"
+				}
+				return fmt.Sprintf("&%s.%s", reqVar, strings.Title(param.Name))
 			},
 		},
 		Formatted:      g.opts.Formatted,

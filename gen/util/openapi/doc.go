@@ -134,16 +134,8 @@ func manipulateByComments(op *Operation, params map[string]*Param, results map[s
 		params:     params,
 	}
 
-	getParam := func(argName string) (*Param, error) {
-		p, ok := params[argName]
-		if !ok {
-			return nil, fmt.Errorf("no param `%s` declared in the method %s", argName, op.Name)
-		}
-		return p, nil
-	}
-
 	setParamByAnnotation := func(a *annotation) error {
-		param, err := getParam(a.ArgName)
+		param, err := parser.GetParam(a.ArgName)
 		if err != nil {
 			return err
 		}
@@ -151,11 +143,12 @@ func manipulateByComments(op *Operation, params map[string]*Param, results map[s
 		if !param.inUse {
 			param.SetByAnnotation(a)
 		} else {
-			copied := *param
-			param.SetByAnnotation(a)
+			v := *param
+			copied := &v
+			copied.SetByAnnotation(a)
 
 			// Add a new parameter with the same name.
-			op.addParam(&copied)
+			op.addParam(copied)
 		}
 
 		return nil
@@ -219,7 +212,7 @@ func manipulateByComments(op *Operation, params map[string]*Param, results map[s
 				}
 				argName, value := strings.TrimSpace(s[0]), strings.TrimSpace(s[1])
 
-				param, err := getParam(argName)
+				param, err := parser.GetParam(argName)
 				if err != nil {
 					return nil, "", err
 				}
