@@ -281,7 +281,7 @@ See more examples [here](examples).
     + **argName**: The name of the method argument.
         - *Argument aggregation*: By specifying the same **argName**, multiple request parameters (each one is of basic type or repeated basic type) can be aggregated into one method argument (of any type).
             + You do not need to repeat the **argName**, only the first one is required.
-        - *Blank identifier*: By specifying **argName** with a double underscore prefix `__`, the corresponding request parameter(s) will not be mapped to any method argument. See [here](https://github.com/RussellLuo/kok/issues/15) for more details.
+        - *Blank identifier*: By specifying the **argName** with a double underscore prefix `__`, the corresponding request parameter(s) will not be mapped to any method argument. See [here](https://github.com/RussellLuo/kok/issues/15) for more details.
     + **in**:
         - **path**: The method argument is sourced from a [path parameter](https://swagger.io/docs/specification/describing-parameters/#path-parameters).
             + Optional: All variables in **pattern** will automatically be bound to their corresponding method arguments (matches by name in *lower camel case*), as **path** parameters.
@@ -473,7 +473,7 @@ See more examples [here](examples).
 
 
 - Key: `@kok(oas)`
-- Value: `<property>=<value>`
+- Value: `<property>:<value>`
     + `<property>`: The property to set. Supported properties:
         - **docsPath**: The URL path to the OAS documentation itself.
             + Optional: Defaults to `"/api"` if not specified.
@@ -489,7 +489,7 @@ See more examples [here](examples).
 - Example:
 
     ```go
-    // This is the API documentation for User.
+    // This is the API documentation of User.
     // @kok(oas): docsPath:/api-docs
     // @kok(oas): title:User API
     // @kok(oas): version:1.0.0
