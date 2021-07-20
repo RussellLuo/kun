@@ -1,0 +1,33 @@
+{
+  "PkgName": "importalias",
+  "SrcPkgQualifier": "",
+  "InterfaceName": "Connector",
+  "Imports": [
+    {
+      "Alias": "dstclient",
+      "Path": "github.com/RussellLuo/kok/pkg/ifacetool/moq/testdata/importalias/dst/client"
+    },
+    {
+      "Alias": "srcclient",
+      "Path": "github.com/RussellLuo/kok/pkg/ifacetool/moq/testdata/importalias/src/client"
+    }
+  ],
+  "Methods": [
+    {
+      "Name": "Connect",
+      "Params": [
+        {
+          "Name": "src",
+          "TypeString": "srcclient.Client",
+          "Variadic": false
+        },
+        {
+          "Name": "dst",
+          "TypeString": "dstclient.Client",
+          "Variadic": false
+        }
+      ],
+      "Returns": null
+    }
+  ]
+}
