@@ -44,7 +44,8 @@ func (p *Parser) Parse(ifaceName string) (*ifacetool.Data, error) {
 	data := template.Data{
 		PkgName: p.mockPkgName(),
 	}
-	if p.registry.SrcPkgName() != p.mockPkgName() {
+	srcPkgName := p.registry.SrcPkgName()
+	if srcPkgName != p.mockPkgName() {
 		data.SrcPkgQualifier = p.registry.SrcPkgName() + "."
 		if !p.cfg.SkipEnsure {
 			imprt := p.registry.AddImport(p.registry.SrcPkg())
@@ -54,7 +55,7 @@ func (p *Parser) Parse(ifaceName string) (*ifacetool.Data, error) {
 
 	data.Imports = p.registry.Imports()
 
-	return toIfaceToolData(data, ifaceName, methods), nil
+	return toIfaceToolData(data, srcPkgName, ifaceName, methods), nil
 }
 
 func (p *Parser) methodData(f *types.Func) template.MethodData {
@@ -95,9 +96,10 @@ func (p *Parser) mockPkgName() string {
 	return p.registry.SrcPkgName()
 }
 
-func toIfaceToolData(in template.Data, ifaceName string, methods []template.MethodData) *ifacetool.Data {
+func toIfaceToolData(in template.Data, srcPkgName, ifaceName string, methods []template.MethodData) *ifacetool.Data {
 	out := &ifacetool.Data{
 		PkgName:         in.PkgName,
+		SrcPkgName:      srcPkgName,
 		SrcPkgQualifier: in.SrcPkgQualifier,
 		InterfaceName:   ifaceName,
 	}

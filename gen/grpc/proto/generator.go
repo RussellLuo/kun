@@ -80,13 +80,11 @@ func (g *Generator) Generate(pkgPath string, result *reflector.Result, service *
 	data := struct {
 		PkgPath  string
 		PkgName  string
-		Result   *reflector.Result
 		Service  *parser.Service
 		Messages map[string]*parser.Type
 	}{
 		PkgPath:  pkgPath,
 		PkgName:  reflector.PkgNameFromDir(pkgPath),
-		Result:   result,
 		Service:  service,
 		Messages: getMessages(service),
 	}
@@ -108,7 +106,7 @@ func (g *Generator) Generate(pkgPath string, result *reflector.Result, service *
 				return name
 			},
 		},
-		TargetFileName: result.SrcPkgName + ".proto",
+		TargetFileName: result.Data.SrcPkgName + ".proto",
 	})
 }
 

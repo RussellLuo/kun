@@ -97,6 +97,7 @@ func (m *Method) ReturnArgNameList() string {
 
 type Data struct {
 	PkgName         string
+	SrcPkgName      string
 	SrcPkgQualifier string
 	InterfaceName   string
 	Imports         []*Import

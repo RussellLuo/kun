@@ -219,7 +219,7 @@ func (g *Generator) generateGRPC(result *reflector.Result, doc *reflector.Interf
 		}
 	}()
 
-	service, err := parser.Parse(result, doc)
+	service, err := parser.Parse(result.Data, doc)
 	if err != nil {
 		return files, err
 	}
