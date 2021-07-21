@@ -1,5 +1,6 @@
 {
   "PkgName": "importalias",
+  "SrcPkgName": "importalias",
   "SrcPkgQualifier": "",
   "InterfaceName": "Connector",
   "Imports": [
