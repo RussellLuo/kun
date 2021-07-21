@@ -17,6 +17,7 @@ import (
 	"github.com/RussellLuo/kok/gen/util/generator"
 	"github.com/RussellLuo/kok/gen/util/openapi"
 	"github.com/RussellLuo/kok/gen/util/reflector"
+	"github.com/RussellLuo/kok/pkg/ifacetool"
 )
 
 type Options struct {
@@ -106,7 +107,7 @@ func (g *Generator) Generate(srcFilename, interfaceName, testFilename string) (f
 
 	switch mergeTransports(transports) {
 	case openapi.TransportHTTP:
-		httpFiles, err := g.generateHTTP(result, spec, testFilename)
+		httpFiles, err := g.generateHTTP(result.Data, spec, testFilename)
 		if err != nil {
 			return files, err
 		}
@@ -120,7 +121,7 @@ func (g *Generator) Generate(srcFilename, interfaceName, testFilename string) (f
 		files = append(files, grpcFiles...)
 
 	case openapi.TransportAll:
-		httpFiles, err := g.generateHTTP(result, spec, testFilename)
+		httpFiles, err := g.generateHTTP(result.Data, spec, testFilename)
 		if err != nil {
 			return files, err
 		}
@@ -158,7 +159,7 @@ func (g *Generator) generateEndpoint(result *reflector.Result, spec *openapi.Spe
 }
 
 // generateHTTP generates the HTTP code.
-func (g *Generator) generateHTTP(result *reflector.Result, spec *openapi.Specification, testFilename string) (files []*generator.File, err error) {
+func (g *Generator) generateHTTP(data *ifacetool.Data, spec *openapi.Specification, testFilename string) (files []*generator.File, err error) {
 	outDir := g.getOutDir("http")
 	if err := ensureDir(outDir); err != nil {
 		return files, err
@@ -172,21 +173,21 @@ func (g *Generator) generateHTTP(result *reflector.Result, spec *openapi.Specifi
 	pkgInfo := g.getPkgInfo(outDir)
 
 	// Generate the HTTP server code.
-	f, err := g.chi.Generate(pkgInfo, result, spec)
+	f, err := g.chi.Generate(pkgInfo, data, spec)
 	if err != nil {
 		return files, err
 	}
 	files = append(files, f)
 
 	// Generate the HTTP client code.
-	f, err = g.httpclient.Generate(pkgInfo, result, spec)
+	f, err = g.httpclient.Generate(pkgInfo, data, spec)
 	if err != nil {
 		return files, err
 	}
 	files = append(files, f)
 
 	// Generate the HTTP tests code.
-	f, err = g.httptest.Generate(pkgInfo, result, testFilename)
+	f, err = g.httptest.Generate(pkgInfo, data, testFilename)
 	if err != nil {
 		if !os.IsNotExist(err) {
 			return files, err
@@ -198,7 +199,7 @@ func (g *Generator) generateHTTP(result *reflector.Result, spec *openapi.Specifi
 	}
 
 	// Generate the helper OASv2 code.
-	f, err = g.oasv2.Generate(pkgInfo, result, spec)
+	f, err = g.oasv2.Generate(pkgInfo, spec)
 	if err != nil {
 		return files, err
 	}

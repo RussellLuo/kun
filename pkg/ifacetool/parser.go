@@ -85,14 +85,24 @@ func (m *Method) ReturnArgTypeList() string {
 	return strings.Join(params, ", ")
 }
 
-// ReturnArgNameList is the string representation of values returned
+// ReturnArgValueList is the string representation of values returned
 // by method, e.g. 'foo', 's, err'.
-func (m *Method) ReturnArgNameList() string {
+func (m *Method) ReturnArgValueList() string {
 	params := make([]string, len(m.Returns))
 	for i, p := range m.Returns {
 		params[i] = p.Name
 	}
 	return strings.Join(params, ", ")
+}
+
+// ReturnArgNamedValueList is the string representation of named return values
+// returned by method, e.g. '(baz bar.Baz)', '(s string, err error)'.
+func (m *Method) ReturnArgNamedValueList() string {
+	params := make([]string, len(m.Returns))
+	for i, p := range m.Returns {
+		params[i] = fmt.Sprintf("%s %s", p.Name, p.TypeString)
+	}
+	return fmt.Sprintf("(%s)", strings.Join(params, ", "))
 }
 
 type Data struct {

@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/RussellLuo/kok/gen/util/generator"
-	"github.com/RussellLuo/kok/gen/util/reflector"
+	"github.com/RussellLuo/kok/pkg/ifacetool"
 )
 
 var (
@@ -23,35 +23,35 @@ import (
 	"strings"
 	"testing"
 
-	{{- range .Result.Imports}}
-	"{{.}}"
-	{{- end }}
+	{{- range .Data.Imports}}
+	{{.ImportString}}
+	{{- end}}
 
 	{{- range .TestSpec.Imports}}
 	{{.Alias}} {{.Path}}
-	{{- end }}
+	{{- end}}
 )
 
-{{- $srcPkgPrefix := .Result.SrcPkgPrefix}}
-{{- $interfaceName := .Result.Interface.Name}}
+{{- $srcPkgPrefix := .Data.SrcPkgQualifier}}
+{{- $interfaceName := .Data.InterfaceName}}
 {{- $mockInterfaceName := printf "%s%s" $interfaceName "Mock"}}
 
 // Ensure that {{$mockInterfaceName}} does implement {{$srcPkgPrefix}}{{$interfaceName}}.
 var _ {{$srcPkgPrefix}}{{$interfaceName}} = &{{$mockInterfaceName}}{}
 
 type {{$mockInterfaceName}} struct {
-{{- range .Result.Interface.Methods}}
-	{{.Name}}Func func({{joinParams .Params "$Name $Type" ", "}}) ({{joinParams .Returns "$Name $Type" ", "}})
+{{- range .Data.Methods}}
+	{{.Name}}Func func({{.ArgList}}) {{.ReturnArgNamedValueList}}
 {{- end}}
 }
 
-{{- range .Result.Interface.Methods}}
+{{- range .Data.Methods}}
 
-func (mock *{{$mockInterfaceName}}) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joinParams .Returns "$Name $Type" ", "}}) {
+func (mock *{{$mockInterfaceName}}) {{.Name}}({{.ArgList}}) {{.ReturnArgNamedValueList}} {
 	if mock.{{.Name}}Func == nil {
 		panic("{{$mockInterfaceName}}.{{.Name}}Func: not implemented")
 	}
-	return mock.{{.Name}}Func({{joinParams .Params "$CallName" ", "}})
+	return mock.{{.Name}}Func({{.CallArgList}})
 }
 {{- end}}
 
@@ -117,22 +117,23 @@ func (want response) Equal(w *httptest.ResponseRecorder) string {
 {{- $codecs := .TestSpec.Codecs}}
 {{- range .TestSpec.Tests}}
 
-{{$params := methodParams .Name}}
-{{$returns := methodReturns .Name}}
+{{$method := method .Name}}
+{{$params := $method.Params}}
+{{$returns := $method.Returns}}
 {{$nonCtxParams := nonCtxParams $params}}
 
 func TestHTTP_{{.Name}}(t *testing.T) {
 	// in contains all the input parameters (except ctx) of {{.Name}}.
 	type in struct {
 		{{- range $nonCtxParams}}
-		{{.Name}} {{.Type}}
+		{{.Name}} {{.TypeString}}
 		{{- end}}
 	}
 
 	// out contains all the output parameters of {{.Name}}.
 	type out struct {
 		{{- range $returns}}
-		{{.Name}} {{.Type}}
+		{{.Name}} {{.TypeString}}
 		{{- end}}
 	}
 
@@ -185,7 +186,7 @@ func TestHTTP_{{.Name}}(t *testing.T) {
 			var gotIn in
 			w := c.request.ServedBy(NewHTTPRouter(
 				&{{$mockInterfaceName}}{
-					{{.Name}}Func: func({{joinParams $params "$Name $Type" ", "}}) ({{joinParams $returns "$Name $Type" ", "}}) {
+					{{.Name}}Func: func({{$method.ArgList}}) {{$method.ReturnArgNamedValueList}} {
 						gotIn = in{
 							{{- range $nonCtxParams}}
 							{{.Name}}: {{.Name}},
@@ -224,7 +225,7 @@ func New(opts *Options) *Generator {
 	return &Generator{opts: opts}
 }
 
-func (g *Generator) Generate(pkgInfo *generator.PkgInfo, result *reflector.Result, testFilename string) (*generator.File, error) {
+func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Data, testFilename string) (*generator.File, error) {
 	testSpec, err := getTestSpec(testFilename)
 	if err != nil {
 		return nil, err
@@ -232,47 +233,54 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, result *reflector.Resul
 
 	data := struct {
 		PkgInfo  *generator.PkgInfo
-		Result   *reflector.Result
+		Data     *ifacetool.Data
 		TestSpec *TestSpec
 	}{
 		PkgInfo:  pkgInfo,
-		Result:   result,
+		Data:     ifaceData,
 		TestSpec: testSpec,
 	}
 
-	methodMap := make(map[string]*reflector.Method)
-	for _, method := range result.Interface.Methods {
+	methodMap := make(map[string]*ifacetool.Method)
+	for _, method := range ifaceData.Methods {
 		methodMap[method.Name] = method
 	}
 
 	return generator.Generate(template, data, generator.Options{
 		Funcs: map[string]interface{}{
-			"joinParams": func(params []*reflector.Param, format, sep string) string {
+			"joinParams": func(params []*ifacetool.Param, format, sep string) string {
 				var results []string
 
 				for _, p := range params {
-					r := strings.NewReplacer("$Name", p.Name, "$CallName", p.CallName(), "$Type", p.TypeString())
+					r := strings.NewReplacer("$Name", p.Name)
 					results = append(results, r.Replace(format))
 				}
 				return strings.Join(results, sep)
 			},
-			"methodParams": func(name string) []*reflector.Param {
+			"method": func(name string) *ifacetool.Method {
+				method, ok := methodMap[name]
+				if !ok {
+					return nil
+				}
+				return method
+			},
+			"methodParams": func(name string) []*ifacetool.Param {
 				method, ok := methodMap[name]
 				if !ok {
 					return nil
 				}
 				return method.Params
 			},
-			"methodReturns": func(name string) []*reflector.Param {
+			"methodReturns": func(name string) []*ifacetool.Param {
 				method, ok := methodMap[name]
 				if !ok {
 					return nil
 				}
 				return method.Returns
 			},
-			"nonCtxParams": func(params []*reflector.Param) (out []*reflector.Param) {
+			"nonCtxParams": func(params []*ifacetool.Param) (out []*ifacetool.Param) {
 				for _, p := range params {
-					if p.Type != "context.Context" {
+					if p.TypeString != "context.Context" {
 						out = append(out, p)
 					}
 				}
