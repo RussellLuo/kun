@@ -1,0 +1,63 @@
+{
+  "PkgName": "simple",
+  "SrcPkgName": "simple",
+  "SrcPkgQualifier": "",
+  "InterfaceName": "Counter",
+  "Imports": [
+    {
+      "Alias": "",
+      "Path": "context"
+    }
+  ],
+  "Methods": [
+    {
+      "Name": "One",
+      "Params": [
+        {
+          "Name": "ctx",
+          "TypeString": "context.Context",
+          "Variadic": false
+        },
+        {
+          "Name": "i",
+          "TypeString": "int",
+          "Variadic": false
+        }
+      ],
+      "Returns": [
+        {
+          "Name": "err",
+          "TypeString": "error",
+          "Variadic": false
+        }
+      ]
+    },
+    {
+      "Name": "Two",
+      "Params": [
+        {
+          "Name": "ctx",
+          "TypeString": "context.Context",
+          "Variadic": false
+        },
+        {
+          "Name": "b",
+          "TypeString": "bool",
+          "Variadic": false
+        },
+        {
+          "Name": "s",
+          "TypeString": "[]string",
+          "Variadic": true
+        }
+      ],
+      "Returns": [
+        {
+          "Name": "err",
+          "TypeString": "error",
+          "Variadic": false
+        }
+      ]
+    }
+  ]
+}

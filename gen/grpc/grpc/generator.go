@@ -5,6 +5,7 @@ import (
 	"github.com/RussellLuo/kok/gen/util/generator"
 	"github.com/RussellLuo/kok/gen/util/reflector"
 	"github.com/RussellLuo/kok/pkg/caseconv"
+	"github.com/RussellLuo/kok/pkg/ifacetool"
 )
 
 var (
@@ -20,7 +21,7 @@ import (
 
 {{- $pbPkgPrefix := .PBPkgPrefix}}
 {{- $endpointPkgPrefix := .PkgInfo.EndpointPkgPrefix}}
-{{- $serviceName := .Result.Interface.Name}}
+{{- $serviceName := .Data.InterfaceName}}
 
 type grpcServer struct {
 	{{$pbPkgPrefix}}Unimplemented{{$serviceName}}Server
@@ -41,7 +42,7 @@ func (s *grpcServer) {{.Name}}(ctx context.Context, req *{{$pbPkgPrefix}}{{.Requ
 }
 {{- end}} {{/* range .Service.RPCs */}}
 
-func NewGRPCServer(svc {{.Result.SrcPkgPrefix}}{{$serviceName}}, codecs grpccodec.Codecs) {{$pbPkgPrefix}}{{$serviceName}}Server {
+func NewGRPCServer(svc {{$.Data.SrcPkgQualifier}}{{$serviceName}}, codecs grpccodec.Codecs) {{$pbPkgPrefix}}{{$serviceName}}Server {
 	var codec grpccodec.Codec
 	s := new(grpcServer)
 
@@ -101,17 +102,17 @@ func New(opts *Options) *Generator {
 	return &Generator{opts: opts}
 }
 
-func (g *Generator) Generate(pkgInfo *generator.PkgInfo, pbPkgPath string, result *reflector.Result, service *parser.Service) (*generator.File, error) {
+func (g *Generator) Generate(pkgInfo *generator.PkgInfo, pbPkgPath string, ifaceData *ifacetool.Data, service *parser.Service) (*generator.File, error) {
 	data := struct {
 		PBPkgPath   string
 		PBPkgPrefix string
-		Result      *reflector.Result
+		Data        *ifacetool.Data
 		PkgInfo     *generator.PkgInfo
 		Service     *parser.Service
 	}{
 		PBPkgPath:   pbPkgPath,
 		PBPkgPrefix: reflector.PkgNameFromDir(pbPkgPath) + ".",
-		Result:      result,
+		Data:        ifaceData,
 		PkgInfo:     pkgInfo,
 		Service:     service,
 	}

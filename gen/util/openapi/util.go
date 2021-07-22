@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/RussellLuo/kok/gen/util/reflector"
+	"github.com/RussellLuo/kok/pkg/ifacetool"
 )
 
-func buildSuccessResponse(text string, results map[string]*reflector.Param, opName string) *Response {
+func buildSuccessResponse(text string, returns map[string]*ifacetool.Param, opName string) *Response {
 	resp := new(Response)
 
 	for _, part := range strings.Split(text, ",") {
@@ -28,7 +28,7 @@ func buildSuccessResponse(text string, results map[string]*reflector.Param, opNa
 				panic(fmt.Errorf("%q cannot be converted to an integer: %v", value, err))
 			}
 		case "body":
-			if _, ok := results[value]; !ok {
+			if _, ok := returns[value]; !ok {
 				panic(fmt.Errorf("no result `%s` declared in the method %s", value, opName))
 			}
 			resp.BodyField = value

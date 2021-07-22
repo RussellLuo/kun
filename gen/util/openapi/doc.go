@@ -8,6 +8,7 @@ import (
 
 	"github.com/RussellLuo/kok/gen/util/reflector"
 	"github.com/RussellLuo/kok/pkg/caseconv"
+	"github.com/RussellLuo/kok/pkg/ifacetool"
 )
 
 type Transport int
@@ -28,7 +29,7 @@ var (
 	reSingleVarName = regexp.MustCompile(`^\w+$`)
 )
 
-func FromDoc(result *reflector.Result, doc *reflector.InterfaceDoc, snakeCase bool) (*Specification, []Transport, error) {
+func FromDoc(data *ifacetool.Data, doc *reflector.InterfaceDoc, snakeCase bool) (*Specification, []Transport, error) {
 	metadata, err := buildMetadata(doc.Doc)
 	if err != nil {
 		return nil, nil, err
@@ -45,7 +46,7 @@ func FromDoc(result *reflector.Result, doc *reflector.InterfaceDoc, snakeCase bo
 
 	var transports []Transport
 
-	for _, m := range result.Interface.Methods {
+	for _, m := range data.Methods {
 		comments, ok := doc.MethodDocs[m.Name]
 		if !ok {
 			continue
@@ -68,9 +69,9 @@ func FromDoc(result *reflector.Result, doc *reflector.InterfaceDoc, snakeCase bo
 		for _, mp := range m.Params {
 			p := &Param{
 				In:        InBody, // param is in body by default
-				Type:      mp.Type,
-				RawType:   mp.RawType, // used for adding query parameters later
-				AliasType: mp.Type,
+				Type:      mp.TypeString,
+				RawType:   mp.Type, // used for adding query parameters later
+				AliasType: mp.TypeString,
 			}
 			p.SetName(mp.Name, snakeCase)
 			op.addParam(p)
@@ -79,16 +80,16 @@ func FromDoc(result *reflector.Result, doc *reflector.InterfaceDoc, snakeCase bo
 			params[p.Name] = p
 		}
 
-		results := make(map[string]*reflector.Param)
+		returns := make(map[string]*ifacetool.Param)
 		for _, mr := range m.Returns {
-			results[mr.Name] = mr
+			returns[mr.Name] = mr
 		}
 
 		// Set a default success response.
 		op.Resp(http.StatusOK, MediaTypeJSON, nil)
 
 		if transport == TransportHTTP || transport == TransportAll {
-			if err := manipulateByComments(op, params, results, aliases, comments); err != nil {
+			if err := manipulateByComments(op, params, returns, aliases, comments); err != nil {
 				return nil, nil, err
 			}
 		}
@@ -133,7 +134,7 @@ func isKokGRPCAnnotation(comment string) bool {
 	return strings.HasPrefix(trimmed, "@kok(grpc)")
 }
 
-func manipulateByComments(op *Operation, params map[string]*Param, results map[string]*reflector.Param, aliases Aliases, comments []string) error {
+func manipulateByComments(op *Operation, params map[string]*Param, returns map[string]*ifacetool.Param, aliases Aliases, comments []string) error {
 	parser := &Parser{
 		methodName: op.Name,
 		params:     params,
@@ -260,7 +261,7 @@ func manipulateByComments(op *Operation, params map[string]*Param, results map[s
 			}
 
 		case "success":
-			op.SuccessResponse = buildSuccessResponse(value, results, op.Name)
+			op.SuccessResponse = buildSuccessResponse(value, returns, op.Name)
 
 		case "oas":
 			parts := strings.SplitN(value, ":", 2)

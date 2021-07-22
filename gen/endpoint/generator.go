@@ -6,8 +6,8 @@ import (
 
 	"github.com/RussellLuo/kok/gen/util/generator"
 	"github.com/RussellLuo/kok/gen/util/openapi"
-	"github.com/RussellLuo/kok/gen/util/reflector"
 	"github.com/RussellLuo/kok/pkg/caseconv"
+	"github.com/RussellLuo/kok/pkg/ifacetool"
 )
 
 var (
@@ -20,13 +20,10 @@ import (
 	"github.com/RussellLuo/validating/v2"
 	"github.com/go-kit/kit/endpoint"
 
-	{{- range .Result.Imports}}
-	"{{.}}"
+	{{- range .Data.Imports}}
+	{{.ImportString}}
 	{{- end }}
 )
-
-{{- $srcPkgPrefix := .Result.SrcPkgPrefix}}
-{{- $interfaceName := .Result.Interface.Name}}
 
 {{- range .DocMethods}}
 
@@ -36,7 +33,7 @@ import (
 {{- if $params}}
 type {{.Name}}Request struct {
 	{{- range $params}}
-	{{title .Name}} {{.Type}} {{addTag .Alias .Type}}
+	{{title .Name}} {{.TypeString}} {{addTag .Alias .TypeString}}
 	{{- end}}
 }
 
@@ -53,7 +50,7 @@ func Validate{{.Name}}Request(newSchema func({{addAsterisks .Name}}Request) vali
 
 type {{.Name}}Response struct {
 	{{- range .Returns}}
-	{{title .Name}} {{.Type}} {{addTag .Name .Type}}
+	{{title .Name}} {{.TypeString}} {{addTag .Name .TypeString}}
 	{{- end}}
 }
 
@@ -73,7 +70,7 @@ func (r {{addAsterisks .Name}}Response) Failed() error { return r.{{title $errPa
 {{- end}}
 
 // MakeEndpointOf{{.Name}} creates the endpoint for s.{{.Name}}.
-func MakeEndpointOf{{.Name}}(s {{$srcPkgPrefix}}{{$interfaceName}}) endpoint.Endpoint {
+func MakeEndpointOf{{.Name}}(s {{$.Data.SrcPkgQualifier}}{{$.Data.InterfaceName}}) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		{{- if $params}}
 		req := request.({{addAsterisks .Name}}Request)
@@ -126,24 +123,24 @@ func New(opts *Options) *Generator {
 	return &Generator{opts: opts}
 }
 
-func (g *Generator) Generate(pkgInfo *generator.PkgInfo, result *reflector.Result, spec *openapi.Specification) (*generator.File, error) {
+func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Data, spec *openapi.Specification) (*generator.File, error) {
 	operationMap := make(map[string]*openapi.Operation)
 	for _, op := range spec.Operations {
 		operationMap[op.Name] = op
 	}
 
 	type MethodWithOp struct {
-		*reflector.Method
+		*ifacetool.Method
 		Op *openapi.Operation
 	}
 
 	type ParamWithAlias struct {
-		*reflector.Param
+		*ifacetool.Param
 		Alias string
 	}
 
 	var docMethods []MethodWithOp
-	for _, m := range result.Interface.Methods {
+	for _, m := range ifaceData.Methods {
 		if op, ok := operationMap[m.Name]; ok {
 			docMethods = append(docMethods, MethodWithOp{
 				Method: m,
@@ -154,18 +151,18 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, result *reflector.Resul
 
 	data := struct {
 		PkgInfo    *generator.PkgInfo
-		Result     *reflector.Result
+		Data       *ifacetool.Data
 		DocMethods []MethodWithOp
 	}{
 		PkgInfo:    pkgInfo,
-		Result:     result,
+		Data:       ifaceData,
 		DocMethods: docMethods,
 	}
 
 	return generator.Generate(template, data, generator.Options{
 		Funcs: map[string]interface{}{
 			"title": strings.Title,
-			"nonCtxParams": func(params []*reflector.Param, reqParams []*openapi.Param) (out []ParamWithAlias) {
+			"nonCtxParams": func(params []*ifacetool.Param, reqParams []*openapi.Param) (out []ParamWithAlias) {
 				nameToAlias := make(map[string]string)
 				for _, p := range reqParams {
 					if p.In == openapi.InBody {
@@ -175,7 +172,7 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, result *reflector.Resul
 				}
 
 				for _, p := range params {
-					if p.Type != "context.Context" {
+					if p.TypeString != "context.Context" {
 						out = append(out, ParamWithAlias{
 							Param: p,
 							Alias: nameToAlias[p.Name],
@@ -184,23 +181,23 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, result *reflector.Resul
 				}
 				return
 			},
-			"hasCtxParam": func(params []*reflector.Param) bool {
+			"hasCtxParam": func(params []*ifacetool.Param) bool {
 				for _, p := range params {
-					if p.Type == "context.Context" {
+					if p.TypeString == "context.Context" {
 						return true
 					}
 				}
 				return false
 			},
-			"getErrParamName": func(params []*reflector.Param) string {
+			"getErrParamName": func(params []*ifacetool.Param) string {
 				for _, p := range params {
-					if p.Type == "error" {
+					if p.TypeString == "error" {
 						return p.Name
 					}
 				}
 				return ""
 			},
-			"joinName": func(returns []*reflector.Param, sep string) string {
+			"joinName": func(returns []*ifacetool.Param, sep string) string {
 				var names []string
 				for _, r := range returns {
 					names = append(names, r.Name)

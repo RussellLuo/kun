@@ -11,6 +11,8 @@ import (
 	"strings"
 
 	"golang.org/x/tools/go/packages"
+
+	"github.com/RussellLuo/kok/pkg/ifacetool"
 )
 
 // Most of the following code is borrowed from
@@ -116,6 +118,9 @@ type Result struct {
 	PkgName      string
 	Imports      []string
 	Interface    *Interface
+
+	// New-style result data.
+	Data *ifacetool.Data
 }
 
 type Interface struct {
@@ -124,6 +129,11 @@ type Interface struct {
 }
 
 func ReflectInterface(srcDir, pkgName, objName string) (*Result, error) {
+	data, err := ParseInterface(srcDir, pkgName, objName)
+	if err != nil {
+		return nil, err
+	}
+
 	srcPkgType, pkgPath, pkgName := getPkgInfo(srcDir, pkgName)
 	obj := srcPkgType.Scope().Lookup(objName)
 	if obj == nil {
@@ -166,6 +176,7 @@ func ReflectInterface(srcDir, pkgName, objName string) (*Result, error) {
 			Name:    objName,
 			Methods: methods,
 		},
+		Data: data,
 	}, nil
 }
 

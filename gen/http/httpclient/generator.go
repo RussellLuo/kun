@@ -7,7 +7,7 @@ import (
 
 	"github.com/RussellLuo/kok/gen/util/generator"
 	"github.com/RussellLuo/kok/gen/util/openapi"
-	"github.com/RussellLuo/kok/gen/util/reflector"
+	"github.com/RussellLuo/kok/pkg/ifacetool"
 )
 
 var (
@@ -22,8 +22,8 @@ import (
 	"strconv"
 	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
 
-	{{- range .Result.Imports}}
-	"{{.}}"
+	{{- range .Data.Imports}}
+	{{.ImportString}}
 	{{- end}}
 
 	{{- if .PkgInfo.EndpointPkgPath}}
@@ -64,7 +64,7 @@ func NewHTTPClient(codecs httpcodec.Codecs, httpClient *http.Client, baseURL str
 {{$bodyField := getBodyField $op.Request.BodyField}}
 {{$nonErrReturns := nonErrReturns .Returns}}
 
-func (c *HTTPClient) {{.Name}}({{joinParams .Params "$Name $Type" ", "}}) ({{joinParams .Returns "$Name $Type" ", "}}) {
+func (c *HTTPClient) {{.Name}}({{.ArgList}}) {{.ReturnArgNamedValueList}} {
 	codec := c.codecs.EncodeDecoder("{{.Name}}")
 
 	{{if $pathParams -}}
@@ -195,14 +195,14 @@ func New(opts *Options) *Generator {
 	return &Generator{opts: opts}
 }
 
-func (g *Generator) Generate(pkgInfo *generator.PkgInfo, result *reflector.Result, spec *openapi.Specification) (*generator.File, error) {
+func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Data, spec *openapi.Specification) (*generator.File, error) {
 	operationMap := make(map[string]*openapi.Operation)
 	for _, op := range spec.Operations {
 		operationMap[op.Name] = op
 	}
 
-	var docMethods []*reflector.Method
-	for _, m := range result.Interface.Methods {
+	var docMethods []*ifacetool.Method
+	for _, m := range ifaceData.Methods {
 		if _, ok := operationMap[m.Name]; ok {
 			docMethods = append(docMethods, m)
 		}
@@ -210,12 +210,12 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, result *reflector.Resul
 
 	data := struct {
 		PkgInfo    *generator.PkgInfo
-		Result     *reflector.Result
-		DocMethods []*reflector.Method
+		Data       *ifacetool.Data
+		DocMethods []*ifacetool.Method
 		Opts       *Options
 	}{
 		PkgInfo:    pkgInfo,
-		Result:     result,
+		Data:       ifaceData,
 		DocMethods: docMethods,
 		Opts:       g.opts,
 	}
@@ -227,21 +227,18 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, result *reflector.Resul
 
 	return generator.Generate(template, data, generator.Options{
 		Funcs: map[string]interface{}{
-			"joinParams": func(params []*reflector.Param, format, sep string) string {
+			"joinParams": func(params []*ifacetool.Param, format, sep string) string {
 				var results []string
 
 				for _, p := range params {
-					r := strings.NewReplacer(
-						"$Name", p.Name, "$Type", p.Type,
-						">Name", strings.Title(p.Name),
-					)
+					r := strings.NewReplacer(">Name", strings.Title(p.Name))
 					results = append(results, r.Replace(format))
 				}
 				return strings.Join(results, sep)
 			},
-			"nonErrReturns": func(params []*reflector.Param) (out []*reflector.Param) {
+			"nonErrReturns": func(params []*ifacetool.Param) (out []*ifacetool.Param) {
 				for _, p := range params {
-					if p.Type != "error" {
+					if p.TypeString != "error" {
 						out = append(out, p)
 					}
 				}
@@ -357,7 +354,7 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, result *reflector.Resul
 				}
 				return param.Name
 			},
-			"returnErr": func(params []*reflector.Param) string {
+			"returnErr": func(params []*ifacetool.Param) string {
 				emptyValue := func(typ string) string {
 					switch typ {
 					case "int", "int8", "int16", "int32", "int64",
@@ -382,7 +379,7 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, result *reflector.Resul
 
 				var returns []string
 				for i := 0; i < len(params)-1; i++ {
-					returns = append(returns, emptyValue(params[i].Type))
+					returns = append(returns, emptyValue(params[i].TypeString))
 				}
 
 				returns = append(returns, "err")

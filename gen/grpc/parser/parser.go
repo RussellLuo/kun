@@ -10,6 +10,7 @@ import (
 	"github.com/RussellLuo/kok/gen/util/reflector"
 	"github.com/RussellLuo/kok/pkg/caseconv"
 	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
+	"github.com/RussellLuo/kok/pkg/ifacetool"
 )
 
 var (
@@ -77,13 +78,13 @@ func (t *Type) Squash() (types []*Type) {
 	return
 }
 
-func Parse(result *reflector.Result, doc *reflector.InterfaceDoc) (*Service, error) {
+func Parse(data *ifacetool.Data, doc *reflector.InterfaceDoc) (*Service, error) {
 	s := &Service{
-		Name:         result.Interface.Name,
+		Name:         data.InterfaceName,
 		Descriptions: getDescriptionsFromDoc(doc.Doc),
 	}
 
-	for _, m := range result.Interface.Methods {
+	for _, m := range data.Methods {
 		comments, ok := doc.MethodDocs[m.Name]
 		if !ok || !hasKokGRPCAnnotation(comments) {
 			continue
@@ -111,15 +112,15 @@ func Parse(result *reflector.Result, doc *reflector.InterfaceDoc) (*Service, err
 	return s, nil
 }
 
-func parse(params []*reflector.Param) ([]*Field, error) {
+func parse(params []*ifacetool.Param) ([]*Field, error) {
 	var fields []*Field
 	var i int
 	for _, p := range params {
-		if p.Type == "context.Context" || p.Type == "error" {
+		if p.TypeString == "context.Context" || p.TypeString == "error" {
 			continue
 		}
 
-		typ, err := parseType(p.Name, p.RawType)
+		typ, err := parseType(p.Name, p.Type)
 		if err != nil {
 			return nil, err
 		}
@@ -277,7 +278,7 @@ type rpcFields struct {
 	Response []*Field
 }
 
-func parseRPCFields(method *reflector.Method, comments []string) (*rpcFields, error) {
+func parseRPCFields(method *ifacetool.Method, comments []string) (*rpcFields, error) {
 	reqFields, err := parse(method.Params)
 	if err != nil {
 		return nil, err
@@ -300,13 +301,13 @@ func parseRPCFields(method *reflector.Method, comments []string) (*rpcFields, er
 	return rpcFields, nil
 }
 
-func (rf *rpcFields) manipulateByComments(method *reflector.Method, comments []string) error {
-	params := make(map[string]*reflector.Param)
+func (rf *rpcFields) manipulateByComments(method *ifacetool.Method, comments []string) error {
+	params := make(map[string]*ifacetool.Param)
 	for _, p := range method.Params {
 		params[p.Name] = p
 	}
 
-	returns := make(map[string]*reflector.Param)
+	returns := make(map[string]*ifacetool.Param)
 	for _, p := range method.Returns {
 		returns[p.Name] = p
 	}
@@ -339,11 +340,11 @@ func (rf *rpcFields) manipulateByComments(method *reflector.Method, comments []s
 				if !ok {
 					return fmt.Errorf("no param `%s` declared in the method %s", v, method.Name)
 				}
-				if !isStructType(p.RawType) {
+				if !isStructType(p.Type) {
 					return fmt.Errorf("non-struct param `%s` in the method %s cannot be mapped to a gRPC request", v, method.Name)
 				}
 
-				structType, err := parseType(p.Name, p.RawType)
+				structType, err := parseType(p.Name, p.Type)
 				if err != nil {
 					return err
 				}
@@ -354,11 +355,11 @@ func (rf *rpcFields) manipulateByComments(method *reflector.Method, comments []s
 				if !ok {
 					return fmt.Errorf("no result `%s` declared in the method %s", v, method.Name)
 				}
-				if !isStructType(p.RawType) {
+				if !isStructType(p.Type) {
 					return fmt.Errorf("non-struct result `%s` in the method %s cannot be mapped to a gRPC response", v, method.Name)
 				}
 
-				structType, err := parseType(p.Name, p.RawType)
+				structType, err := parseType(p.Name, p.Type)
 				if err != nil {
 					return err
 				}

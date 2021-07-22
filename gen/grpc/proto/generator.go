@@ -7,6 +7,7 @@ import (
 	"github.com/RussellLuo/kok/gen/util/generator"
 	"github.com/RussellLuo/kok/gen/util/reflector"
 	"github.com/RussellLuo/kok/pkg/caseconv"
+	"github.com/RussellLuo/kok/pkg/ifacetool"
 )
 
 var (
@@ -76,17 +77,15 @@ func New(opts *Options) *Generator {
 	return &Generator{opts: opts}
 }
 
-func (g *Generator) Generate(pkgPath string, result *reflector.Result, service *parser.Service) (*generator.File, error) {
+func (g *Generator) Generate(pkgPath string, ifaceData *ifacetool.Data, service *parser.Service) (*generator.File, error) {
 	data := struct {
 		PkgPath  string
 		PkgName  string
-		Result   *reflector.Result
 		Service  *parser.Service
 		Messages map[string]*parser.Type
 	}{
 		PkgPath:  pkgPath,
 		PkgName:  reflector.PkgNameFromDir(pkgPath),
-		Result:   result,
 		Service:  service,
 		Messages: getMessages(service),
 	}
@@ -108,7 +107,7 @@ func (g *Generator) Generate(pkgPath string, result *reflector.Result, service *
 				return name
 			},
 		},
-		TargetFileName: result.SrcPkgName + ".proto",
+		TargetFileName: ifaceData.SrcPkgName + ".proto",
 	})
 }
 

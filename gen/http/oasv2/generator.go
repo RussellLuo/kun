@@ -6,7 +6,6 @@ import (
 
 	"github.com/RussellLuo/kok/gen/util/generator"
 	"github.com/RussellLuo/kok/gen/util/openapi"
-	"github.com/RussellLuo/kok/gen/util/reflector"
 )
 
 var (
@@ -163,14 +162,12 @@ func New(opts *Options) *Generator {
 	return &Generator{opts: opts}
 }
 
-func (g *Generator) Generate(pkgInfo *generator.PkgInfo, result *reflector.Result, spec *openapi.Specification) (*generator.File, error) {
+func (g *Generator) Generate(pkgInfo *generator.PkgInfo, spec *openapi.Specification) (*generator.File, error) {
 	data := struct {
 		PkgInfo *generator.PkgInfo
-		Result  *reflector.Result
 		Spec    *openapi.Specification
 	}{
 		PkgInfo: pkgInfo,
-		Result:  result,
 		Spec:    spec,
 	}
 
