@@ -18,6 +18,7 @@ import (
 	"github.com/RussellLuo/kok/gen/util/openapi"
 	"github.com/RussellLuo/kok/gen/util/reflector"
 	"github.com/RussellLuo/kok/pkg/ifacetool"
+	"github.com/RussellLuo/kok/pkg/ifacetool/moq"
 )
 
 type Options struct {
@@ -84,7 +85,7 @@ func New(opts *Options) *Generator {
 }
 
 func (g *Generator) Generate(srcFilename, interfaceName, testFilename string) (files []*generator.File, err error) {
-	result, err := g.getInterfaceResult(srcFilename, interfaceName)
+	data, err := g.parseInterface(srcFilename, interfaceName)
 	if err != nil {
 		return nil, err
 	}
@@ -94,12 +95,12 @@ func (g *Generator) Generate(srcFilename, interfaceName, testFilename string) (f
 		return nil, err
 	}
 
-	spec, transports, err := openapi.FromDoc(result, doc, g.opts.SnakeCase)
+	spec, transports, err := openapi.FromDoc(data, doc, g.opts.SnakeCase)
 	if err != nil {
 		return nil, err
 	}
 
-	epFile, err := g.generateEndpoint(result, spec)
+	epFile, err := g.generateEndpoint(data, spec)
 	if err != nil {
 		return files, err
 	}
@@ -107,27 +108,27 @@ func (g *Generator) Generate(srcFilename, interfaceName, testFilename string) (f
 
 	switch mergeTransports(transports) {
 	case openapi.TransportHTTP:
-		httpFiles, err := g.generateHTTP(result.Data, spec, testFilename)
+		httpFiles, err := g.generateHTTP(data, spec, testFilename)
 		if err != nil {
 			return files, err
 		}
 		files = append(files, httpFiles...)
 
 	case openapi.TransportGRPC:
-		grpcFiles, err := g.generateGRPC(result, doc)
+		grpcFiles, err := g.generateGRPC(data, doc)
 		if err != nil {
 			return files, err
 		}
 		files = append(files, grpcFiles...)
 
 	case openapi.TransportAll:
-		httpFiles, err := g.generateHTTP(result.Data, spec, testFilename)
+		httpFiles, err := g.generateHTTP(data, spec, testFilename)
 		if err != nil {
 			return files, err
 		}
 		files = append(files, httpFiles...)
 
-		grpcFiles, err := g.generateGRPC(result, doc)
+		grpcFiles, err := g.generateGRPC(data, doc)
 		if err != nil {
 			return files, err
 		}
@@ -138,7 +139,7 @@ func (g *Generator) Generate(srcFilename, interfaceName, testFilename string) (f
 }
 
 // generateEndpoint generates the endpoint code.
-func (g *Generator) generateEndpoint(result *reflector.Result, spec *openapi.Specification) (file *generator.File, err error) {
+func (g *Generator) generateEndpoint(data *ifacetool.Data, spec *openapi.Specification) (file *generator.File, err error) {
 	outDir := g.getOutDir("endpoint")
 	if err = ensureDir(outDir); err != nil {
 		return
@@ -150,7 +151,7 @@ func (g *Generator) generateEndpoint(result *reflector.Result, spec *openapi.Spe
 	}()
 
 	pkgInfo := g.getPkgInfo(outDir)
-	file, err = g.endpoint.Generate(pkgInfo, result, spec)
+	file, err = g.endpoint.Generate(pkgInfo, data, spec)
 	if err != nil {
 		return
 	}
@@ -209,7 +210,7 @@ func (g *Generator) generateHTTP(data *ifacetool.Data, spec *openapi.Specificati
 }
 
 // generateGRPC generates the gRPC code.
-func (g *Generator) generateGRPC(result *reflector.Result, doc *reflector.InterfaceDoc) (files []*generator.File, err error) {
+func (g *Generator) generateGRPC(data *ifacetool.Data, doc *reflector.InterfaceDoc) (files []*generator.File, err error) {
 	outDir := g.getOutDir("grpc")
 	if err = ensureDir(outDir); err != nil {
 		return files, err
@@ -220,7 +221,7 @@ func (g *Generator) generateGRPC(result *reflector.Result, doc *reflector.Interf
 		}
 	}()
 
-	service, err := parser.Parse(result.Data, doc)
+	service, err := parser.Parse(data, doc)
 	if err != nil {
 		return files, err
 	}
@@ -231,7 +232,7 @@ func (g *Generator) generateGRPC(result *reflector.Result, doc *reflector.Interf
 		return files, err
 	}
 	pbPkgPath := reflector.PkgPathFromDir(pbOutDir)
-	f, err := g.proto.Generate(pbPkgPath, result, service)
+	f, err := g.proto.Generate(pbPkgPath, data, service)
 	if err != nil {
 		return files, err
 	}
@@ -246,7 +247,7 @@ func (g *Generator) generateGRPC(result *reflector.Result, doc *reflector.Interf
 	cmd := exec.Command("protoc",
 		"--go_out=.", "--go_opt=paths=source_relative",
 		"--go-grpc_out=.", "--go-grpc_opt=paths=source_relative",
-		filepath.Join(pbOutDir, result.SrcPkgName+".proto"),
+		filepath.Join(pbOutDir, data.SrcPkgName+".proto"),
 	)
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return files, fmt.Errorf("failed to compile proto: %s", out)
@@ -254,7 +255,7 @@ func (g *Generator) generateGRPC(result *reflector.Result, doc *reflector.Interf
 
 	// Generate the glue code for adapting the gRPC definition to Go kit.
 	pkgInfo := g.getPkgInfo(outDir)
-	f, err = g.grpc.Generate(pkgInfo, pbPkgPath, result, service)
+	f, err = g.grpc.Generate(pkgInfo, pbPkgPath, data, service)
 	if err != nil {
 		return files, err
 	}
@@ -263,19 +264,27 @@ func (g *Generator) generateGRPC(result *reflector.Result, doc *reflector.Interf
 	return files, nil
 }
 
-func (g *Generator) getInterfaceResult(srcFilename, interfaceName string) (*reflector.Result, error) {
+func (g *Generator) parseInterface(srcFilename, interfaceName string) (*ifacetool.Data, error) {
 	pkgName := ""
 	if !g.opts.FlatLayout {
 		// Non-empty pkgName makes all type names used in the interface full-qualified.
 		pkgName = "x"
 	}
 
-	result, err := reflector.ReflectInterface(filepath.Dir(srcFilename), pkgName, interfaceName)
+	moqParser, err := moq.New(moq.Config{
+		SrcDir:  filepath.Dir(srcFilename),
+		PkgName: pkgName,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	return result, nil
+	data, err := moqParser.Parse(interfaceName)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }
 
 func (g *Generator) getOutDir(sub string) string {

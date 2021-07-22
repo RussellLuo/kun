@@ -6,7 +6,6 @@ import (
 
 	"github.com/RussellLuo/kok/gen/util/generator"
 	"github.com/RussellLuo/kok/gen/util/openapi"
-	"github.com/RussellLuo/kok/gen/util/reflector"
 	"github.com/RussellLuo/kok/pkg/caseconv"
 	"github.com/RussellLuo/kok/pkg/ifacetool"
 )
@@ -21,7 +20,7 @@ import (
 	"github.com/RussellLuo/validating/v2"
 	"github.com/go-kit/kit/endpoint"
 
-	{{- range .Result.Imports}}
+	{{- range .Data.Imports}}
 	{{.ImportString}}
 	{{- end }}
 )
@@ -71,7 +70,7 @@ func (r {{addAsterisks .Name}}Response) Failed() error { return r.{{title $errPa
 {{- end}}
 
 // MakeEndpointOf{{.Name}} creates the endpoint for s.{{.Name}}.
-func MakeEndpointOf{{.Name}}(s {{$.Result.SrcPkgQualifier}}{{$.Result.InterfaceName}}) endpoint.Endpoint {
+func MakeEndpointOf{{.Name}}(s {{$.Data.SrcPkgQualifier}}{{$.Data.InterfaceName}}) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		{{- if $params}}
 		req := request.({{addAsterisks .Name}}Request)
@@ -124,7 +123,7 @@ func New(opts *Options) *Generator {
 	return &Generator{opts: opts}
 }
 
-func (g *Generator) Generate(pkgInfo *generator.PkgInfo, result *reflector.Result, spec *openapi.Specification) (*generator.File, error) {
+func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Data, spec *openapi.Specification) (*generator.File, error) {
 	operationMap := make(map[string]*openapi.Operation)
 	for _, op := range spec.Operations {
 		operationMap[op.Name] = op
@@ -141,7 +140,7 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, result *reflector.Resul
 	}
 
 	var docMethods []MethodWithOp
-	for _, m := range result.Data.Methods {
+	for _, m := range ifaceData.Methods {
 		if op, ok := operationMap[m.Name]; ok {
 			docMethods = append(docMethods, MethodWithOp{
 				Method: m,
@@ -152,11 +151,11 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, result *reflector.Resul
 
 	data := struct {
 		PkgInfo    *generator.PkgInfo
-		Result     *ifacetool.Data
+		Data       *ifacetool.Data
 		DocMethods []MethodWithOp
 	}{
 		PkgInfo:    pkgInfo,
-		Result:     result.Data,
+		Data:       ifaceData,
 		DocMethods: docMethods,
 	}
 
