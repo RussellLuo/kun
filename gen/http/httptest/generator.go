@@ -110,6 +110,12 @@ func (want response) Equal(w *httptest.ResponseRecorder) string {
 		return fmt.Sprintf("ContentType: got (%q), want (%q)", gotContentType, wantContentType)
 	}
 
+	if strings.HasPrefix(gotContentType, "application/json") {
+		// Remove the trailing newline from the JSON bytes encoded by Go.
+		// See https://github.com/golang/go/issues/37083.
+		gotBody = bytes.TrimSuffix(gotBody, []byte("\n"))
+	}
+
 	if !bytes.Equal(gotBody, want.body) {
 		return fmt.Sprintf("Body: got (%q), want (%q)", gotBody, want.body)
 	}
@@ -291,11 +297,12 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Da
 			},
 			"bodyToBytes": func(s string) string {
 				if s == "" {
+					// An empty string indicates a nil byte slice.
 					return "[]byte(nil)"
 				}
 
 				if strings.HasPrefix(s, "0x") {
-					// This is a hexadecimal string, leave it as is.
+					// This is a hexadecimal string, decode it into bytes.
 					//
 					// Note that kok borrows the idea from eth2.0 to represent binary data
 					// as hex encoded strings, see https://github.com/ethereum/eth2.0-spec-tests/issues/5.
@@ -306,14 +313,13 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Da
 
 					var hexes []string
 					for _, b := range decoded {
-						hexes = append(hexes, fmt.Sprintf("%x", b))
+						hexes = append(hexes, fmt.Sprintf("0x%x", b))
 					}
-					return fmt.Sprintf("[]byte(%s)", strings.Join(hexes, ","))
+					return fmt.Sprintf("[]byte{%s}", strings.Join(hexes, ", "))
 				}
 
-				// This is a JSON string, add a newline to follow the convention
-				// in Go. See https://github.com/golang/go/issues/37083.
-				return fmt.Sprintf("[]byte(`%s` + %q)", s, "\n")
+				// This is a normal string, leave it as is.
+				return fmt.Sprintf("[]byte(`%s`)", s)
 			},
 		},
 		Formatted:      g.opts.Formatted,
