@@ -16,7 +16,7 @@ tests:
           err: nil,
         wantResponse:
           statusCode: 'http.StatusOK'
-          body: '`{}\n`'
+          body: '{}'
       - name: 'err'
         request:
           method: 'POST'
@@ -31,7 +31,7 @@ tests:
           err: ErrAlreadyExists,
         wantResponse:
           statusCode: 'http.StatusBadRequest'
-          body: '`{"error":"already exists"}\n`'
+          body: '{"error":"already exists"}'
   - name: 'GetProfile'
     cases:
       - name: 'ok'
@@ -48,7 +48,7 @@ tests:
           err: nil,
         wantResponse:
           statusCode: 'http.StatusOK'
-          body: '`{"profile":{"id":"1234","name":"kok"}}\n`'
+          body: '{"profile":{"id":"1234","name":"kok"}}'
       - name: 'err'
         request:
           method: 'GET'
@@ -60,7 +60,7 @@ tests:
           err: ErrNotFound,
         wantResponse:
           statusCode: 'http.StatusNotFound'
-          body: '`{"error":"not found"}\n`'
+          body: '{"error":"not found"}'
   - name: 'PutProfile'
     cases:
       - name: 'ok'
@@ -84,7 +84,7 @@ tests:
           err: nil,
         wantResponse:
           statusCode: 'http.StatusOK'
-          body: '`{}\n`'
+          body: '{}'
       - name: 'err'
         request:
           method: 'PUT'
@@ -106,7 +106,7 @@ tests:
           err: ErrInconsistentIDs,
         wantResponse:
           statusCode: 'http.StatusBadRequest'
-          body: '`{"error":"inconsistent IDs"}\n`'
+          body: '{"error":"inconsistent IDs"}'
   - name: 'PatchProfile'
     cases:
       - name: 'ok'
@@ -130,7 +130,7 @@ tests:
           err: nil,
         wantResponse:
           statusCode: 'http.StatusOK'
-          body: '`{}\n`'
+          body: '{}'
       - name: 'err'
         request:
           method: 'PATCH'
@@ -146,7 +146,7 @@ tests:
           err: ErrInconsistentIDs,
         wantResponse:
           statusCode: 'http.StatusBadRequest'
-          body: '`{"error":"inconsistent IDs"}\n`'
+          body: '{"error":"inconsistent IDs"}'
   - name: 'DeleteProfile'
     cases:
       - name: 'ok'
@@ -159,7 +159,7 @@ tests:
           err: nil,
         wantResponse:
           statusCode: 'http.StatusOK'
-          body: '`{}\n`'
+          body: '{}'
       - name: 'err'
         request:
           method: 'DELETE'
@@ -170,7 +170,7 @@ tests:
           err: ErrNotFound,
         wantResponse:
           statusCode: 'http.StatusNotFound'
-          body: '`{"error":"not found"}\n`'
+          body: '{"error":"not found"}'
   - name: 'GetAddresses'
     cases:
       - name: 'ok'
@@ -189,7 +189,7 @@ tests:
           err: nil,
         wantResponse:
           statusCode: 'http.StatusOK'
-          body: '`{"addresses":[{"id":"0","location":"here"}]}\n`'
+          body: '{"addresses":[{"id":"0","location":"here"}]}'
       - name: 'empty'
         request:
           method: 'GET'
@@ -201,7 +201,7 @@ tests:
           err: nil,
         wantResponse:
           statusCode: 'http.StatusOK'
-          body: '`{"addresses":[]}\n`'
+          body: '{"addresses":[]}'
   - name: 'GetAddress'
     cases:
       - name: 'ok'
@@ -219,7 +219,7 @@ tests:
           err: nil,
         wantResponse:
           statusCode: 'http.StatusOK'
-          body: '`{"address":{"id":"0","location":"here"}}\n`'
+          body: '{"address":{"id":"0","location":"here"}}'
       - name: 'err'
         request:
           method: 'GET'
@@ -232,7 +232,7 @@ tests:
           err: ErrNotFound,
         wantResponse:
           statusCode: 'http.StatusNotFound'
-          body: '`{"error":"not found"}\n`'
+          body: '{"error":"not found"}'
   - name: 'PostAddress'
     cases:
       - name: 'ok'
@@ -250,7 +250,7 @@ tests:
           err: nil,
         wantResponse:
           statusCode: 'http.StatusOK'
-          body: '`{}\n`'
+          body: '{}'
       - name: 'err'
         request:
           method: 'POST'
@@ -266,7 +266,7 @@ tests:
           err: ErrAlreadyExists,
         wantResponse:
           statusCode: 'http.StatusBadRequest'
-          body: '`{"error":"already exists"}\n`'
+          body: '{"error":"already exists"}'
   - name: 'DeleteAddress'
     cases:
       - name: 'ok'
@@ -280,7 +280,7 @@ tests:
           err: nil,
         wantResponse:
           statusCode: 'http.StatusOK'
-          body: '`{}\n`'
+          body: '{}'
       - name: 'err'
         request:
           method: 'DELETE'
@@ -292,4 +292,4 @@ tests:
           err: ErrNotFound,
         wantResponse:
           statusCode: 'http.StatusNotFound'
-          body: '`{"error":"not found"}\n`'
+          body: '{"error":"not found"}'

@@ -4,6 +4,7 @@
 package profilesvc
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io/ioutil"
@@ -144,7 +145,7 @@ func (want response) Equal(w *httptest.ResponseRecorder) string {
 		return fmt.Sprintf("ContentType: got (%q), want (%q)", gotContentType, wantContentType)
 	}
 
-	if reflect.DeepEqual(gotBody, want.body) {
+	if !bytes.Equal(gotBody, want.body) {
 		return fmt.Sprintf("Body: got (%q), want (%q)", gotBody, want.body)
 	}
 
@@ -187,7 +188,7 @@ func TestHTTP_PostProfile(t *testing.T) {
 			},
 			wantResponse: response{
 				statusCode: http.StatusOK,
-				body:       []byte(`{}\n`),
+				body:       []byte(`{}` + "\n"),
 			},
 		},
 		{
@@ -208,7 +209,7 @@ func TestHTTP_PostProfile(t *testing.T) {
 			},
 			wantResponse: response{
 				statusCode: http.StatusBadRequest,
-				body:       []byte(`{"error":"already exists"}\n`),
+				body:       []byte(`{"error":"already exists"}` + "\n"),
 			},
 		},
 	}
@@ -276,7 +277,7 @@ func TestHTTP_GetProfile(t *testing.T) {
 			},
 			wantResponse: response{
 				statusCode: http.StatusOK,
-				body:       []byte(`{"profile":{"id":"1234","name":"kok"}}\n`),
+				body:       []byte(`{"profile":{"id":"1234","name":"kok"}}` + "\n"),
 			},
 		},
 		{
@@ -294,7 +295,7 @@ func TestHTTP_GetProfile(t *testing.T) {
 			},
 			wantResponse: response{
 				statusCode: http.StatusNotFound,
-				body:       []byte(`{"error":"not found"}\n`),
+				body:       []byte(`{"error":"not found"}` + "\n"),
 			},
 		},
 	}
@@ -369,7 +370,7 @@ func TestHTTP_PutProfile(t *testing.T) {
 			},
 			wantResponse: response{
 				statusCode: http.StatusOK,
-				body:       []byte(`{}\n`),
+				body:       []byte(`{}` + "\n"),
 			},
 		},
 		{
@@ -397,7 +398,7 @@ func TestHTTP_PutProfile(t *testing.T) {
 			},
 			wantResponse: response{
 				statusCode: http.StatusBadRequest,
-				body:       []byte(`{"error":"inconsistent IDs"}\n`),
+				body:       []byte(`{"error":"inconsistent IDs"}` + "\n"),
 			},
 		},
 	}
@@ -473,7 +474,7 @@ func TestHTTP_PatchProfile(t *testing.T) {
 			},
 			wantResponse: response{
 				statusCode: http.StatusOK,
-				body:       []byte(`{}\n`),
+				body:       []byte(`{}` + "\n"),
 			},
 		},
 		{
@@ -495,7 +496,7 @@ func TestHTTP_PatchProfile(t *testing.T) {
 			},
 			wantResponse: response{
 				statusCode: http.StatusBadRequest,
-				body:       []byte(`{"error":"inconsistent IDs"}\n`),
+				body:       []byte(`{"error":"inconsistent IDs"}` + "\n"),
 			},
 		},
 	}
@@ -559,7 +560,7 @@ func TestHTTP_DeleteProfile(t *testing.T) {
 			},
 			wantResponse: response{
 				statusCode: http.StatusOK,
-				body:       []byte(`{}\n`),
+				body:       []byte(`{}` + "\n"),
 			},
 		},
 		{
@@ -576,7 +577,7 @@ func TestHTTP_DeleteProfile(t *testing.T) {
 			},
 			wantResponse: response{
 				statusCode: http.StatusNotFound,
-				body:       []byte(`{"error":"not found"}\n`),
+				body:       []byte(`{"error":"not found"}` + "\n"),
 			},
 		},
 	}
@@ -646,7 +647,7 @@ func TestHTTP_GetAddresses(t *testing.T) {
 			},
 			wantResponse: response{
 				statusCode: http.StatusOK,
-				body:       []byte(`{"addresses":[{"id":"0","location":"here"}]}\n`),
+				body:       []byte(`{"addresses":[{"id":"0","location":"here"}]}` + "\n"),
 			},
 		},
 		{
@@ -664,7 +665,7 @@ func TestHTTP_GetAddresses(t *testing.T) {
 			},
 			wantResponse: response{
 				statusCode: http.StatusOK,
-				body:       []byte(`{"addresses":[]}\n`),
+				body:       []byte(`{"addresses":[]}` + "\n"),
 			},
 		},
 	}
@@ -734,7 +735,7 @@ func TestHTTP_GetAddress(t *testing.T) {
 			},
 			wantResponse: response{
 				statusCode: http.StatusOK,
-				body:       []byte(`{"address":{"id":"0","location":"here"}}\n`),
+				body:       []byte(`{"address":{"id":"0","location":"here"}}` + "\n"),
 			},
 		},
 		{
@@ -753,7 +754,7 @@ func TestHTTP_GetAddress(t *testing.T) {
 			},
 			wantResponse: response{
 				statusCode: http.StatusNotFound,
-				body:       []byte(`{"error":"not found"}\n`),
+				body:       []byte(`{"error":"not found"}` + "\n"),
 			},
 		},
 	}
@@ -823,7 +824,7 @@ func TestHTTP_PostAddress(t *testing.T) {
 			},
 			wantResponse: response{
 				statusCode: http.StatusOK,
-				body:       []byte(`{}\n`),
+				body:       []byte(`{}` + "\n"),
 			},
 		},
 		{
@@ -845,7 +846,7 @@ func TestHTTP_PostAddress(t *testing.T) {
 			},
 			wantResponse: response{
 				statusCode: http.StatusBadRequest,
-				body:       []byte(`{"error":"already exists"}\n`),
+				body:       []byte(`{"error":"already exists"}` + "\n"),
 			},
 		},
 	}
@@ -911,7 +912,7 @@ func TestHTTP_DeleteAddress(t *testing.T) {
 			},
 			wantResponse: response{
 				statusCode: http.StatusOK,
-				body:       []byte(`{}\n`),
+				body:       []byte(`{}` + "\n"),
 			},
 		},
 		{
@@ -929,7 +930,7 @@ func TestHTTP_DeleteAddress(t *testing.T) {
 			},
 			wantResponse: response{
 				statusCode: http.StatusNotFound,
-				body:       []byte(`{"error":"not found"}\n`),
+				body:       []byte(`{"error":"not found"}` + "\n"),
 			},
 		},
 	}

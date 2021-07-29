@@ -1,6 +1,8 @@
 package httptest
 
 import (
+	"encoding/hex"
+	"fmt"
 	"strings"
 
 	"github.com/RussellLuo/kok/gen/util/generator"
@@ -14,6 +16,7 @@ var (
 package {{.PkgInfo.CurrentPkgName}}
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io/ioutil"
@@ -107,7 +110,7 @@ func (want response) Equal(w *httptest.ResponseRecorder) string {
 		return fmt.Sprintf("ContentType: got (%q), want (%q)", gotContentType, wantContentType)
 	}
 
-	if reflect.DeepEqual(gotBody, want.body) {
+	if !bytes.Equal(gotBody, want.body) {
 		return fmt.Sprintf("Body: got (%q), want (%q)", gotBody, want.body)
 	}
 
@@ -174,7 +177,7 @@ func TestHTTP_{{.Name}}(t *testing.T) {
 				contentType: "{{.WantResponse.ContentType}}",
 				{{- end}}
 				{{- if .WantResponse.Body}}
-				body:   []byte({{.WantResponse.Body}}),
+				body: {{bodyToBytes .WantResponse.Body}},
 				{{- end}}
 			},
 		},
@@ -285,6 +288,32 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Da
 					}
 				}
 				return
+			},
+			"bodyToBytes": func(s string) string {
+				if s == "" {
+					return "[]byte(nil)"
+				}
+
+				if strings.HasPrefix(s, "0x") {
+					// This is a hexadecimal string, leave it as is.
+					//
+					// Note that kok borrows the idea from eth2.0 to represent binary data
+					// as hex encoded strings, see https://github.com/ethereum/eth2.0-spec-tests/issues/5.
+					decoded, err := hex.DecodeString(s[2:])
+					if err != nil {
+						panic(err)
+					}
+
+					var hexes []string
+					for _, b := range decoded {
+						hexes = append(hexes, fmt.Sprintf("%x", b))
+					}
+					return fmt.Sprintf("[]byte(%s)", strings.Join(hexes, ","))
+				}
+
+				// This is a JSON string, add a newline to follow the convention
+				// in Go. See https://github.com/golang/go/issues/37083.
+				return fmt.Sprintf("[]byte(`%s` + %q)", s, "\n")
 			},
 		},
 		Formatted:      g.opts.Formatted,
