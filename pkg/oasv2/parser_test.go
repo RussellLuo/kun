@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func TestAddDefinition(t *testing.T) {
+func TestParser_AddDefinition(t *testing.T) {
 	toPtr := func(v interface{}) interface{} {
 		switch t := v.(type) {
 		// NOTE: t will be of type interface{}, if we list multiple types in each case.
@@ -26,6 +26,12 @@ func TestAddDefinition(t *testing.T) {
 
 	type Datum struct {
 		Properties []string `json:"properties"`
+	}
+
+	type tree struct {
+		value    string  // nolint:structcheck,unused
+		parent   *tree   // nolint:structcheck,unused
+		children []*tree // nolint:structcheck,unused
 	}
 
 	cases := []struct {
@@ -247,7 +253,7 @@ func TestAddDefinition(t *testing.T) {
 			},
 		},
 		{
-			name: "map_interface",
+			name: "map interface",
 			inBody: map[string]interface{}{
 				"attrs": map[string]interface{}{
 					"age": 20,
@@ -282,7 +288,7 @@ func TestAddDefinition(t *testing.T) {
 			},
 		},
 		{
-			name:   "nil_map_interface",
+			name:   "nil map interface",
 			inBody: map[string]interface{}(nil),
 			wantDefs: map[string]Definition{
 				"Response": {
@@ -292,7 +298,7 @@ func TestAddDefinition(t *testing.T) {
 			},
 		},
 		{
-			name:   "array_of_nil_map_interface",
+			name:   "array of nil map interface",
 			inBody: []map[string]interface{}(nil),
 			wantDefs: map[string]Definition{
 				"Response": {
@@ -306,7 +312,7 @@ func TestAddDefinition(t *testing.T) {
 			},
 		},
 		{
-			name:   "array_of_array_of_nil_map_interface",
+			name:   "array of array_of_nil_map_interface",
 			inBody: [][]map[string]interface{}(nil),
 			wantDefs: map[string]Definition{
 				"Response": {
@@ -384,11 +390,44 @@ func TestAddDefinition(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:   "recursive type",
+			inBody: new(tree),
+			wantDefs: map[string]Definition{
+				"Response": {
+					Type: "object",
+					ItemTypeOrProperties: []Property{
+						{
+							Name: "value",
+							Type: JSONType{
+								Kind: "basic",
+								Type: "string",
+							},
+						},
+						{
+							Name: "parent",
+							Type: JSONType{
+								Kind: "object",
+								Type: "Response",
+							},
+						},
+						{
+							Name: "children",
+							Type: JSONType{
+								Kind: "array",
+								Type: "Response",
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			defs := make(map[string]Definition)
-			AddDefinition(defs, "Response", reflect.ValueOf(c.inBody))
+			p := NewParser()
+			p.AddDefinition("Response", reflect.ValueOf(c.inBody), false)
+			defs := p.Definitions()
 			if !reflect.DeepEqual(defs, c.wantDefs) {
 				t.Fatalf("Defs: got (%#v), want (%#v)", defs, c.wantDefs)
 			}
