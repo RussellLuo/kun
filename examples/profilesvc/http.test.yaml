@@ -1,11 +1,11 @@
-codecs: "NewCodecs()"
+codecs: NewCodecs()
 tests:
-  - name: 'PostProfile'
+  - name: PostProfile
     cases:
-      - name: 'ok'
+      - name: ok
         request:
-          method: 'POST'
-          path: '/profiles'
+          method: POST
+          path: /profiles
           body: '{"profile": {"id": "1234", "name": "kok"}}'
         wantIn: |
           profile: Profile{
@@ -15,12 +15,12 @@ tests:
         out: |
           err: nil,
         wantResponse:
-          statusCode: 'http.StatusOK'
+          statusCode: http.StatusOK
           body: '{}'
-      - name: 'err'
+      - name: err
         request:
-          method: 'POST'
-          path: '/profiles'
+          method: POST
+          path: /profiles
           body: '{"profile": {"id": "1234", "name": "kok"}}'
         wantIn: |
           profile: Profile{
@@ -30,14 +30,14 @@ tests:
         out: |
           err: ErrAlreadyExists,
         wantResponse:
-          statusCode: 'http.StatusBadRequest'
+          statusCode: http.StatusBadRequest
           body: '{"error":"already exists"}'
-  - name: 'GetProfile'
+  - name: GetProfile
     cases:
-      - name: 'ok'
+      - name: ok
         request:
-          method: 'GET'
-          path: '/profiles/1234'
+          method: GET
+          path: /profiles/1234
         wantIn: |
           id: "1234",
         out: |
@@ -47,26 +47,26 @@ tests:
           },
           err: nil,
         wantResponse:
-          statusCode: 'http.StatusOK'
+          statusCode: http.StatusOK
           body: '{"profile":{"id":"1234","name":"kok"}}'
-      - name: 'err'
+      - name: err
         request:
-          method: 'GET'
-          path: '/profiles/5678'
+          method: GET
+          path: /profiles/5678
         wantIn: |
           id: "5678",
         out: |
           profile: Profile{},
           err: ErrNotFound,
         wantResponse:
-          statusCode: 'http.StatusNotFound'
+          statusCode: http.StatusNotFound
           body: '{"error":"not found"}'
-  - name: 'PutProfile'
+  - name: PutProfile
     cases:
-      - name: 'ok'
+      - name: ok
         request:
-          method: 'PUT'
-          path: '/profiles/1234'
+          method: PUT
+          path: /profiles/1234
           body: '{"profile": {"id": "1234", "name": "kok", "addresses": [{"id": "0", "location": "here"}]}}'
         wantIn: |
           id: "1234",
@@ -83,12 +83,12 @@ tests:
         out: |
           err: nil,
         wantResponse:
-          statusCode: 'http.StatusOK'
+          statusCode: http.StatusOK
           body: '{}'
-      - name: 'err'
+      - name: err
         request:
-          method: 'PUT'
-          path: '/profiles/1234'
+          method: PUT
+          path: /profiles/1234
           body: '{"profile": {"id": "5678", "name": "kok", "addresses": [{"id": "0", "location": "here"}]}}'
         wantIn: |
           id: "1234",
@@ -105,14 +105,14 @@ tests:
         out: |
           err: ErrInconsistentIDs,
         wantResponse:
-          statusCode: 'http.StatusBadRequest'
+          statusCode: http.StatusBadRequest
           body: '{"error":"inconsistent IDs"}'
-  - name: 'PatchProfile'
+  - name: PatchProfile
     cases:
-      - name: 'ok'
+      - name: ok
         request:
-          method: 'PATCH'
-          path: '/profiles/1234'
+          method: PATCH
+          path: /profiles/1234
           body: '{"profile": {"id": "1234", "name": "kok", "addresses": [{"id": "?", "location": "where"}]}}'
         wantIn: |
           id: "1234",
@@ -129,12 +129,12 @@ tests:
         out: |
           err: nil,
         wantResponse:
-          statusCode: 'http.StatusOK'
+          statusCode: http.StatusOK
           body: '{}'
-      - name: 'err'
+      - name: err
         request:
-          method: 'PATCH'
-          path: '/profiles/1234'
+          method: PATCH
+          path: /profiles/1234
           body: '{"profile": {"id": "5678", "name": "wow"}}'
         wantIn: |
           id: "1234",
@@ -145,38 +145,38 @@ tests:
         out: |
           err: ErrInconsistentIDs,
         wantResponse:
-          statusCode: 'http.StatusBadRequest'
+          statusCode: http.StatusBadRequest
           body: '{"error":"inconsistent IDs"}'
-  - name: 'DeleteProfile'
+  - name: DeleteProfile
     cases:
-      - name: 'ok'
+      - name: ok
         request:
-          method: 'DELETE'
-          path: '/profiles/1234'
+          method: DELETE
+          path: /profiles/1234
         wantIn: |
           id: "1234",
         out: |
           err: nil,
         wantResponse:
-          statusCode: 'http.StatusOK'
+          statusCode: http.StatusOK
           body: '{}'
-      - name: 'err'
+      - name: err
         request:
-          method: 'DELETE'
-          path: '/profiles/5678'
+          method: DELETE
+          path: /profiles/5678
         wantIn: |
           id: "5678",
         out: |
           err: ErrNotFound,
         wantResponse:
-          statusCode: 'http.StatusNotFound'
+          statusCode: http.StatusNotFound
           body: '{"error":"not found"}'
-  - name: 'GetAddresses'
+  - name: GetAddresses
     cases:
-      - name: 'ok'
+      - name: ok
         request:
-          method: 'GET'
-          path: '/profiles/1234/addresses'
+          method: GET
+          path: /profiles/1234/addresses
         wantIn: |
           id: "1234",
         out: |
@@ -188,26 +188,26 @@ tests:
           },
           err: nil,
         wantResponse:
-          statusCode: 'http.StatusOK'
+          statusCode: http.StatusOK
           body: '{"addresses":[{"id":"0","location":"here"}]}'
-      - name: 'empty'
+      - name: empty
         request:
-          method: 'GET'
-          path: '/profiles/5678/addresses'
+          method: GET
+          path: /profiles/5678/addresses
         wantIn: |
           id: "5678",
         out: |
           addresses: []Address{},
           err: nil,
         wantResponse:
-          statusCode: 'http.StatusOK'
+          statusCode: http.StatusOK
           body: '{"addresses":[]}'
-  - name: 'GetAddress'
+  - name: GetAddress
     cases:
-      - name: 'ok'
+      - name: ok
         request:
-          method: 'GET'
-          path: '/profiles/1234/addresses/0'
+          method: GET
+          path: /profiles/1234/addresses/0
         wantIn: |
           id: "1234",
           addressID: "0",
@@ -218,12 +218,12 @@ tests:
           },
           err: nil,
         wantResponse:
-          statusCode: 'http.StatusOK'
+          statusCode: http.StatusOK
           body: '{"address":{"id":"0","location":"here"}}'
-      - name: 'err'
+      - name: err
         request:
-          method: 'GET'
-          path: '/profiles/1234/addresses/9'
+          method: GET
+          path: /profiles/1234/addresses/9
         wantIn: |
           id: "1234",
           addressID: "9",
@@ -231,14 +231,14 @@ tests:
           address: Address{},
           err: ErrNotFound,
         wantResponse:
-          statusCode: 'http.StatusNotFound'
+          statusCode: http.StatusNotFound
           body: '{"error":"not found"}'
-  - name: 'PostAddress'
+  - name: PostAddress
     cases:
-      - name: 'ok'
+      - name: ok
         request:
-          method: 'POST'
-          path: '/profiles/1234/addresses'
+          method: POST
+          path: /profiles/1234/addresses
           body: '{"address": {"id": "0", "location": "here"}}'
         wantIn: |
           id: "1234",
@@ -249,12 +249,12 @@ tests:
         out: |
           err: nil,
         wantResponse:
-          statusCode: 'http.StatusOK'
+          statusCode: http.StatusOK
           body: '{}'
-      - name: 'err'
+      - name: err
         request:
-          method: 'POST'
-          path: '/profiles/1234/addresses'
+          method: POST
+          path: /profiles/1234/addresses
           body: '{"address": {"id": "0", "location": "here"}}'
         wantIn: |
           id: "1234",
@@ -265,31 +265,31 @@ tests:
         out: |
           err: ErrAlreadyExists,
         wantResponse:
-          statusCode: 'http.StatusBadRequest'
+          statusCode: http.StatusBadRequest
           body: '{"error":"already exists"}'
-  - name: 'DeleteAddress'
+  - name: DeleteAddress
     cases:
-      - name: 'ok'
+      - name: ok
         request:
-          method: 'DELETE'
-          path: '/profiles/1234/addresses/0'
+          method: DELETE
+          path: /profiles/1234/addresses/0
         wantIn: |
           id: "1234",
           addressID: "0",
         out: |
           err: nil,
         wantResponse:
-          statusCode: 'http.StatusOK'
+          statusCode: http.StatusOK
           body: '{}'
-      - name: 'err'
+      - name: err
         request:
-          method: 'DELETE'
-          path: '/profiles/1234/addresses/9'
+          method: DELETE
+          path: /profiles/1234/addresses/9
         wantIn: |
           id: "1234",
           addressID: "9",
         out: |
           err: ErrNotFound,
         wantResponse:
-          statusCode: 'http.StatusNotFound'
+          statusCode: http.StatusNotFound
           body: '{"error":"not found"}'
