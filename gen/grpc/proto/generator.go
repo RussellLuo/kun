@@ -5,9 +5,9 @@ import (
 
 	"github.com/RussellLuo/kok/gen/grpc/parser"
 	"github.com/RussellLuo/kok/gen/util/generator"
-	"github.com/RussellLuo/kok/gen/util/reflector"
 	"github.com/RussellLuo/kok/pkg/caseconv"
 	"github.com/RussellLuo/kok/pkg/ifacetool"
+	"github.com/RussellLuo/kok/pkg/pkgtool"
 )
 
 var (
@@ -85,7 +85,7 @@ func (g *Generator) Generate(pkgPath string, ifaceData *ifacetool.Data, service 
 		Messages map[string]*parser.Type
 	}{
 		PkgPath:  pkgPath,
-		PkgName:  reflector.PkgNameFromDir(pkgPath),
+		PkgName:  pkgtool.PkgNameFromDir(pkgPath),
 		Service:  service,
 		Messages: getMessages(service),
 	}

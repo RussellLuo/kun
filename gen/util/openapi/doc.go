@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/RussellLuo/kok/gen/util/reflector"
 	"github.com/RussellLuo/kok/pkg/caseconv"
 	"github.com/RussellLuo/kok/pkg/ifacetool"
 )
@@ -29,13 +28,13 @@ var (
 	reSingleVarName = regexp.MustCompile(`^\w+$`)
 )
 
-func FromDoc(data *ifacetool.Data, doc *reflector.InterfaceDoc, snakeCase bool) (*Specification, []Transport, error) {
-	metadata, err := buildMetadata(doc.Doc)
+func FromDoc(data *ifacetool.Data, snakeCase bool) (*Specification, []Transport, error) {
+	metadata, err := buildMetadata(data.InterfaceDoc)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	aliases, err := newAliases(doc.Doc)
+	aliases, err := newAliases(data.InterfaceDoc)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -47,12 +46,11 @@ func FromDoc(data *ifacetool.Data, doc *reflector.InterfaceDoc, snakeCase bool) 
 	var transports []Transport
 
 	for _, m := range data.Methods {
-		comments, ok := doc.MethodDocs[m.Name]
-		if !ok {
+		if len(m.Doc) == 0 {
 			continue
 		}
 
-		transport := getTransportPerKokAnnotations(comments)
+		transport := getTransportPerKokAnnotations(m.Doc)
 		if transport == 0 {
 			// Empty transport indicates that there are no kok annotations.
 			continue
@@ -61,7 +59,7 @@ func FromDoc(data *ifacetool.Data, doc *reflector.InterfaceDoc, snakeCase bool) 
 
 		op := &Operation{
 			Name:        m.Name,
-			Description: getDescriptionFromDoc(comments),
+			Description: getDescriptionFromDoc(m.Doc),
 		}
 
 		// Add all request parameters with specified Name/Type
@@ -89,7 +87,7 @@ func FromDoc(data *ifacetool.Data, doc *reflector.InterfaceDoc, snakeCase bool) 
 		op.Resp(http.StatusOK, MediaTypeJSON, nil)
 
 		if transport == TransportHTTP || transport == TransportAll {
-			if err := manipulateByComments(op, params, returns, aliases, comments); err != nil {
+			if err := manipulateByComments(op, params, returns, aliases, m.Doc); err != nil {
 				return nil, nil, err
 			}
 		}

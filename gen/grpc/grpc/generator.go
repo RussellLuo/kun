@@ -3,9 +3,9 @@ package grpc
 import (
 	"github.com/RussellLuo/kok/gen/grpc/parser"
 	"github.com/RussellLuo/kok/gen/util/generator"
-	"github.com/RussellLuo/kok/gen/util/reflector"
 	"github.com/RussellLuo/kok/pkg/caseconv"
 	"github.com/RussellLuo/kok/pkg/ifacetool"
+	"github.com/RussellLuo/kok/pkg/pkgtool"
 )
 
 var (
@@ -111,7 +111,7 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, pbPkgPath string, iface
 		Service     *parser.Service
 	}{
 		PBPkgPath:   pbPkgPath,
-		PBPkgPrefix: reflector.PkgNameFromDir(pbPkgPath) + ".",
+		PBPkgPrefix: pkgtool.PkgNameFromDir(pbPkgPath) + ".",
 		Data:        ifaceData,
 		PkgInfo:     pkgInfo,
 		Service:     service,

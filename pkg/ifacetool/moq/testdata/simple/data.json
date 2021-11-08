@@ -2,6 +2,7 @@
   "PkgName": "simple",
   "SrcPkgName": "simple",
   "SrcPkgQualifier": "",
+  "InterfaceDoc": null,
   "InterfaceName": "Counter",
   "Imports": [
     {
@@ -11,6 +12,7 @@
   ],
   "Methods": [
     {
+      "Doc": null,
       "Name": "One",
       "Params": [
         {
@@ -33,6 +35,7 @@
       ]
     },
     {
+      "Doc": null,
       "Name": "Two",
       "Params": [
         {

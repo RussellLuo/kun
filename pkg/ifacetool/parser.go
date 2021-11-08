@@ -46,6 +46,7 @@ func (p *Param) CallName() string {
 }
 
 type Method struct {
+	Doc     []string
 	Name    string
 	Params  []*Param
 	Returns []*Param
@@ -109,6 +110,7 @@ type Data struct {
 	PkgName         string
 	SrcPkgName      string
 	SrcPkgQualifier string
+	InterfaceDoc    []string
 	InterfaceName   string
 	Imports         []*Import
 	Methods         []*Method

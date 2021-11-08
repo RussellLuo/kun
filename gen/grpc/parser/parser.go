@@ -7,7 +7,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/RussellLuo/kok/gen/util/reflector"
 	"github.com/RussellLuo/kok/pkg/caseconv"
 	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
 	"github.com/RussellLuo/kok/pkg/ifacetool"
@@ -78,26 +77,25 @@ func (t *Type) Squash() (types []*Type) {
 	return
 }
 
-func Parse(data *ifacetool.Data, doc *reflector.InterfaceDoc) (*Service, error) {
+func Parse(data *ifacetool.Data) (*Service, error) {
 	s := &Service{
 		Name:         data.InterfaceName,
-		Descriptions: getDescriptionsFromDoc(doc.Doc),
+		Descriptions: getDescriptionsFromDoc(data.InterfaceDoc),
 	}
 
 	for _, m := range data.Methods {
-		comments, ok := doc.MethodDocs[m.Name]
-		if !ok || !hasKokGRPCAnnotation(comments) {
+		if len(m.Doc) == 0 || !hasKokGRPCAnnotation(m.Doc) {
 			continue
 		}
 
-		rpcFields, err := parseRPCFields(m, comments)
+		rpcFields, err := parseRPCFields(m)
 		if err != nil {
 			return nil, err
 		}
 
 		s.RPCs = append(s.RPCs, &RPC{
 			Name:         m.Name,
-			Descriptions: getDescriptionsFromDoc(comments),
+			Descriptions: getDescriptionsFromDoc(m.Doc),
 			Request: &Message{
 				Name:   m.Name + "Request",
 				Fields: rpcFields.Request,
@@ -278,7 +276,7 @@ type rpcFields struct {
 	Response []*Field
 }
 
-func parseRPCFields(method *ifacetool.Method, comments []string) (*rpcFields, error) {
+func parseRPCFields(method *ifacetool.Method) (*rpcFields, error) {
 	reqFields, err := parse(method.Params)
 	if err != nil {
 		return nil, err
@@ -294,14 +292,14 @@ func parseRPCFields(method *ifacetool.Method, comments []string) (*rpcFields, er
 		Response: respFields,
 	}
 
-	if err := rpcFields.manipulateByComments(method, comments); err != nil {
+	if err := rpcFields.manipulateByComments(method); err != nil {
 		return nil, err
 	}
 
 	return rpcFields, nil
 }
 
-func (rf *rpcFields) manipulateByComments(method *ifacetool.Method, comments []string) error {
+func (rf *rpcFields) manipulateByComments(method *ifacetool.Method) error {
 	params := make(map[string]*ifacetool.Param)
 	for _, p := range method.Params {
 		params[p.Name] = p
@@ -312,7 +310,7 @@ func (rf *rpcFields) manipulateByComments(method *ifacetool.Method, comments []s
 		returns[p.Name] = p
 	}
 
-	for _, comment := range comments {
+	for _, comment := range method.Doc {
 		if !isKokAnnotation(comment, "@kok(grpc)") {
 			continue
 		}

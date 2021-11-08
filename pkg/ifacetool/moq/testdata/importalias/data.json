@@ -2,6 +2,7 @@
   "PkgName": "importalias",
   "SrcPkgName": "importalias",
   "SrcPkgQualifier": "",
+  "InterfaceDoc": null,
   "InterfaceName": "Connector",
   "Imports": [
     {
@@ -15,6 +16,7 @@
   ],
   "Methods": [
     {
+      "Doc": null,
       "Name": "Connect",
       "Params": [
         {
