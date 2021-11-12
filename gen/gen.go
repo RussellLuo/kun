@@ -8,12 +8,13 @@ import (
 
 	"github.com/RussellLuo/kok/gen/endpoint"
 	"github.com/RussellLuo/kok/gen/grpc/grpc"
-	"github.com/RussellLuo/kok/gen/grpc/parser"
+	grpcparser "github.com/RussellLuo/kok/gen/grpc/parser"
 	"github.com/RussellLuo/kok/gen/grpc/proto"
 	"github.com/RussellLuo/kok/gen/http/chi"
 	"github.com/RussellLuo/kok/gen/http/httpclient"
 	"github.com/RussellLuo/kok/gen/http/httptest"
 	"github.com/RussellLuo/kok/gen/http/oasv2"
+	httpparser "github.com/RussellLuo/kok/gen/http/parser"
 	"github.com/RussellLuo/kok/gen/util/generator"
 	"github.com/RussellLuo/kok/gen/util/openapi"
 	"github.com/RussellLuo/kok/pkg/ifacetool"
@@ -28,6 +29,7 @@ type Options struct {
 	Formatted     bool
 	SnakeCase     bool
 	EnableTracing bool
+	OldAnnotation bool
 }
 
 type Generator struct {
@@ -89,9 +91,24 @@ func (g *Generator) Generate(srcFilename, interfaceName, testFilename string) (f
 		return nil, err
 	}
 
-	spec, transports, err := openapi.FromDoc(data, g.opts.SnakeCase)
-	if err != nil {
-		return nil, err
+	var (
+		spec       *openapi.Specification
+		transports []openapi.Transport
+	)
+	if g.opts.OldAnnotation {
+		spec, transports, err = openapi.FromDoc(data, g.opts.SnakeCase)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		newSpec, newTransports, err := httpparser.Parse(data, g.opts.SnakeCase)
+		if err != nil {
+			return nil, err
+		}
+		spec = newSpec.OldSpec()
+		for _, t := range newTransports {
+			transports = append(transports, openapi.Transport(t))
+		}
 	}
 
 	epFile, err := g.generateEndpoint(data, spec)
@@ -215,7 +232,7 @@ func (g *Generator) generateGRPC(data *ifacetool.Data) (files []*generator.File,
 		}
 	}()
 
-	service, err := parser.Parse(data)
+	service, err := grpcparser.Parse(data)
 	if err != nil {
 		return files, err
 	}
