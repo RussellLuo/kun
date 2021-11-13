@@ -26,7 +26,7 @@ type Body struct {
 
 // ParseBody parses s per the format as below:
 //
-//     <field> or body=<field> manip=`<manipulation> [; <manipulation2> [; ...]]`
+//     <field> or <manipulation> [; <manipulation2> [; ...]]
 //
 // The format of `<manipulation>`:
 //

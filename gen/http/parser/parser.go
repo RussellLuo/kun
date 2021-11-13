@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/types"
 	"net/http"
+	"reflect"
 	"regexp"
 	"strings"
 
@@ -21,6 +22,8 @@ const (
 	TransportHTTP Transport = 0b0001
 	TransportGRPC Transport = 0b0010
 	TransportAll  Transport = 0b0011
+
+	tagName = "kok"
 )
 
 var (
@@ -28,20 +31,20 @@ var (
 )
 
 func Parse(data *ifacetool.Data, snakeCase bool) (*spec.Specification, []Transport, error) {
-	ifaceAnno, err := annotation.ParseInterfaceAnnotation(data.InterfaceDoc)
+	anno, err := annotation.ParseInterfaceAnnotation(data.InterfaceDoc)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	s := &spec.Specification{
-		Metadata: ifaceAnno.Metadata,
+		Metadata: anno.Metadata,
 	}
 
 	var (
 		transports []Transport
 		opBuilder  = &OpBuilder{
 			snakeCase: snakeCase,
-			aliases:   ifaceAnno.Aliases,
+			aliases:   anno.Aliases,
 		}
 	)
 
@@ -87,7 +90,9 @@ func (b *OpBuilder) Build(method *ifacetool.Method) (*spec.Operation, error) {
 	}
 
 	// Set request parameters.
-	if err := b.setParams(op, method, anno.Params); err != nil {
+	op.Request = new(spec.Request)
+	pathVarNames := extractPathVarNames(op.Pattern)
+	if err := b.setParams(op.Request, method, anno.Params, pathVarNames); err != nil {
 		return nil, err
 	}
 
@@ -108,11 +113,11 @@ func (b *OpBuilder) Build(method *ifacetool.Method) (*spec.Operation, error) {
 	return op, nil
 }
 
-func (b *OpBuilder) setParams(op *spec.Operation, method *ifacetool.Method, params map[string]*annotation.Param) error {
+func (b *OpBuilder) setParams(req *spec.Request, method *ifacetool.Method, params map[string]*annotation.Param, pathVarNames []string) error {
 	for _, arg := range method.Params {
 		param, ok := params[arg.Name]
 		if !ok {
-			op.Bind(arg, b.buildParams(arg, nil))
+			req.Bind(arg, b.buildParams(arg, nil))
 			continue
 		}
 
@@ -120,17 +125,25 @@ func (b *OpBuilder) setParams(op *spec.Operation, method *ifacetool.Method, para
 		delete(params, arg.Name)
 
 		if len(param.Params) > 0 {
-			op.Bind(arg, b.buildParams(arg, param.Params))
+			if !isBasic(arg) {
+				return fmt.Errorf("cannot define extra parameters for non-basic argument %q", arg.Name)
+			}
+			req.Bind(arg, b.buildParams(arg, param.Params))
+			continue
 		}
 
-		// TODO: Extract parameters by parsing annotations defined in struct tags.
+		annoParams, err := b.inferAnnotationParams(method.Name, arg)
+		if err != nil {
+			return err
+		}
+		req.Bind(arg, b.buildParams(arg, annoParams))
 	}
 
 	for name, p := range params {
 		// Remain some unmatched entries.
 
 		if !strings.HasPrefix(name, "__") {
-			return fmt.Errorf("no argument `%s` declared in the method %s", name, method.Name)
+			return fmt.Errorf("no argument %q declared in the method %s", name, method.Name)
 		}
 
 		// This is a blank identifier.
@@ -140,14 +153,14 @@ func (b *OpBuilder) setParams(op *spec.Operation, method *ifacetool.Method, para
 			TypeString: typ.Name(),
 			Type:       typ,
 		}
-		op.Bind(arg, b.buildParams(arg, p.Params))
+		req.Bind(arg, b.buildParams(arg, p.Params))
 	}
 
 	// Add path parameters according to the path pattern.
-	for _, name := range extractPathVarNames(op.Pattern) {
-		// If name is already bound to a path parameter by @kok(param) or
+	for _, name := range pathVarNames {
+		// If name is already bound to a path parameter by //kok:param or
 		// by struct tags, do not reset it.
-		if isAlreadyPathParam(name, op.Request.Bindings) {
+		if isAlreadyPathParam(name, req.Bindings) {
 			continue
 		}
 
@@ -158,7 +171,7 @@ func (b *OpBuilder) setParams(op *spec.Operation, method *ifacetool.Method, para
 		// - "xx_id" will be converted to "xxId" (not the conventional "xxID").
 		argName := caseconv.ToLowerCamelCase(name)
 
-		binding := op.Request.GetBinding(argName)
+		binding := req.GetBinding(argName)
 		if binding == nil {
 			return fmt.Errorf("cannot bind path parameter %q: no argument %q declared in the method %s", name, argName, method.Name)
 		}
@@ -173,8 +186,8 @@ func (b *OpBuilder) setParams(op *spec.Operation, method *ifacetool.Method, para
 	}
 
 	// Add possible query parameters if no-request-body is specified.
-	if op.Request.BodyField == OptionNoBody {
-		for _, binding := range op.Request.Bindings {
+	if req.BodyField == OptionNoBody {
+		for _, binding := range req.Bindings {
 			if !binding.IsManual() {
 				binding.SetIn(spec.InQuery)
 			}
@@ -185,14 +198,9 @@ func (b *OpBuilder) setParams(op *spec.Operation, method *ifacetool.Method, para
 }
 
 func (b *OpBuilder) buildParams(arg *ifacetool.Param, annoParams []*spec.Parameter) []*spec.Parameter {
-	name := caseconv.ToLowerCamelCase(arg.Name)
-	if b.snakeCase {
-		name = caseconv.ToSnakeCase(name)
-	}
-
 	defaultParam := &spec.Parameter{
-		In:   spec.InBody, // Parameters are bound to the body by default.
-		Name: name,
+		In:   spec.InBody, // Method arguments are bound to the body by default.
+		Name: b.defaultName(arg.Name),
 		Type: arg.TypeString,
 	}
 
@@ -211,6 +219,124 @@ func (b *OpBuilder) buildParams(arg *ifacetool.Param, annoParams []*spec.Paramet
 		}
 	}
 	return annoParams
+}
+
+// inferAnnotationParams extracts parameters by parsing annotations from struct tags.
+func (b *OpBuilder) inferAnnotationParams(methodName string, arg *ifacetool.Param) ([]*spec.Parameter, error) {
+	newParamWithType := func(typ string) *spec.Parameter {
+		return &spec.Parameter{
+			// Method arguments specified in //kok:param are mapped to the query by default.
+			In:   spec.InQuery,
+			Name: b.defaultName(arg.Name),
+			Type: typ,
+		}
+	}
+
+	newError := func(name string, typ types.Type) error {
+		return fmt.Errorf("parameter cannot be mapped to argument %q (of type %v) in method %s", name, typ, methodName)
+	}
+
+	newErrorStruct := func(paramName, fieldName string, fieldType types.Type) error {
+		return fmt.Errorf("parameter cannot be mapped to struct field %q (of type %v) from argument %q in method %s", fieldName, fieldType, paramName, methodName)
+	}
+
+	var params []*spec.Parameter
+
+	switch t := arg.Type.Underlying().(type) {
+	case *types.Basic:
+		params = append(params, newParamWithType(t.Name()))
+
+	case *types.Slice:
+		et, ok := t.Elem().(*types.Basic)
+		if !ok {
+			return nil, newError(arg.Name, t)
+		}
+		params = append(params, newParamWithType("[]"+et.Name()))
+
+	case *types.Struct:
+		/*if a.In != "" {
+			fmt.Printf("WARNING: manually specified `in:%s` is ignored for struct argument `%s` in method %s\n", a.In, a.ArgName, p.methodName)
+		}*/
+
+	NextField:
+		for i := 0; i < t.NumFields(); i++ {
+			var typeName string
+			switch ft := t.Field(i).Type().(type) {
+			case *types.Basic:
+				typeName = ft.Name()
+			case *types.Slice:
+				et, ok := ft.Elem().(*types.Basic)
+				if !ok {
+					return nil, newErrorStruct(arg.Name, t.Field(i).Name(), ft)
+				}
+				typeName = "[]" + et.Name()
+			default:
+				return nil, newErrorStruct(arg.Name, t.Field(i).Name(), ft)
+			}
+
+			field := reflect.StructField{
+				Tag:  reflect.StructTag(t.Tag(i)),
+				Name: t.Field(i).Name(),
+			}
+
+			ps, err := annotation.ParseParamParameters(field.Name, field.Tag.Get(tagName))
+			if err != nil {
+				return nil, err
+			}
+
+			for _, p := range ps {
+				if p.Name == "-" {
+					// Omit this field.
+					continue NextField
+				}
+
+				if p.Name == "" {
+					p.Name = b.defaultName(field.Name)
+				}
+				if p.Type == "" {
+					p.Type = typeName
+				}
+			}
+
+			params = append(params, ps...)
+		}
+
+	//case *types.Pointer:
+	//	// Dereference the pointer to parse the element type.
+	//	nts, err := p.parseTypes(name, t.Elem())
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	for n, t := range nts {
+	//		nameTypes[n] = t
+	//	}
+
+	default:
+		return nil, newError(arg.Name, t)
+	}
+
+	return params, nil
+}
+
+func (b *OpBuilder) defaultName(name string) string {
+	if b.snakeCase {
+		return caseconv.ToSnakeCase(name)
+	}
+	return caseconv.ToLowerCamelCase(name)
+}
+
+// isBasic returns whether the parameter is of basic type, or of
+// slice type (whose element is of basic type).
+func isBasic(arg *ifacetool.Param) bool {
+	switch t := arg.Type.Underlying().(type) {
+	case *types.Basic:
+		return true
+
+	case *types.Slice:
+		_, ok := t.Elem().(*types.Basic)
+		return ok
+	}
+	return false
 }
 
 func getTransportPerKokAnnotations(doc []string) (t Transport) {

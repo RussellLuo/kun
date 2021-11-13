@@ -33,7 +33,7 @@ func ParseParam(s string) (*Param, error) {
 
 	r := reKokParam.FindStringSubmatch(s)
 	if len(r) != 3 {
-		return nil, fmt.Errorf("invalid directive argument: %s", s)
+		return nil, fmt.Errorf("invalid directive arguments: %s", s)
 	}
 	argName, remaining := r[1], r[2]
 
@@ -46,18 +46,28 @@ func ParseParam(s string) (*Param, error) {
 		return p, nil
 	}
 
-	for _, text := range strings.Split(remaining, ";") {
-		param, err := parseSingleParam(argName, text)
-		if err != nil {
-			return nil, err
-		}
-		p.Params = append(p.Params, param)
+	params, err := ParseParamParameters(argName, remaining)
+	if err != nil {
+		return nil, err
 	}
+	p.Params = append(p.Params, params...)
 
 	return p, nil
 }
 
-func parseSingleParam(argName, s string) (*spec.Parameter, error) {
+func ParseParamParameters(argName, s string) ([]*spec.Parameter, error) {
+	var params []*spec.Parameter
+	for _, text := range strings.Split(s, ";") {
+		param, err := parseParamParameter(argName, strings.TrimSpace(text))
+		if err != nil {
+			return nil, err
+		}
+		params = append(params, param)
+	}
+	return params, nil
+}
+
+func parseParamParameter(argName, s string) (*spec.Parameter, error) {
 	s = strings.TrimSpace(s)
 	p := new(spec.Parameter)
 
@@ -65,7 +75,7 @@ func parseSingleParam(argName, s string) (*spec.Parameter, error) {
 		part = strings.TrimSpace(part)
 		kv := strings.SplitN(part, "=", 2)
 		if len(kv) != 2 {
-			return nil, fmt.Errorf("invalid directive argument: %s", part)
+			return nil, fmt.Errorf("invalid parameter pair: %s", part)
 		}
 
 		k, v := kv[0], kv[1]
@@ -74,7 +84,7 @@ func parseSingleParam(argName, s string) (*spec.Parameter, error) {
 		case "in":
 			p.In = spec.Location(v)
 
-			if err := errorIn(p.In); err != nil {
+			if err := validateLocation(p.In); err != nil {
 				return nil, err
 			}
 		case "name":
@@ -100,14 +110,14 @@ func parseSingleParam(argName, s string) (*spec.Parameter, error) {
 	}
 
 	if p.In == "" {
-		// Defaults to be a query parameter.
+		// Location defaults to query if not specified.
 		p.In = spec.InQuery
 	}
 
 	return p, nil
 }
 
-func errorIn(in spec.Location) error {
+func validateLocation(in spec.Location) error {
 	if in != spec.InPath && in != spec.InQuery && in != spec.InHeader &&
 		/*in != InCookie &&*/ in != spec.InRequest {
 

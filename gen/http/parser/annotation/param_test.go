@@ -17,7 +17,7 @@ func TestParseParam(t *testing.T) {
 	}{
 		{
 			name: "simple argument",
-			in:   "name in=header name=X-User-Name required=true descr=user-name",
+			in:   "name in=header name=X-User-Name required=true type=string descr=user-name",
 			wantOut: &annotation.Param{
 				ArgName: "name",
 				Params: []*spec.Parameter{
@@ -25,6 +25,7 @@ func TestParseParam(t *testing.T) {
 						In:          spec.InHeader,
 						Name:        "X-User-Name",
 						Required:    true,
+						Type:        "string",
 						Description: "user-name",
 					},
 				},
@@ -66,6 +67,16 @@ func TestParseParam(t *testing.T) {
 					},
 				},
 			},
+		},
+		{
+			name:       "invalid parameter pair",
+			in:         "name x:y",
+			wantErrStr: "invalid parameter pair: x:y",
+		},
+		{
+			name:       "invalid location",
+			in:         "name in=xxx",
+			wantErrStr: `invalid location value: xxx (must be "path", "query", "header" or "request")`,
 		},
 	}
 

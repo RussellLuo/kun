@@ -188,6 +188,14 @@ type Request struct {
 	Bindings []*Binding
 }
 
+func (r *Request) Bind(arg *ifacetool.Param, params []*Parameter) {
+	b := &Binding{
+		Arg:    arg,
+		Params: params,
+	}
+	r.Bindings = append(r.Bindings, b)
+}
+
 func (r *Request) GetBinding(argName string) *Binding {
 	for _, b := range r.Bindings {
 		if b.Arg.Name == argName {
@@ -211,20 +219,11 @@ type Operation struct {
 	Name             string
 	Method           string
 	Pattern          string
-	Request          Request
+	Request          *Request
 	SuccessResponse  *Response
 	FailureResponses []*Response
 	Description      string
 	Tags             []string
-}
-
-func (o *Operation) Bind(arg *ifacetool.Param, params []*Parameter) *Operation {
-	b := &Binding{
-		Arg:    arg,
-		Params: params,
-	}
-	o.Request.Bindings = append(o.Request.Bindings, b)
-	return o
 }
 
 func (o *Operation) Resp(statusCode int, mediaType string, schema interface{}) *Operation {

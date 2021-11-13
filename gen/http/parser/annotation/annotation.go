@@ -44,7 +44,7 @@ type MethodAnnotation struct {
 }
 
 func ParseMethodAnnotation(method *ifacetool.Method) (*MethodAnnotation, error) {
-	anno := new(MethodAnnotation)
+	anno := &MethodAnnotation{Params: make(map[string]*Param)}
 
 	for _, comment := range method.Doc {
 		if !IsKokAnnotation(comment) || IsKokGRPCAnnotation(comment) {
