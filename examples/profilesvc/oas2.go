@@ -6,7 +6,7 @@ package profilesvc
 import (
 	"reflect"
 
-	"github.com/RussellLuo/kok/pkg/oasv2"
+	"github.com/RussellLuo/kok/pkg/oas2"
 )
 
 var (
@@ -147,62 +147,62 @@ paths:
 `
 )
 
-func getResponses(schema oasv2.Schema) []oasv2.OASResponses {
-	return []oasv2.OASResponses{
-		oasv2.GetOASResponses(schema, "DeleteAddress", 200, &DeleteAddressResponse{}),
-		oasv2.GetOASResponses(schema, "GetAddress", 200, &GetAddressResponse{}),
-		oasv2.GetOASResponses(schema, "DeleteProfile", 200, &DeleteProfileResponse{}),
-		oasv2.GetOASResponses(schema, "GetProfile", 200, &GetProfileResponse{}),
-		oasv2.GetOASResponses(schema, "PatchProfile", 200, &PatchProfileResponse{}),
-		oasv2.GetOASResponses(schema, "PutProfile", 200, &PutProfileResponse{}),
-		oasv2.GetOASResponses(schema, "GetAddresses", 200, &GetAddressesResponse{}),
-		oasv2.GetOASResponses(schema, "PostAddress", 200, &PostAddressResponse{}),
-		oasv2.GetOASResponses(schema, "PostProfile", 200, &PostProfileResponse{}),
+func getResponses(schema oas2.Schema) []oas2.OASResponses {
+	return []oas2.OASResponses{
+		oas2.GetOASResponses(schema, "DeleteAddress", 200, &DeleteAddressResponse{}),
+		oas2.GetOASResponses(schema, "GetAddress", 200, &GetAddressResponse{}),
+		oas2.GetOASResponses(schema, "DeleteProfile", 200, &DeleteProfileResponse{}),
+		oas2.GetOASResponses(schema, "GetProfile", 200, &GetProfileResponse{}),
+		oas2.GetOASResponses(schema, "PatchProfile", 200, &PatchProfileResponse{}),
+		oas2.GetOASResponses(schema, "PutProfile", 200, &PutProfileResponse{}),
+		oas2.GetOASResponses(schema, "GetAddresses", 200, &GetAddressesResponse{}),
+		oas2.GetOASResponses(schema, "PostAddress", 200, &PostAddressResponse{}),
+		oas2.GetOASResponses(schema, "PostProfile", 200, &PostProfileResponse{}),
 	}
 }
 
-func getDefinitions(schema oasv2.Schema) map[string]oasv2.Definition {
-	defs := make(map[string]oasv2.Definition)
+func getDefinitions(schema oas2.Schema) map[string]oas2.Definition {
+	defs := make(map[string]oas2.Definition)
 
-	oasv2.AddResponseDefinitions(defs, schema, "DeleteAddress", 200, (&DeleteAddressResponse{}).Body())
+	oas2.AddResponseDefinitions(defs, schema, "DeleteAddress", 200, (&DeleteAddressResponse{}).Body())
 
-	oasv2.AddResponseDefinitions(defs, schema, "DeleteProfile", 200, (&DeleteProfileResponse{}).Body())
+	oas2.AddResponseDefinitions(defs, schema, "DeleteProfile", 200, (&DeleteProfileResponse{}).Body())
 
-	oasv2.AddResponseDefinitions(defs, schema, "GetAddress", 200, (&GetAddressResponse{}).Body())
+	oas2.AddResponseDefinitions(defs, schema, "GetAddress", 200, (&GetAddressResponse{}).Body())
 
-	oasv2.AddResponseDefinitions(defs, schema, "GetAddresses", 200, (&GetAddressesResponse{}).Body())
+	oas2.AddResponseDefinitions(defs, schema, "GetAddresses", 200, (&GetAddressesResponse{}).Body())
 
-	oasv2.AddResponseDefinitions(defs, schema, "GetProfile", 200, (&GetProfileResponse{}).Body())
+	oas2.AddResponseDefinitions(defs, schema, "GetProfile", 200, (&GetProfileResponse{}).Body())
 
-	oasv2.AddDefinition(defs, "PatchProfileRequestBody", reflect.ValueOf(&struct {
+	oas2.AddDefinition(defs, "PatchProfileRequestBody", reflect.ValueOf(&struct {
 		Profile Profile `json:"profile"`
 	}{}))
-	oasv2.AddResponseDefinitions(defs, schema, "PatchProfile", 200, (&PatchProfileResponse{}).Body())
+	oas2.AddResponseDefinitions(defs, schema, "PatchProfile", 200, (&PatchProfileResponse{}).Body())
 
-	oasv2.AddDefinition(defs, "PostAddressRequestBody", reflect.ValueOf(&struct {
+	oas2.AddDefinition(defs, "PostAddressRequestBody", reflect.ValueOf(&struct {
 		Address Address `json:"address"`
 	}{}))
-	oasv2.AddResponseDefinitions(defs, schema, "PostAddress", 200, (&PostAddressResponse{}).Body())
+	oas2.AddResponseDefinitions(defs, schema, "PostAddress", 200, (&PostAddressResponse{}).Body())
 
-	oasv2.AddDefinition(defs, "PostProfileRequestBody", reflect.ValueOf(&struct {
+	oas2.AddDefinition(defs, "PostProfileRequestBody", reflect.ValueOf(&struct {
 		Profile Profile `json:"profile"`
 	}{}))
-	oasv2.AddResponseDefinitions(defs, schema, "PostProfile", 200, (&PostProfileResponse{}).Body())
+	oas2.AddResponseDefinitions(defs, schema, "PostProfile", 200, (&PostProfileResponse{}).Body())
 
-	oasv2.AddDefinition(defs, "PutProfileRequestBody", reflect.ValueOf(&struct {
+	oas2.AddDefinition(defs, "PutProfileRequestBody", reflect.ValueOf(&struct {
 		Profile Profile `json:"profile"`
 	}{}))
-	oasv2.AddResponseDefinitions(defs, schema, "PutProfile", 200, (&PutProfileResponse{}).Body())
+	oas2.AddResponseDefinitions(defs, schema, "PutProfile", 200, (&PutProfileResponse{}).Body())
 
 	return defs
 }
 
-func OASv2APIDoc(schema oasv2.Schema) string {
+func OASv2APIDoc(schema oas2.Schema) string {
 	resps := getResponses(schema)
-	paths := oasv2.GenPaths(resps, paths)
+	paths := oas2.GenPaths(resps, paths)
 
 	defs := getDefinitions(schema)
-	definitions := oasv2.GenDefinitions(defs)
+	definitions := oas2.GenDefinitions(defs)
 
 	return base + paths + definitions
 }

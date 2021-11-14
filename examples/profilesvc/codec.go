@@ -3,8 +3,8 @@ package profilesvc
 import (
 	"net/http"
 
-	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
-	"github.com/RussellLuo/kok/pkg/oasv2"
+	"github.com/RussellLuo/kok/pkg/httpcodec"
+	"github.com/RussellLuo/kok/pkg/oas2"
 )
 
 type Codec struct {
@@ -35,22 +35,22 @@ func NewCodecs() *httpcodec.DefaultCodecs {
 func GetFailures(name string) map[error]interface{} {
 	switch name {
 	case "PostProfile":
-		return oasv2.Errors(ErrAlreadyExists)
+		return oas2.Errors(ErrAlreadyExists)
 	case "GetProfile", "DeleteProfile", "GetAddresses", "GetAddress", "DeleteAddress":
-		return oasv2.Errors(ErrNotFound)
+		return oas2.Errors(ErrNotFound)
 	case "PutProfile":
-		return oasv2.Errors(ErrInconsistentIDs)
+		return oas2.Errors(ErrInconsistentIDs)
 	case "PatchProfile":
-		return oasv2.Errors(ErrInconsistentIDs, ErrNotFound)
+		return oas2.Errors(ErrInconsistentIDs, ErrNotFound)
 	case "PostAddress":
-		return oasv2.Errors(ErrAlreadyExists, ErrNotFound)
+		return oas2.Errors(ErrAlreadyExists, ErrNotFound)
 	default:
 		return nil
 	}
 }
 
-func NewSchema() *oasv2.ResponseSchema {
-	return &oasv2.ResponseSchema{
+func NewSchema() *oas2.ResponseSchema {
+	return &oas2.ResponseSchema{
 		Codecs:          NewCodecs(),
 		GetFailuresFunc: GetFailures,
 	}

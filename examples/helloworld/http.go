@@ -7,7 +7,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
+	"github.com/RussellLuo/kok/pkg/httpcodec"
 	"github.com/RussellLuo/kok/pkg/httpoption"
 	"github.com/RussellLuo/kok/pkg/oasv2"
 	"github.com/go-chi/chi"

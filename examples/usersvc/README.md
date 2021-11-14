@@ -15,7 +15,7 @@ Run the server:
 
 ```bash
 $ go run cmd/main.go
-2021/03/07 16:00:34 transport=HTTP addr=:8080
+2021/11/14 18:13:15 transport=HTTP addr=:8080
 ```
 
 Create a user:

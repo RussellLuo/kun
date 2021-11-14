@@ -7,9 +7,9 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
+	"github.com/RussellLuo/kok/pkg/httpcodec"
 	"github.com/RussellLuo/kok/pkg/httpoption"
-	"github.com/RussellLuo/kok/pkg/oasv2"
+	"github.com/RussellLuo/kok/pkg/oas2"
 	"github.com/go-chi/chi"
 	kithttp "github.com/go-kit/kit/transport/http"
 )
@@ -18,7 +18,7 @@ func NewHTTPRouter(svc Service, codecs httpcodec.Codecs, opts ...httpoption.Opti
 	r := chi.NewRouter()
 	options := httpoption.NewOptions(opts...)
 
-	r.Method("GET", "/api", oasv2.Handler(OASv2APIDoc, options.ResponseSchema()))
+	r.Method("GET", "/api", oas2.Handler(OASv2APIDoc, options.ResponseSchema()))
 
 	var codec httpcodec.Codec
 	var validator httpoption.Validator
@@ -153,7 +153,7 @@ func NewHTTPRouter(svc Service, codecs httpcodec.Codecs, opts ...httpoption.Opti
 	return r
 }
 
-func NewHTTPRouterWithOAS(svc Service, codecs httpcodec.Codecs, schema oasv2.Schema) chi.Router {
+func NewHTTPRouterWithOAS(svc Service, codecs httpcodec.Codecs, schema oas2.Schema) chi.Router {
 	return NewHTTPRouter(svc, codecs, httpoption.ResponseSchema(schema))
 }
 

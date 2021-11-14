@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	httpAddr := flag.String("http.addr", ":8088", "HTTP listen address")
+	httpAddr := flag.String("http.addr", ":8080", "HTTP listen address")
 	flag.Parse()
 
 	r := usersvc.NewHTTPRouter(&usersvc.UserService{}, usersvc.NewCodecs())

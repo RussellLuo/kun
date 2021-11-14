@@ -1,4 +1,4 @@
-package oasv2
+package oas2
 
 import (
 	"fmt"
@@ -25,7 +25,7 @@ import (
 	"text/template"
 
 	chimiddleware "github.com/go-chi/chi/middleware"
-	"github.com/RussellLuo/kok/pkg/oasv2"
+	"github.com/RussellLuo/kok/pkg/oas2"
 
 	{{- if .PkgInfo.EndpointPkgPath}}
 	"{{.PkgInfo.EndpointPkgPath}}"
@@ -102,18 +102,18 @@ paths:
 ` + "`" + `
 )
 
-func getResponses(schema oasv2.Schema) []oasv2.OASResponses {
-	return []oasv2.OASResponses{
+func getResponses(schema oas2.Schema) []oas2.OASResponses {
+	return []oas2.OASResponses{
 		{{- range $operationsGroupByPattern}}
 		{{- range .Operations}}
-		oasv2.GetOASResponses(schema, "{{.Name}}", {{.SuccessResponse.StatusCode}}, {{endpointPrefix .Name}}Response{}),
+		oas2.GetOASResponses(schema, "{{.Name}}", {{.SuccessResponse.StatusCode}}, {{endpointPrefix .Name}}Response{}),
 		{{- end}} {{/* range .Operations */}}
 		{{- end}} {{/* range $operationsGroupByPattern */}}
 	}
 }
 
-func getDefinitions(schema oasv2.Schema) map[string]oasv2.Definition {
-	defs := make(map[string]oasv2.Definition)
+func getDefinitions(schema oas2.Schema) map[string]oas2.Definition {
+	defs := make(map[string]oas2.Definition)
 
 	{{range .Spec.Operations -}}
 
@@ -121,27 +121,27 @@ func getDefinitions(schema oasv2.Schema) map[string]oasv2.Definition {
 	{{- $bodyParams := bodyParams $nonCtxParams}}
 	{{- $bodyField := getBodyField .Request.BodyField}}
 	{{- if $bodyField}}
-	oasv2.AddDefinition(defs, "{{.Name}}RequestBody", reflect.ValueOf(({{endpointPrefix .Name}}Request{}).{{title $bodyField}}))
+	oas2.AddDefinition(defs, "{{.Name}}RequestBody", reflect.ValueOf(({{endpointPrefix .Name}}Request{}).{{title $bodyField}}))
 	{{- else if $bodyParams}}
-	oasv2.AddDefinition(defs, "{{.Name}}RequestBody", reflect.ValueOf(&struct{
+	oas2.AddDefinition(defs, "{{.Name}}RequestBody", reflect.ValueOf(&struct{
 		{{- range $bodyParams}}
 		{{title .Name}} {{.Type}} {{addTag .Alias .Type}}
 		{{- end}} {{/* range $bodyParams */}}
 	}{}))
 	{{- end}} {{/* if $bodyField */}}
-	oasv2.AddResponseDefinitions(defs, schema, "{{.Name}}", {{.SuccessResponse.StatusCode}}, ({{endpointPrefix .Name}}Response{}).Body())
+	oas2.AddResponseDefinitions(defs, schema, "{{.Name}}", {{.SuccessResponse.StatusCode}}, ({{endpointPrefix .Name}}Response{}).Body())
 
     {{end -}} {{/* range .Spec.Operations */}}
 
 	return defs
 }
 
-func OASv2APIDoc(schema oasv2.Schema) string {
+func OASv2APIDoc(schema oas2.Schema) string {
 	resps := getResponses(schema)
-	paths := oasv2.GenPaths(resps, paths)
+	paths := oas2.GenPaths(resps, paths)
 
 	defs := getDefinitions(schema)
-	definitions := oasv2.GenDefinitions(defs)
+	definitions := oas2.GenDefinitions(defs)
 
 	return base + paths + definitions
 }
@@ -311,6 +311,6 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, spec *openapi.Specifica
 			},
 		},
 		Formatted:      g.opts.Formatted,
-		TargetFileName: "oasv2.go",
+		TargetFileName: "oas2.go",
 	})
 }

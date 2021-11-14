@@ -13,7 +13,7 @@ import (
 	"github.com/RussellLuo/kok/gen/http/chi"
 	"github.com/RussellLuo/kok/gen/http/httpclient"
 	"github.com/RussellLuo/kok/gen/http/httptest"
-	"github.com/RussellLuo/kok/gen/http/oasv2"
+	"github.com/RussellLuo/kok/gen/http/oas2"
 	httpparser "github.com/RussellLuo/kok/gen/http/parser"
 	"github.com/RussellLuo/kok/gen/util/generator"
 	"github.com/RussellLuo/kok/gen/util/openapi"
@@ -37,7 +37,7 @@ type Generator struct {
 	chi        *chi.Generator
 	httptest   *httptest.Generator
 	httpclient *httpclient.Generator
-	oasv2      *oasv2.Generator
+	oas2       *oas2.Generator
 	proto      *proto.Generator
 	grpc       *grpc.Generator
 
@@ -66,7 +66,7 @@ func New(opts *Options) *Generator {
 			SchemaTag: opts.SchemaTag,
 			Formatted: opts.Formatted,
 		}),
-		oasv2: oasv2.New(&oasv2.Options{
+		oas2: oas2.New(&oas2.Options{
 			SchemaPtr: opts.SchemaPtr,
 			SchemaTag: opts.SchemaTag,
 			Formatted: opts.Formatted,
@@ -211,7 +211,7 @@ func (g *Generator) generateHTTP(data *ifacetool.Data, spec *openapi.Specificati
 	}
 
 	// Generate the helper OASv2 code.
-	f, err = g.oasv2.Generate(pkgInfo, spec)
+	f, err = g.oas2.Generate(pkgInfo, spec)
 	if err != nil {
 		return files, err
 	}
