@@ -2,6 +2,7 @@ package spec
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -106,6 +107,10 @@ type Parameter struct {
 	Required    bool     // Whether this parameter is mandatory.
 	Type        string   // The type of the parameter.
 	Description string   // A brief description of the parameter.
+}
+
+func (p *Parameter) UniqueKey() string {
+	return fmt.Sprintf("%s.%s", p.In, p.Name)
 }
 
 // Binding represents a binding from a method argument to one or more request parameters.

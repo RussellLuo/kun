@@ -444,3 +444,122 @@ func Test_extractPathVarNames(t *testing.T) {
 		t.Fatalf("Names: got (%#v), want (%#v)", got, want)
 	}
 }
+
+func TestStructField_Parse(t *testing.T) {
+	tests := []struct {
+		name        string
+		in          *StructField
+		wantOmitted bool
+		wantParams  []*spec.Parameter
+		wantErrStr  string
+	}{
+		{
+			name: "in query by default",
+			in: &StructField{
+				Name: "Name",
+				Type: "string",
+			},
+			wantOmitted: false,
+			wantParams: []*spec.Parameter{
+				{
+					In:   spec.InQuery,
+					Name: "name",
+					Type: "string",
+				},
+			},
+		},
+		{
+			name: "in path",
+			in: &StructField{
+				Name: "Name",
+				Type: "string",
+				Tag:  `kok:"in=path"`,
+			},
+			wantOmitted: false,
+			wantParams: []*spec.Parameter{
+				{
+					In:       spec.InPath,
+					Name:     "name",
+					Required: true,
+					Type:     "string",
+				},
+			},
+		},
+		{
+			name: "omitted",
+			in: &StructField{
+				Name: "Name",
+				Type: "string",
+				Tag:  `kok:"name=-"`,
+			},
+			wantOmitted: true,
+			wantParams:  nil,
+		},
+		{
+			name: "required",
+			in: &StructField{
+				Name: "Name",
+				Type: "string",
+				Tag:  `kok:"required=true"`,
+			},
+			wantOmitted: false,
+			wantParams: []*spec.Parameter{
+				{
+					In:       spec.InQuery,
+					Name:     "name",
+					Required: true,
+					Type:     "string",
+				},
+			},
+		},
+		{
+			name: "has type",
+			in: &StructField{
+				Name: "Name",
+				Type: "string",
+				Tag:  `kok:"type=bool"`,
+			},
+			wantOmitted: false,
+			wantParams: []*spec.Parameter{
+				{
+					In:   spec.InQuery,
+					Name: "name",
+					Type: "bool",
+				},
+			},
+		},
+		{
+			name: "has description",
+			in: &StructField{
+				Name: "Name",
+				Type: "string",
+				Tag:  `kok:"descr=the-description"`,
+			},
+			wantOmitted: false,
+			wantParams: []*spec.Parameter{
+				{
+					In:          spec.InQuery,
+					Name:        "name",
+					Type:        "string",
+					Description: "the-description",
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.in.Parse()
+			if (err == nil && tt.wantErrStr != "") || (err != nil && err.Error() != tt.wantErrStr) {
+				t.Fatalf("Err: got (%#v), want (%#v)", err, tt.wantErrStr)
+			}
+
+			if tt.in.Omitted != tt.wantOmitted {
+				t.Fatalf("Omitted: got (%#v), want (%#v)", tt.in.Omitted, tt.wantOmitted)
+			}
+
+			if !reflect.DeepEqual(tt.in.Params, tt.wantParams) {
+				t.Fatalf("Params: got (%#v), want (%#v)", tt.in.Params, tt.wantParams)
+			}
+		})
+	}
+}

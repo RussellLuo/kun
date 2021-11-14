@@ -274,31 +274,22 @@ func (b *OpBuilder) inferAnnotationParams(methodName string, arg *ifacetool.Para
 				return nil, newErrorStruct(arg.Name, t.Field(i).Name(), ft)
 			}
 
-			field := reflect.StructField{
-				Tag:  reflect.StructTag(t.Tag(i)),
-				Name: t.Field(i).Name(),
+			field := &StructField{
+				Name:      t.Field(i).Name(),
+				CamelCase: !b.snakeCase,
+				Type:      typeName,
+				Tag:       reflect.StructTag(t.Tag(i)),
 			}
-
-			ps, err := annotation.ParseParamParameters(field.Name, field.Tag.Get(tagName))
-			if err != nil {
+			if err := field.Parse(); err != nil {
 				return nil, err
 			}
 
-			for _, p := range ps {
-				if p.Name == "-" {
-					// Omit this field.
-					continue NextField
-				}
-
-				if p.Name == "" {
-					p.Name = b.defaultName(field.Name)
-				}
-				if p.Type == "" {
-					p.Type = typeName
-				}
+			if field.Omitted {
+				// Omit this field.
+				continue NextField
 			}
 
-			params = append(params, ps...)
+			params = append(params, field.Params...)
 		}
 
 	//case *types.Pointer:
@@ -371,4 +362,41 @@ func isAlreadyPathParam(name string, bindings []*spec.Binding) bool {
 		}
 	}
 	return false
+}
+
+type StructField struct {
+	Name      string
+	CamelCase bool
+	Type      string
+	Tag       reflect.StructTag
+
+	Omitted bool              // Whether to omit this field.
+	Params  []*spec.Parameter // The associated annotation parameters.
+}
+
+func (f *StructField) Parse() error {
+	params, err := annotation.ParseParamParameters(f.Name, f.Tag.Get(tagName))
+	if err != nil {
+		return err
+	}
+
+	for _, p := range params {
+		if p.Name == "-" {
+			f.Omitted = true
+			return nil
+		}
+
+		if p.Name == "" {
+			p.Name = caseconv.ToSnakeCase(f.Name)
+			if f.CamelCase {
+				p.Name = caseconv.ToLowerCamelCase(f.Name)
+			}
+		}
+		if p.Type == "" {
+			p.Type = f.Type
+		}
+	}
+
+	f.Params = params
+	return nil
 }
