@@ -261,16 +261,18 @@ func (b *OpBuilder) inferAnnotationParams(methodName string, arg *ifacetool.Para
 	NextField:
 		for i := 0; i < t.NumFields(); i++ {
 			var typeName string
-			switch ft := t.Field(i).Type().(type) {
+			switch ft := t.Field(i).Type().Underlying().(type) {
 			case *types.Basic:
 				typeName = ft.Name()
 			case *types.Slice:
 				et, ok := ft.Elem().(*types.Basic)
 				if !ok {
+					// XXX: We should allow this type if it's used in Argument aggregation.
 					return nil, newErrorStruct(arg.Name, t.Field(i).Name(), ft)
 				}
 				typeName = "[]" + et.Name()
 			default:
+				// XXX: We should allow this type if it's used in Argument aggregation.
 				return nil, newErrorStruct(arg.Name, t.Field(i).Name(), ft)
 			}
 
