@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
+	"github.com/RussellLuo/kok/pkg/httpcodec"
 )
 
 //go:generate kokgen ./service.go Service

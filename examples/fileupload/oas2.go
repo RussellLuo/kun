@@ -6,7 +6,7 @@ package fileupload
 import (
 	"reflect"
 
-	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
+	"github.com/RussellLuo/kok/pkg/httpcodec"
 	"github.com/RussellLuo/kok/pkg/oas2"
 )
 
