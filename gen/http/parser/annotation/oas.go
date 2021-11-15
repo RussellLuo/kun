@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/RussellLuo/kok/gen/http/spec"
+	"github.com/RussellLuo/kok/gen/util/docutil"
 )
 
 // ParseMetadata parses doc per the format as below:
@@ -21,7 +22,7 @@ func ParseMetadata(doc []string) (*spec.Metadata, error) {
 	}
 
 	for _, comment := range doc {
-		if !IsKokAnnotation(comment) {
+		if !docutil.IsKokAnnotation(comment) {
 			continue
 		}
 
@@ -62,7 +63,7 @@ func ParseMetadata(doc []string) (*spec.Metadata, error) {
 func GetDescriptionFromDoc(doc []string) string {
 	var comments []string
 	for _, comment := range doc {
-		if !IsKokAnnotation(comment) {
+		if !docutil.IsKokAnnotation(comment) {
 			comments = append(comments, strings.TrimPrefix(comment, "// "))
 		}
 	}

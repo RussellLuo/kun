@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/RussellLuo/kok/gen/util/docutil"
 )
 
 var (
@@ -21,7 +23,7 @@ func ParseAliases(doc []string) (Aliases, error) {
 	a := make(map[string]string)
 
 	for _, comment := range doc {
-		if !IsKokAnnotation(comment) {
+		if !docutil.IsKokAnnotation(comment) {
 			continue
 		}
 

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/RussellLuo/kok/gen/http/spec"
+	"github.com/RussellLuo/kok/gen/util/docutil"
 	"github.com/RussellLuo/kok/pkg/ifacetool"
 )
 
@@ -47,7 +48,7 @@ func ParseMethodAnnotation(method *ifacetool.Method) (*MethodAnnotation, error) 
 	anno := &MethodAnnotation{Params: make(map[string]*Param)}
 
 	for _, comment := range method.Doc {
-		if !IsKokAnnotation(comment) || IsKokGRPCAnnotation(comment) {
+		if !docutil.IsKokAnnotation(comment) || docutil.IsKokGRPCAnnotation(comment) {
 			continue
 		}
 
@@ -115,12 +116,4 @@ func ParseMethodAnnotation(method *ifacetool.Method) (*MethodAnnotation, error) 
 	}
 
 	return anno, nil
-}
-
-func IsKokAnnotation(comment string) bool {
-	return strings.HasPrefix(comment, "//kok:")
-}
-
-func IsKokGRPCAnnotation(comment string) bool {
-	return strings.HasPrefix(comment, "//kok:grpc")
 }

@@ -9,29 +9,13 @@ import (
 
 	"github.com/RussellLuo/kok/gen/http/parser/annotation"
 	"github.com/RussellLuo/kok/gen/http/spec"
+	"github.com/RussellLuo/kok/gen/util/docutil"
 	"github.com/RussellLuo/kok/pkg/caseconv"
 	"github.com/RussellLuo/kok/pkg/ifacetool"
 )
 
-type Transport int
-
-func TransportFromDoc(doc []string) (t Transport) {
-	for _, comment := range doc {
-		if annotation.IsKokGRPCAnnotation(comment) {
-			t = t | TransportGRPC
-		} else if annotation.IsKokAnnotation(comment) {
-			t = t | TransportHTTP
-		}
-	}
-	return t
-}
-
 const (
 	OptionNoBody = "-"
-
-	TransportHTTP Transport = 0b0001
-	TransportGRPC Transport = 0b0010
-	TransportAll  Transport = 0b0011
 
 	tagName = "kok"
 )
@@ -40,7 +24,7 @@ var (
 	rePathVarName = regexp.MustCompile(`{(\w+)}`)
 )
 
-func Parse(data *ifacetool.Data, snakeCase bool) (*spec.Specification, []Transport, error) {
+func Parse(data *ifacetool.Data, snakeCase bool) (*spec.Specification, []docutil.Transport, error) {
 	anno, err := annotation.ParseInterfaceAnnotation(data.InterfaceDoc)
 	if err != nil {
 		return nil, nil, err
@@ -51,7 +35,7 @@ func Parse(data *ifacetool.Data, snakeCase bool) (*spec.Specification, []Transpo
 	}
 
 	var (
-		transports []Transport
+		transports []docutil.Transport
 		opBuilder  = &OpBuilder{
 			snakeCase: snakeCase,
 			aliases:   anno.Aliases,
@@ -59,14 +43,15 @@ func Parse(data *ifacetool.Data, snakeCase bool) (*spec.Specification, []Transpo
 	)
 
 	for _, m := range data.Methods {
-		transport := TransportFromDoc(m.Doc)
+		doc := docutil.Doc(m.Doc).JoinComments()
+		transport := doc.Transport()
 		if transport == 0 {
 			// Empty transport indicates that there are no kok annotations.
 			continue
 		}
 		transports = append(transports, transport)
 
-		if transport&TransportHTTP != TransportHTTP {
+		if transport&docutil.TransportHTTP != docutil.TransportHTTP {
 			// Add operations for generating endpoint code for gRPC.
 			op := spec.NewOperation(m.Name, annotation.GetDescriptionFromDoc(m.Doc))
 			for _, arg := range m.Params {
