@@ -43,9 +43,11 @@ func NewCodecs() *httpcodec.DefaultCodecs {
 	// Use IPCodec to encode and decode the "IP" field in the struct argument
 	// named "user", if exists, for the operation named "CreateUser".
 	return httpcodec.NewDefaultCodecs(nil,
-		httpcodec.Op("CreateUser", httpcodec.NewPatcher(httpcodec.JSON{}).Params("user", httpcodec.StructParams{
-			Fields: map[string]httpcodec.ParamsCodec{
-				"IP": IPCodec{},
+		httpcodec.Op("CreateUser", httpcodec.NewPatcher(httpcodec.JSON{}).Params(
+			"user", httpcodec.StructParams{
+				Fields: map[string]httpcodec.ParamsCodec{
+					"IP": IPCodec{},
+				},
 			},
-		})))
+		)))
 }

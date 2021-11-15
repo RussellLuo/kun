@@ -28,7 +28,7 @@ var (
 		"[]byte":  "bytes",
 	}
 
-	reKok = regexp.MustCompile(`@kok\(grpc\)(:\s*(.+))?$`)
+	reKok = regexp.MustCompile(`^//kok:grpc(.*)$`)
 )
 
 type Service struct {
@@ -249,26 +249,28 @@ func getFieldName(t *types.Struct, i int) string {
 
 func getDescriptionsFromDoc(doc []string) (comments []string) {
 	for _, comment := range doc {
-		if !isKokAnnotation(comment, "@kok") && !isKokAnnotation(comment, "@kok(grpc)") {
+		if !isKokAnnotation(comment) && !isKokGRPCAnnotation(comment) {
 			comments = append(comments, comment)
 		}
 	}
 	return
 }
 
-func hasKokGRPCAnnotation(comments []string) bool {
-	for _, comment := range comments {
-		if isKokAnnotation(comment, "@kok(grpc)") {
+func hasKokGRPCAnnotation(doc []string) bool {
+	for _, comment := range doc {
+		if isKokGRPCAnnotation(comment) {
 			return true
 		}
 	}
 	return false
 }
 
-func isKokAnnotation(comment, anno string) bool {
-	content := strings.TrimPrefix(comment, "//")
-	trimmed := strings.TrimSpace(content)
-	return strings.HasPrefix(trimmed, anno)
+func isKokAnnotation(comment string) bool {
+	return strings.HasPrefix(comment, "//kok:")
+}
+
+func isKokGRPCAnnotation(comment string) bool {
+	return strings.HasPrefix(comment, "//kok:grpc")
 }
 
 type rpcFields struct {
@@ -311,24 +313,24 @@ func (rf *rpcFields) manipulateByComments(method *ifacetool.Method) error {
 	}
 
 	for _, comment := range method.Doc {
-		if !isKokAnnotation(comment, "@kok(grpc)") {
+		if !isKokGRPCAnnotation(comment) {
 			continue
 		}
 
 		result := reKok.FindStringSubmatch(comment)
-		if len(result) != 3 {
-			return fmt.Errorf("invalid kok comment: %s", comment)
+		if len(result) != 2 {
+			return fmt.Errorf("invalid kok directive: %s", comment)
 		}
-		value := strings.TrimSpace(result[2])
+		value := strings.TrimSpace(result[1])
 		if value == "" {
 			continue
 		}
 
-		fields := strings.Split(value, ",")
+		fields := strings.Fields(value)
 		for _, f := range fields {
-			parts := strings.Split(f, ":")
+			parts := strings.Split(f, "=")
 			if len(parts) != 2 {
-				return fmt.Errorf(`%q does not match the expected format: <key>:<value>`, f)
+				return fmt.Errorf(`%q does not match the expected format: <key>=<value>`, f)
 			}
 			k, v := parts[0], parts[1]
 

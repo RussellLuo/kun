@@ -80,7 +80,7 @@ func (p *Patcher) Param(name string, pc ParamCodec) *Patcher {
 	return p
 }
 
-// Param sets a codec for a group of request parameters specified by name.
+// Params sets a codec for a group of request parameters specified by name.
 func (p *Patcher) Params(name string, psc ParamsCodec) *Patcher {
 	p.paramsCodecs[name] = psc
 	return p

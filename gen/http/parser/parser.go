@@ -3,7 +3,6 @@ package parser
 import (
 	"fmt"
 	"go/types"
-	"net/http"
 	"reflect"
 	"regexp"
 	"strings"
@@ -15,6 +14,17 @@ import (
 )
 
 type Transport int
+
+func TransportFromDoc(doc []string) (t Transport) {
+	for _, comment := range doc {
+		if annotation.IsKokGRPCAnnotation(comment) {
+			t = t | TransportGRPC
+		} else if annotation.IsKokAnnotation(comment) {
+			t = t | TransportHTTP
+		}
+	}
+	return t
+}
 
 const (
 	OptionNoBody = "-"
@@ -49,12 +59,22 @@ func Parse(data *ifacetool.Data, snakeCase bool) (*spec.Specification, []Transpo
 	)
 
 	for _, m := range data.Methods {
-		transport := getTransportPerKokAnnotations(m.Doc)
+		transport := TransportFromDoc(m.Doc)
 		if transport == 0 {
 			// Empty transport indicates that there are no kok annotations.
 			continue
 		}
 		transports = append(transports, transport)
+
+		if transport&TransportHTTP != TransportHTTP {
+			// Add operations for generating endpoint code for gRPC.
+			op := spec.NewOperation(m.Name, annotation.GetDescriptionFromDoc(m.Doc))
+			for _, arg := range m.Params {
+				op.Request.Bind(arg, opBuilder.buildParams(arg, nil))
+			}
+			s.Operations = append(s.Operations, op)
+			continue
+		}
 
 		op, err := opBuilder.Build(m)
 		if err != nil {
@@ -73,10 +93,7 @@ type OpBuilder struct {
 }
 
 func (b *OpBuilder) Build(method *ifacetool.Method) (*spec.Operation, error) {
-	op := &spec.Operation{
-		Name:        method.Name,
-		Description: annotation.GetDescriptionFromDoc(method.Doc),
-	}
+	op := spec.NewOperation(method.Name, annotation.GetDescriptionFromDoc(method.Doc))
 
 	anno, err := annotation.ParseMethodAnnotation(method)
 	if err != nil {
@@ -90,7 +107,6 @@ func (b *OpBuilder) Build(method *ifacetool.Method) (*spec.Operation, error) {
 	}
 
 	// Set request parameters.
-	op.Request = new(spec.Request)
 	pathVarNames := extractPathVarNames(op.Pattern)
 	if err := b.setParams(op.Request, method, anno.Params, pathVarNames); err != nil {
 		return nil, err
@@ -102,7 +118,6 @@ func (b *OpBuilder) Build(method *ifacetool.Method) (*spec.Operation, error) {
 	}
 
 	// Set success response.
-	op.Resp(http.StatusOK, spec.MediaTypeJSON, nil)
 	if anno.Success != nil {
 		op.SuccessResponse = anno.Success
 	}
@@ -330,17 +345,6 @@ func isBasic(arg *ifacetool.Param) bool {
 		return ok
 	}
 	return false
-}
-
-func getTransportPerKokAnnotations(doc []string) (t Transport) {
-	for _, comment := range doc {
-		if annotation.IsKokGRPCAnnotation(comment) {
-			t = t | TransportGRPC
-		} else if annotation.IsKokAnnotation(comment) {
-			t = t | TransportHTTP
-		}
-	}
-	return t
 }
 
 func extractPathVarNames(pattern string) (names []string) {

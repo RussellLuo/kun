@@ -231,6 +231,16 @@ type Operation struct {
 	Tags             []string
 }
 
+func NewOperation(name, description string) *Operation {
+	op := &Operation{
+		Name:        name,
+		Description: description,
+		Request:     new(Request),
+	}
+	op.Resp(http.StatusOK, MediaTypeJSON, nil)
+	return op
+}
+
 func (o *Operation) Resp(statusCode int, mediaType string, schema interface{}) *Operation {
 	if mediaType != MediaTypeJSON && !strings.HasPrefix(mediaType, "image/") {
 		panic(errors.New(mediaType + " not supported"))
