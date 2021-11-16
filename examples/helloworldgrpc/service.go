@@ -9,7 +9,7 @@ import (
 // Service is used for saying hello.
 type Service interface {
 	// SayHello says hello to the given name.
-	// @kok(grpc)
+	//kok:grpc
 	SayHello(ctx context.Context, name string) (message string, err error)
 }
 

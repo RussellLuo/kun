@@ -10,7 +10,7 @@ import (
 	"syscall"
 
 	"github.com/RussellLuo/kok/examples/fileupload"
-	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
+	"github.com/RussellLuo/kok/pkg/httpcodec"
 )
 
 func main() {

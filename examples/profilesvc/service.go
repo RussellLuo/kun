@@ -10,31 +10,31 @@ import (
 
 // Service is a simple CRUD interface for user profiles.
 type Service interface {
-	// @kok(op): POST /profiles
+	//kok:op POST /profiles
 	PostProfile(ctx context.Context, profile Profile) (err error)
 
-	// @kok(op): GET /profiles/{id}
+	//kok:op GET /profiles/{id}
 	GetProfile(ctx context.Context, id string) (profile Profile, err error)
 
-	// @kok(op): PUT /profiles/{id}
+	//kok:op PUT /profiles/{id}
 	PutProfile(ctx context.Context, id string, profile Profile) (err error)
 
-	// @kok(op): PATCH /profiles/{id}
+	//kok:op PATCH /profiles/{id}
 	PatchProfile(ctx context.Context, id string, profile Profile) (err error)
 
-	// @kok(op): DELETE /profiles/{id}
+	//kok:op DELETE /profiles/{id}
 	DeleteProfile(ctx context.Context, id string) (err error)
 
-	// @kok(op): GET /profiles/{id}/addresses
+	//kok:op GET /profiles/{id}/addresses
 	GetAddresses(ctx context.Context, id string) (addresses []Address, err error)
 
-	// @kok(op): GET /profiles/{id}/addresses/{addressID}
+	//kok:op GET /profiles/{id}/addresses/{addressID}
 	GetAddress(ctx context.Context, id string, addressID string) (address Address, err error)
 
-	// @kok(op): POST /profiles/{id}/addresses
+	//kok:op POST /profiles/{id}/addresses
 	PostAddress(ctx context.Context, id string, address Address) (err error)
 
-	// @kok(op): DELETE /profiles/{id}/addresses/{addressID}
+	//kok:op DELETE /profiles/{id}/addresses/{addressID}
 	DeleteAddress(ctx context.Context, id string, addressID string) (err error)
 }
 

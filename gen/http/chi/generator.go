@@ -31,6 +31,7 @@ import (
 	{{- end}}
 	"github.com/go-chi/chi"
 	kithttp "github.com/go-kit/kit/transport/http"
+	"github.com/RussellLuo/kok/pkg/httpoption2"
 
 	{{- range .Data.Imports}}
 	{{.ImportString}}
@@ -50,7 +51,7 @@ func NewHTTPRouter(svc {{$.Data.SrcPkgQualifier}}{{$.Data.InterfaceName}}, codec
 	r.Method("PUT", "/trace", xnet.HTTPHandler(contextor))
 	{{- end}}
 
-	r.Method("GET", "{{.Spec.Metadata.DocsPath}}", oasv2.Handler(OASv2APIDoc, options.ResponseSchema()))
+	r.Method("GET", "{{.Spec.Metadata.DocsPath}}", oas2.Handler(OASv2APIDoc, options.ResponseSchema()))
 
 	var codec httpcodec.Codec
 	var validator httpoption.Validator
@@ -79,7 +80,7 @@ func NewHTTPRouter(svc {{$.Data.SrcPkgQualifier}}{{$.Data.InterfaceName}}, codec
 	return r
 }
 
-func NewHTTPRouterWithOAS(svc {{$.Data.SrcPkgQualifier}}{{$.Data.InterfaceName}}, codecs httpcodec.Codecs, schema oasv2.Schema) chi.Router {
+func NewHTTPRouterWithOAS(svc {{$.Data.SrcPkgQualifier}}{{$.Data.InterfaceName}}, codecs httpcodec.Codecs, schema oas2.Schema) chi.Router {
 	return NewHTTPRouter(svc, codecs, httpoption.ResponseSchema(schema))
 }
 

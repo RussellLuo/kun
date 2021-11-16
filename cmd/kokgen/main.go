@@ -17,6 +17,7 @@ type userFlags struct {
 	formatted     bool
 	snakeCase     bool
 	enableTracing bool
+	oldAnnotation bool
 
 	args []string
 }
@@ -29,6 +30,7 @@ func main() {
 	flag.BoolVar(&flags.formatted, "fmt", true, "whether to make code formatted")
 	flag.BoolVar(&flags.snakeCase, "snake", true, "whether to use snake-case for default names")
 	flag.BoolVar(&flags.enableTracing, "trace", false, "whether to enable tracing")
+	flag.BoolVar(&flags.oldAnnotation, "old", false, "whether to use the old annotation syntax")
 
 	flag.Usage = func() {
 		fmt.Println(`kokgen [flags] source-file interface-name`)
@@ -65,6 +67,7 @@ func run(flags userFlags) error {
 		SnakeCase:     flags.snakeCase,
 		Formatted:     flags.formatted,
 		EnableTracing: flags.enableTracing,
+		OldAnnotation: flags.oldAnnotation,
 	})
 	files, err := generator.Generate(srcFilename, interfaceName, flags.testFileName)
 	if err != nil {

@@ -6,7 +6,7 @@ package helloworld
 import (
 	"reflect"
 
-	"github.com/RussellLuo/kok/pkg/oasv2"
+	"github.com/RussellLuo/kok/pkg/oas2"
 )
 
 var (
@@ -42,29 +42,29 @@ paths:
 `
 )
 
-func getResponses(schema oasv2.Schema) []oasv2.OASResponses {
-	return []oasv2.OASResponses{
-		oasv2.GetOASResponses(schema, "SayHello", 200, &SayHelloResponse{}),
+func getResponses(schema oas2.Schema) []oas2.OASResponses {
+	return []oas2.OASResponses{
+		oas2.GetOASResponses(schema, "SayHello", 200, &SayHelloResponse{}),
 	}
 }
 
-func getDefinitions(schema oasv2.Schema) map[string]oasv2.Definition {
-	defs := make(map[string]oasv2.Definition)
+func getDefinitions(schema oas2.Schema) map[string]oas2.Definition {
+	defs := make(map[string]oas2.Definition)
 
-	oasv2.AddDefinition(defs, "SayHelloRequestBody", reflect.ValueOf(&struct {
+	oas2.AddDefinition(defs, "SayHelloRequestBody", reflect.ValueOf(&struct {
 		Name string `json:"name"`
 	}{}))
-	oasv2.AddResponseDefinitions(defs, schema, "SayHello", 200, (&SayHelloResponse{}).Body())
+	oas2.AddResponseDefinitions(defs, schema, "SayHello", 200, (&SayHelloResponse{}).Body())
 
 	return defs
 }
 
-func OASv2APIDoc(schema oasv2.Schema) string {
+func OASv2APIDoc(schema oas2.Schema) string {
 	resps := getResponses(schema)
-	paths := oasv2.GenPaths(resps, paths)
+	paths := oas2.GenPaths(resps, paths)
 
 	defs := getDefinitions(schema)
-	definitions := oasv2.GenDefinitions(defs)
+	definitions := oas2.GenDefinitions(defs)
 
 	return base + paths + definitions
 }

@@ -10,7 +10,7 @@ import (
 	"syscall"
 
 	"github.com/RussellLuo/kok/examples/profilesvc"
-	"github.com/RussellLuo/kok/pkg/httpoption"
+	"github.com/RussellLuo/kok/pkg/httpoption2"
 )
 
 func main() {

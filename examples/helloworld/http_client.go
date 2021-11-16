@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
+	"github.com/RussellLuo/kok/pkg/httpcodec"
 )
 
 type HTTPClient struct {

@@ -10,31 +10,31 @@ import (
 
 // Service is a simple CRUD interface for user profiles.
 type Service interface {
-	// @kok(grpc)
+	//kok:grpc
 	PostProfile(ctx context.Context, profile Profile) (err error)
 
-	// @kok(grpc)
+	//kok:grpc
 	GetProfile(ctx context.Context, id string) (profile Profile, err error)
 
-	// @kok(grpc)
+	//kok:grpc
 	PutProfile(ctx context.Context, id string, profile Profile) (err error)
 
-	// @kok(grpc)
+	//kok:grpc
 	PatchProfile(ctx context.Context, id string, profile Profile) (err error)
 
-	// @kok(grpc)
+	//kok:grpc
 	DeleteProfile(ctx context.Context, id string) (err error)
 
-	// @kok(grpc)
+	//kok:grpc
 	GetAddresses(ctx context.Context, id string) (addresses []Address, err error)
 
-	// @kok(grpc)
+	//kok:grpc
 	GetAddress(ctx context.Context, id string, addressID string) (address Address, err error)
 
-	// @kok(grpc)
+	//kok:grpc
 	PostAddress(ctx context.Context, id string, address Address) (err error)
 
-	// @kok(grpc)
+	//kok:grpc
 	DeleteAddress(ctx context.Context, id string, addressID string) (err error)
 }
 

@@ -20,7 +20,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
+	"github.com/RussellLuo/kok/pkg/httpcodec"
 
 	{{- range .Data.Imports}}
 	{{.ImportString}}

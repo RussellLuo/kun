@@ -19,6 +19,7 @@ package {{.PkgInfo.CurrentPkgName}}
 import (
 	"github.com/RussellLuo/validating/v2"
 	"github.com/go-kit/kit/endpoint"
+	"github.com/RussellLuo/kok/pkg/httpoption2"
 
 	{{- range .Data.Imports}}
 	{{.ImportString}}
