@@ -1,12 +1,12 @@
 package httpoption
 
 import (
-	"github.com/RussellLuo/kok/pkg/oasv2"
+	"github.com/RussellLuo/kok/pkg/oas2"
 )
 
 type Options struct {
 	requestValidators map[string]Validator
-	responseSchema    oasv2.Schema
+	responseSchema    oas2.Schema
 }
 
 func NewOptions(opts ...Option) *Options {
@@ -26,7 +26,7 @@ func (o *Options) RequestValidator(name string) Validator {
 	return nilValidator
 }
 
-func (o *Options) ResponseSchema() oasv2.Schema {
+func (o *Options) ResponseSchema() oas2.Schema {
 	if o.responseSchema != nil {
 		return o.responseSchema
 	}
@@ -46,7 +46,7 @@ func RequestValidators(validators ...NamedValidator) Option {
 }
 
 // ResponseSchema sets the response schema for Options.
-func ResponseSchema(schema oasv2.Schema) Option {
+func ResponseSchema(schema oas2.Schema) Option {
 	return func(o *Options) {
 		o.responseSchema = schema
 	}
@@ -73,5 +73,5 @@ var (
 		return nil
 	})
 
-	defaultSchema = &oasv2.ResponseSchema{}
+	defaultSchema = &oas2.ResponseSchema{}
 )

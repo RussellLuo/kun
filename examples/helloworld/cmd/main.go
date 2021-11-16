@@ -11,7 +11,7 @@ import (
 
 	"github.com/RussellLuo/kok/examples/helloworld"
 	"github.com/RussellLuo/kok/pkg/httpcodec"
-	"github.com/RussellLuo/kok/pkg/httpoption"
+	"github.com/RussellLuo/kok/pkg/httpoption2"
 )
 
 func main() {

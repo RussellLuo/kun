@@ -31,6 +31,7 @@ import (
 	{{- end}}
 	"github.com/go-chi/chi"
 	kithttp "github.com/go-kit/kit/transport/http"
+	"github.com/RussellLuo/kok/pkg/httpoption2"
 
 	{{- range .Data.Imports}}
 	{{.ImportString}}
