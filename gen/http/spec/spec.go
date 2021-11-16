@@ -173,6 +173,16 @@ func (b *Binding) SetName(name string) {
 	b.Params[0].Name = name
 }
 
+func (b *Binding) SetType(typ string) {
+	b.panicIfError()
+	b.Params[0].Type = typ
+}
+
+func (b *Binding) SetDescription(description string) {
+	b.panicIfError()
+	b.Params[0].Description = description
+}
+
 func (b *Binding) panicIfError() {
 	if len(b.Params) == 0 {
 		panic(errors.New("invalid binding"))

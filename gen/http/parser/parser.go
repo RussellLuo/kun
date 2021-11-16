@@ -98,8 +98,8 @@ func (b *OpBuilder) Build(method *ifacetool.Method) (*spec.Operation, error) {
 	}
 
 	// Set request body.
-	if anno.Body != nil {
-		op.Request.BodyField = anno.Body.Field
+	if err := b.setBody(op.Request, anno.Body); err != nil {
+		return nil, err
 	}
 
 	// Set success response.
@@ -111,6 +111,35 @@ func (b *OpBuilder) Build(method *ifacetool.Method) (*spec.Operation, error) {
 	op.Tags = anno.Tags
 
 	return op, nil
+}
+
+func (b *OpBuilder) setBody(req *spec.Request, body *annotation.Body) error {
+	if body == nil {
+		return nil
+	}
+
+	if body.Field != "" {
+		req.BodyField = body.Field
+		return nil
+	}
+
+	for _, binding := range req.Bindings {
+		m, ok := body.Manipulations[binding.Arg.Name]
+		if !ok {
+			continue
+		}
+
+		if binding.In() != spec.InBody {
+			return fmt.Errorf("argument %q manipulated in //kok:body is not located in body", binding.Arg.Name)
+		}
+
+		binding.SetName(m.Name)
+		// TODO: Modify the endpoint generator to add kok annotations (about OAS type and description) in request struct.
+		binding.SetType(m.Type)
+		binding.SetDescription(m.Description)
+	}
+
+	return nil
 }
 
 func (b *OpBuilder) setParams(req *spec.Request, method *ifacetool.Method, params map[string]*annotation.Param, pathVarNames []string) error {

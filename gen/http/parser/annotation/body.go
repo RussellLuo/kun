@@ -3,6 +3,9 @@ package annotation
 import (
 	"fmt"
 	"regexp"
+	"strings"
+
+	"github.com/RussellLuo/kok/gen/http/spec"
 )
 
 const (
@@ -21,7 +24,7 @@ type Manipulation struct {
 
 type Body struct {
 	Field         string
-	Manipulations []*Manipulation
+	Manipulations map[string]*Manipulation
 }
 
 // ParseBody parses s per the format as below:
@@ -39,7 +42,41 @@ func ParseBody(s string) (*Body, error) {
 	}
 
 	// Complicated format: <manipulation> [; <manipulation2> [; ...]]
-	// TODO: add support for parsing complicated format.
+	m := make(map[string]*Manipulation)
+	for _, text := range strings.Split(s, ";") {
+		text = strings.TrimSpace(text)
+		if text == "" {
+			break
+		}
+
+		param, err := ParseParam(text)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(param.Params) != 1 {
+			return nil, fmt.Errorf("bad manipulation %q in //kok:body", s)
+		}
+		p := param.Params[0]
+
+		if p.In != spec.InQuery {
+			// XXX: Handle the case of manual definition `in=query`.
+			return nil, fmt.Errorf("parameter `in` is unsupported in body manipulation")
+		}
+		if p.Required {
+			return nil, fmt.Errorf("parameter `required` is unsupported in body manipulation")
+		}
+
+		m[param.ArgName] = &Manipulation{
+			Name:        p.Name,
+			Type:        p.Type,
+			Description: p.Description,
+		}
+	}
+
+	if len(m) > 0 {
+		return &Body{Manipulations: m}, nil
+	}
 
 	return nil, fmt.Errorf("invalid //kok:body directive: %s", s)
 }
