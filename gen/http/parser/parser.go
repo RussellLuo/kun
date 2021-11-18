@@ -395,7 +395,7 @@ type StructField struct {
 }
 
 func (f *StructField) Parse() error {
-	params, err := annotation.ParseParamParameters(f.Name, f.Tag.Get(tagName))
+	params, err := annotation.ParseParamOptions(f.Name, f.Tag.Get(tagName))
 	if err != nil {
 		return err
 	}
