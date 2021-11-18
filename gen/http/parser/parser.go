@@ -44,6 +44,8 @@ func Parse(data *ifacetool.Data, snakeCase bool) (*spec.Specification, []docutil
 
 	for _, m := range data.Methods {
 		doc := docutil.Doc(m.Doc).JoinComments()
+		m.Doc = doc // Replace the original doc with joined doc.
+
 		transport := doc.Transport()
 		if transport == 0 {
 			// Empty transport indicates that there are no kok annotations.

@@ -17,23 +17,23 @@ func TestDoc_JoinLines(t *testing.T) {
 			name: "no backslash",
 			in: []string{
 				"//kok:op POST /logs",
-				"//kok:param ip in=header name=X-Forwarded-For; in=request name=RemoteAddr",
+				"//kok:param ip in=header name=X-Forwarded-For, in=request name=RemoteAddr",
 			},
 			want: []string{
 				"//kok:op POST /logs",
-				"//kok:param ip in=header name=X-Forwarded-For; in=request name=RemoteAddr",
+				"//kok:param ip in=header name=X-Forwarded-For, in=request name=RemoteAddr",
 			},
 		},
 		{
 			name: "has backslash",
 			in: []string{
 				"//kok:op POST /logs",
-				`//kok:param ip in=header name=X-Forwarded-For; \`,
-				"               in=request name=RemoteAddr",
+				`//kok:param ip in=header name=X-Forwarded-For, \`,
+				"//             in=request name=RemoteAddr",
 			},
 			want: []string{
 				"//kok:op POST /logs",
-				"//kok:param ip in=header name=X-Forwarded-For; in=request name=RemoteAddr",
+				"//kok:param ip in=header name=X-Forwarded-For, in=request name=RemoteAddr",
 			},
 		},
 	}

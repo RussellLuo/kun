@@ -39,7 +39,9 @@ func (d Doc) JoinComments() (joined Doc) {
 			continue
 		}
 
-		c := incompleteComment + strings.TrimSpace(comment)
+		noPrefix := strings.TrimPrefix(comment, "//")
+		c := incompleteComment + strings.TrimSpace(noPrefix)
+
 		if HasContinuationLine(c) {
 			incompleteComment = strings.TrimSuffix(c, `\`)
 		} else {
