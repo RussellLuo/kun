@@ -18,8 +18,8 @@ kok (pronounced keɪ-oʊ-keɪ) is a toolkit of [Go kit][1].
     - [x] Transport
         - [x] HTTP
             + [x] HTTP Server
-            + [x] HTTP Test
             + [x] HTTP Client
+            + [x] HTTP Test
             + [x] [OAS-v2][2] Documentation
         - [x] gRPC
             + [x] gRPC Server
@@ -278,24 +278,31 @@ See more examples [here](examples).
 </details>
 
 <details open>
-  <summary> //kok:op </summary>
+  <summary> Directive //kok:op </summary>
 
-- Directive: `//kok:op`
-- Arguments: `<method> <pattern>`
-    + **method**: The request method.
-    + **pattern**: The request URL.
-        - NOTE: All variables in **pattern** will automatically be bound to their corresponding method arguments (match by names in *lower camel case*), as **path** parameters, if these variables have not yet been specified explicitly by `//kok:param`.
-- Examples:
+##### Syntax
 
-    ```go
-    type Service interface {
-        //kok:op DELETE /users/{id}
-        DeleteUser(ctx context.Context, id int) (err error)
-    }
+```
+//kok:op <method> <pattern>
+```
 
-    // HTTP request:
-    // $ http DELETE /users/101
-    ```
+##### Arguments
+
+- **method**: The request method.
+- **pattern**: The request URL.
+    + NOTE: All variables in **pattern** will automatically be bound to their corresponding method arguments (match by names in *lower camel case*), as **path** parameters, if these variables have not yet been specified explicitly by `//kok:param`.
+    
+##### Examples
+
+```go
+type Service interface {
+    //kok:op DELETE /users/{id}
+    DeleteUser(ctx context.Context, id int) (err error)
+}
+
+// HTTP request:
+// $ http DELETE /users/101
+```
 
 </details>
 
@@ -405,15 +412,24 @@ See more examples [here](examples).
 </details>
 
 <details open>
-  <summary> //kok:param </summary>
+  <summary> Directive //kok:param </summary>
 
-- Directive: `//kok:param`
-- Arguments: `<argName> [<parameter> [; <parameter2> [; ...]]]`
-    + **argName**: The name of the method argument.
-        - *Argument aggregation*: By specifying multiple `<parameter>`s, multiple request parameters (each one is of basic type or repeated basic type) can be aggregated into one method argument (of any type).
-        - *Blank identifier*: By specifying the **argName** with a double underscore prefix `__`, the corresponding request parameter(s) will not be mapped to any method argument. See [here](https://github.com/RussellLuo/kok/issues/15) for more details.
-    + **parameter**: The definition of a single request parameter, to which the method argument will be mapped.
-        - `in=<in> name=<name> required=<required> type=<type> descr=<descr>`
+##### Syntax
+
+```
+//kok:param <argName> [<parameter> [, <parameter2> [, ...]]]
+```
+
+If multiple method arguments are involved, you may need to apply multiple bindings. This can be done by adding a new `//kok:param` directive, or by appending the binding to the end of the last `//kok:param` directive in a semicolon-separated list.
+  
+##### Arguments
+
+- **argName**: The name of the method argument.
+    + *Argument aggregation*: By specifying multiple `<parameter>`s in a comma-separated list, multiple request parameters (each one is of basic type or repeated basic type) can be aggregated into one method argument (of any type).
+    + *Blank identifier*: By specifying the **argName** with a double underscore prefix `__`, the corresponding request parameter(s) will not be mapped to any method argument. See [here](https://github.com/RussellLuo/kok/issues/15) for more details.
+- **parameter**: The definition of a single request parameter, to which the method argument will be mapped.
+    + Syntax: `in=<in> name=<name> required=<required> type=<type> descr=<descr>`
+    + Options:
         - **in**:
             + **path**: The request parameter is a [path parameter](https://swagger.io/docs/specification/describing-parameters/#path-parameters).
                 - Optional: All variables in **pattern** will automatically be bound to their corresponding method arguments (match by names in *lower camel case*), as **path** parameters.
@@ -421,7 +437,6 @@ See more examples [here](examples).
                 - To receive values from a multi-valued query parameter, the method argument can be defined as a slice of basic type.
             + **header**: The request parameter is a [header parameter](https://swagger.io/docs/specification/describing-parameters/#header-parameters).
                 - To receive values from a multi-valued header parameter, the method argument can be defined as a slice of basic type.
-
             + **cookie**: The request parameter is a [cookie parameter](https://swagger.io/docs/specification/describing-parameters/#cookie-parameters).
                 - Not supported yet.
             + **request**: The request parameter is a property of Go's [http.Request](https://golang.org/pkg/net/http/#Request).
@@ -436,79 +451,108 @@ See more examples [here](examples).
             + Optional: Defaults to the type of the method argument, if not specified.
         - **descr**: The OAS description of the request parameter.
             + Optional: Defaults to `""`, if not specified.
-- Examples:
-    + Bind request parameters to simple arguments:
+    
+##### Examples
 
-        ```go
-        type Service interface {
-            //kok:op PUT /users/{id}
-            //kok:param name in=header name=X-User-Name
-            UpdateUser(ctx context.Context, id int, name string) (err error)
-        }
+- Bind request parameters to simple arguments:
 
-        // HTTP request:
-        // $ http PUT /users/101 X-User-Name:tracey
-        ```
-    + Bind multiple request parameters to a struct according to tags:
+    ```go
+    type Service interface {
+        //kok:op PUT /users/{id}
+        //kok:param name in=header name=X-User-Name
+        UpdateUser(ctx context.Context, id int, name string) (err error)
+    }
 
-        ```go
-        type User struct {
-            ID   int    `kok:"in=path"`  // name defaults to snake case `id`
-            Name string `kok:"in=query"` // name defaults to snake case `name`
-            Age  int    `kok:"in=header name=X-User-Age"`
-        }
+    // HTTP request:
+    // $ http PUT /users/101 X-User-Name:tracey
+    ```
+  
+- Bind multiple request parameters to a struct according to tags:
 
-        type Service interface {
-            //kok:op PUT /users/{id}
-            //kok:param user
-            UpdateUser(ctx context.Context, user User) (err error)
-        }
+    ```go
+    type User struct {
+        ID   int    `kok:"in=path"`  // name defaults to snake case `id`
+        Name string `kok:"in=query"` // name defaults to snake case `name`
+        Age  int    `kok:"in=header name=X-User-Age"`
+    }
 
-        // HTTP request:
-        // $ http PUT /users/101?name=tracey X-User-Age:1
-        ```
-    + Bind multiple query parameters to a struct with no tags:
+    type Service interface {
+        //kok:op PUT /users/{id}
+        //kok:param user
+        UpdateUser(ctx context.Context, user User) (err error)
+    }
 
-        ```go
-        type User struct {
-            Name    string   // equivalent to `kok:"in=query name=name"`
-            Age     int      // equivalent to `kok:"in=query name=age"`
-            Hobbies []string // equivalent to `kok:"in=query name=hobbies"`
-        }
+    // HTTP request:
+    // $ http PUT /users/101?name=tracey X-User-Age:1
+    ```
+  
+- Bind multiple query parameters to a struct with no tags:
 
-        type Service interface {
-            //kok:op POST /users
-            //kok:param user
-            CreateUser(ctx context.Context, user User) (err error)
-        }
+    ```go
+    type User struct {
+        Name    string   // equivalent to `kok:"in=query name=name"`
+        Age     int      // equivalent to `kok:"in=query name=age"`
+        Hobbies []string // equivalent to `kok:"in=query name=hobbies"`
+    }
 
-        // HTTP request:
-        // $ http POST /users?name=tracey&age=1&hobbies=music&hobbies=sport
-        ```
-    + Argument aggregation:
+    type Service interface {
+        //kok:op POST /users
+        //kok:param user
+        CreateUser(ctx context.Context, user User) (err error)
+    }
 
-        ```go
-        type Service interface {
-            //kok:op POST /logs
-            //kok:param ip in=header name=X-Forwarded-For; in=request name=RemoteAddr
-            Log(ctx context.Context, ip net.IP) (err error)
-        }
+    // HTTP request:
+    // $ http POST /users?name=tracey&age=1&hobbies=music&hobbies=sport
+    ```
 
-        // The equivalent annotations =>
-        // (using backslash-continued annotations)
-        type Service interface {
-            //kok:op POST /logs
-            //kok:param ip in=header name=X-Forwarded-For; \
-            //             in=request name=RemoteAddr
-            Log(ctx context.Context, ip net.IP) (err error)
-        }
+- Argument aggregation:
 
-        // You must customize the decoding of `ip` later (conventionally in another file named `codec.go`).
-        // See a runnable example in examples/usersvc.
+    ```go
+    type Service interface {
+        //kok:op POST /logs
+        //kok:param ip in=header name=X-Forwarded-For, in=request name=RemoteAddr
+        Log(ctx context.Context, ip net.IP) (err error)
+    }
 
-        // HTTP request:
-        // $ http POST /logs
-        ```
+    // The equivalent annotations =>
+    // (using backslash-continued annotations)
+    type Service interface {
+        //kok:op POST /logs
+        //kok:param ip in=header name=X-Forwarded-For, \
+        //             in=request name=RemoteAddr
+        Log(ctx context.Context, ip net.IP) (err error)
+    }
+
+    // You must customize the decoding of `ip` later (conventionally in another file named `codec.go`).
+    // See a runnable example in examples/usersvc.
+
+    // HTTP request:
+    // $ http POST /logs
+    ```
+
+- Multiple bindings in a single `//kok:param`:
+
+    ```go
+    type Service interface {
+        //kok:op POST /users
+        //kok:param name; age; ip in=header name=X-Forwarded-For, in=request name=RemoteAddr
+        CreateUser(ctx context.Context, name string, age int, ip net.IP) (err error)
+    }
+  
+    // The equivalent annotations =>
+    // (using backslash-continued annotations)
+  
+    type Service interface {
+        //kok:op POST /users
+        //kok:param name; \
+        //          age; \
+        //          ip in=header name=X-Forwarded-For, in=request name=RemoteAddr
+        CreateUser(ctx context.Context, name string, age int, ip net.IP) (err error)
+    }
+
+    // HTTP request:
+    // $ http POST /users?name=tracey&age=1
+    ```
 
 </details>
 
@@ -580,14 +624,28 @@ See more examples [here](examples).
 </details>
 
 <details open>
-  <summary> //kok:body </summary>
+  <summary> Directive //kok:body </summary>
 
-- Directive: `//kok:body`
-- Arguments: `<field>` or `<manipulation> [; <manipulation2> [; ...]]`
-    + **field**: The name of the method argument whose value is mapped to the HTTP request body.
-        - Optional: When omitted, a struct containing all the arguments, which are not located in **path**/**query**/**header**, will automatically be mapped to the HTTP request body.
-        - The special name `-` can be used, to define that there is no HTTP request body. As a result, every argument, which is not located in **path**/**query**/**header**, will automatically be mapped to one or more query parameters.
-    + **manipulation**: `<argName> name=<name> type=<type> descr=<descr>`
+##### Syntax
+
+```
+//kok:body <field>
+```
+
+or
+
+```
+//kok:body <manipulation> [; <manipulation2> [; ...]]
+```
+
+##### Arguments
+
+- **field**: The name of the method argument whose value is mapped to the HTTP request body.
+    + Optional: When omitted, a struct containing all the arguments, which are not located in **path**/**query**/**header**, will automatically be mapped to the HTTP request body.
+    + The special name `-` can be used, to define that there is no HTTP request body. As a result, every argument, which is not located in **path**/**query**/**header**, will automatically be mapped to one or more query parameters.
+- **manipulation**:
+    + Syntax: `<argName> name=<name> type=<type> descr=<descr>`
+    + Options:
         - **argName**: The name of the method argument to be manipulated.
         - **name**: The name of the request parameter.
             + Optional: Defaults to **argName** (snake-case, or lower-camel-case if `-snake=false`) if not specified.
@@ -595,68 +653,70 @@ See more examples [here](examples).
             + Optional: Defaults to the type of the method argument, if not specified.
         - **descr**: The OAS description of the request parameter.
             + Optional: Defaults to `""`, if not specified.
-- Examples:
-    + Omitted:
+    
+##### Examples
 
-        ```go
-        type Service interface {
-            //kok:op POST /users
-            CreateUser(ctx context.Context, name string, age int) (err error)
-        }
+- Omitted:
 
-        // HTTP request:
-        // $ http POST /users name=tracey age=1
-        ```
+    ```go
+    type Service interface {
+        //kok:op POST /users
+        CreateUser(ctx context.Context, name string, age int) (err error)
+    }
 
-    + Specified as a normal argument:
+    // HTTP request:
+    // $ http POST /users name=tracey age=1
+    ```
 
-        ```go
-        type User struct {
-            Name string `json:"name"`
-            Age  int    `json:"age"`
-        }
+- Specified as a normal argument:
 
-        type Service interface {
-            //kok:op POST /users
-            //kok:body user
-            CreateUser(ctx context.Context, user User) (err error)
-        }
+    ```go
+    type User struct {
+        Name string `json:"name"`
+        Age  int    `json:"age"`
+    }
 
-        // HTTP request:
-        // $ http POST /users name=tracey age=1
-        ```
+    type Service interface {
+        //kok:op POST /users
+        //kok:body user
+        CreateUser(ctx context.Context, user User) (err error)
+    }
 
-    + Specified as `-`:
+    // HTTP request:
+    // $ http POST /users name=tracey age=1
+    ```
 
-        ```go
-        type User struct {
-            Name    string
-            Age     int
-            Hobbies []string `kok:"name=hobby"`
-        }
+- Specified as `-`:
 
-        type Service interface {
-            //kok:op POST /users
-            //kok:body -
-            CreateUser(ctx context.Context, user User) (err error)
-        }
+    ```go
+    type User struct {
+        Name    string
+        Age     int
+        Hobbies []string `kok:"name=hobby"`
+    }
 
-        // HTTP request:
-        // $ http POST /users?name=tracey&age=1&hobby=music&hobby=sport
-        ```
+    type Service interface {
+        //kok:op POST /users
+        //kok:body -
+        CreateUser(ctx context.Context, user User) (err error)
+    }
 
-    + Manipulation:
+    // HTTP request:
+    // $ http POST /users?name=tracey&age=1&hobby=music&hobby=sport
+    ```
 
-        ```go
-        type Service interface {
-            //kok:op POST /users
-            //kok:body age name=user_age type=string descr=The-user-age
-            CreateUser(ctx context.Context, name string, age int) (err error)
-        }
+- Manipulation:
 
-        // HTTP request:
-        // $ http POST /users name=tracey user_age=1
-        ```
+    ```go
+    type Service interface {
+        //kok:op POST /users
+        //kok:body age name=user_age type=string descr=The-user-age
+        CreateUser(ctx context.Context, name string, age int) (err error)
+    }
+
+    // HTTP request:
+    // $ http POST /users name=tracey user_age=1
+    ```
 
 </details>
 
@@ -689,30 +749,38 @@ See more examples [here](examples).
 </details>
 
 <details open>
-  <summary> //kok:success </summary>
+  <summary> Directive //kok:success </summary>
 
-- Directive: `//kok:success`
-- Arguments: ``statusCode=<statusCode> body=<body> manip=`<manipulation> [; <manipulation2> [; ...]]` ``
-    + **statusCode**: The status code of the success HTTP response.
-        - Optional: Defaults to `200`, if not specified.
-    + **body**: The name of the response field whose value is mapped to the HTTP response body.
-        - Optional: When omitted, a struct containing all the results (except error) will automatically be mapped to the HTTP response body.
-    + **manipulation**: `<argName> name=<name> type=<type> descr=<descr>`
-        - Not supported yet.
-- Examples:
+##### Syntax
 
-    ```go
-    type User struct {
-        Name string `json:"name"`
-        Age  int    `json:"age"`
-    }
+```
+//kok:success statusCode=<statusCode> body=<body> manip=`<manipulation> [; <manipulation2> [; ...]]`
+```
 
-    type Service interface {
-        //kok:op POST /users
-        //kok:success statusCode=201 body=user
-        CreateUser(ctx context.Context) (user User, err error)
-    }
-    ```
+##### Arguments
+
+- **statusCode**: The status code of the success HTTP response.
+    + Optional: Defaults to `200`, if not specified.
+- **body**: The name of the response field whose value is mapped to the HTTP response body.
+    + Optional: When omitted, a struct containing all the results (except error) will automatically be mapped to the HTTP response body.
+- **manipulation**:
+    + Syntax: `<argName> name=<name> type=<type> descr=<descr>`
+    + Not supported yet.
+    
+##### Examples
+
+```go
+type User struct {
+    Name string `json:"name"`
+    Age  int    `json:"age"`
+}
+
+type Service interface {
+    //kok:op POST /users
+    //kok:success statusCode=201 body=user
+    CreateUser(ctx context.Context) (user User, err error)
+}
+```
 
 </details>
 
@@ -753,36 +821,43 @@ See more examples [here](examples).
 </details>
 
 <details open>
-  <summary> //kok:oas </summary>
+  <summary> Directive //kok:oas </summary>
 
-- Directive: `//kok:oas`
-- Arguments: `<property>=<value>`
-    + `<property>`: The property to set. Supported properties:
-        - **docsPath**: The URL path to the OAS documentation itself.
-            + Optional: Defaults to `"/api"` if not specified.
-        - **title**: The `title` field of Info Object, see [Basic Structure](https://swagger.io/docs/specification/2-0/basic-structure/).
-            + Optional: Defaults to `"No Title"` if not specified.
-        - **version**: The `version` field of Info Object, see [Basic Structure](https://swagger.io/docs/specification/2-0/basic-structure/).
-            + Optional: Defaults to `"0.0.0"` if not specified.
-        - **description**: The `description` field of Info Object, see [Basic Structure](https://swagger.io/docs/specification/2-0/basic-structure/).
-            + Unavailable: Automatically extracted from the Go documentation of the interface definition.
-        - **basePath**: The `basePath` property, see [API Host and Base URL](https://swagger.io/docs/specification/2-0/api-host-and-base-path/).
-        - **tags**: A list of tags (comma-separated), see [Grouping Operations With Tags](https://swagger.io/docs/specification/2-0/grouping-operations-with-tags/).
-    + `<value>`: The value of the property.
-- Examples:
+##### Syntax
 
-    ```go
-    // This is the API documentation of User.
-    //kok:oas docsPath=/api-docs
-    //kok:oas title=User-API
-    //kok:oas version=1.0.0
-    //kok:oas basePath=/v1
-    //kok:oas tags=user
-    type Service interface {
-        //kok:op POST /users
-        CreateUser(ctx context.Context, name string, age int) (err error)
-    }
-    ```
+```
+//kok:oas <property>=<value>
+```
+
+##### Arguments
+
+- **property**: The property to set. Supported properties:
+    + **docsPath**: The URL path to the OAS documentation itself.
+        - Optional: Defaults to `"/api"` if not specified.
+    + **title**: The `title` field of Info Object, see [Basic Structure](https://swagger.io/docs/specification/2-0/basic-structure/).
+        - Optional: Defaults to `"No Title"` if not specified.
+    + **version**: The `version` field of Info Object, see [Basic Structure](https://swagger.io/docs/specification/2-0/basic-structure/).
+        - Optional: Defaults to `"0.0.0"` if not specified.
+    + **description**: The `description` field of Info Object, see [Basic Structure](https://swagger.io/docs/specification/2-0/basic-structure/).
+        - Unavailable: Automatically extracted from the Go documentation of the interface definition.
+    + **basePath**: The `basePath` property, see [API Host and Base URL](https://swagger.io/docs/specification/2-0/api-host-and-base-path/).
+    + **tags**: A list of tags (comma-separated), see [Grouping Operations With Tags](https://swagger.io/docs/specification/2-0/grouping-operations-with-tags/).
+- **value**: The value of the property.
+
+##### Examples
+
+```go
+// This is the API documentation of User.
+//kok:oas docsPath=/api-docs
+//kok:oas title=User-API
+//kok:oas version=1.0.0
+//kok:oas basePath=/v1
+//kok:oas tags=user
+type Service interface {
+    //kok:op POST /users
+    CreateUser(ctx context.Context, name string, age int) (err error)
+}
+```
 
 </details>
 
@@ -825,38 +900,45 @@ See more examples [here](examples).
 </details>
 
 <details open>
-  <summary> //kok:alias </summary>
+  <summary> Directive //kok:alias </summary>
 
-- Directive: `//kok:alias`
-- Arguments: ``<name>=`<value>` ``
-    + `<name>`: The name of the alias.
-    + `<value>`: The string value that the alias represents.
-- Examples:
+##### Syntax
 
-    ```go
-    type Service interface {
-        //kok:op POST /users
-        //kok:param operatorID in=header name=Authorization required=true
-        CreateUser(ctx context.Context, operatorID int) (err error)
+```
+//kok:alias <name>=`<value>`
+```
 
-        //kok:op DELETE /users/{id}
-        //kok:param operatorID in=header name=Authorization required=true
-        DeleteUser(ctx context.Context, id, operatorID int) (err error)
-    }
+##### Arguments
 
-    // The equivalent annotations =>
+- **name**: The name of the alias.
+- **value**: The string value that the alias represents.
+  
+##### Examples
 
-    //kok:alias opID=`operatorID in=header name=Authorization required=true`
-    type Service interface {
-        //kok:op POST /users
-        //kok:param $opID
-        CreateUser(ctx context.Context, operatorID int) (err error)
+```go
+type Service interface {
+    //kok:op POST /users
+    //kok:param operatorID in=header name=Authorization required=true
+    CreateUser(ctx context.Context, operatorID int) (err error)
 
-        //kok:op DELETE /users/{id}
-        //kok:param $opID
-        DeleteUser(ctx context.Context, id, operatorID int) (err error)
-    }
-    ```
+    //kok:op DELETE /users/{id}
+    //kok:param operatorID in=header name=Authorization required=true
+    DeleteUser(ctx context.Context, id, operatorID int) (err error)
+}
+
+// The equivalent annotations =>
+
+//kok:alias opID=`operatorID in=header name=Authorization required=true`
+type Service interface {
+    //kok:op POST /users
+    //kok:param $opID
+    CreateUser(ctx context.Context, operatorID int) (err error)
+
+    //kok:op DELETE /users/{id}
+    //kok:param $opID
+    DeleteUser(ctx context.Context, id, operatorID int) (err error)
+}
+```
 
 </details>
 
@@ -918,43 +1000,51 @@ See the [OAS Schema](https://github.com/RussellLuo/kok/blob/master/pkg/oasv2/sch
 </details>
 
 <details open>
-  <summary> //kok:grpc </summary>
+  <summary> Directive //kok:grpc </summary>
 
-- Directive: `//kok:grpc`
-- Arguments: `request=<request> response=<response>`
-    + **request**: The name of the method argument, whose value will be mapped to the gRPC request.
-        - Optional: When omitted, a struct containing all the arguments (except context.Context) will automatically be mapped to the gRPC request.
-    + **response**: The name of the method result, whose value will be mapped to the gRPC response.
-        - Optional: When omitted, a struct containing all the results (except error) will automatically be mapped to the gRPC response.
-- Examples:
-    + Omitted:
+##### Syntax
 
-        ```go
-        type Service interface {
-            //kok:grpc
-            CreateUser(ctx context.Context, name string, age int) (err error)
-        }
+```
+//kok:grpc request=<request> response=<response>
+```
 
-        // gRPC request:
-        // $ grpcurl -d '{"name": "tracey", "age": 1}' ... pb.Service/CreateUser
-        ```
+##### Arguments
 
-    + Specified:
+- **request**: The name of the method argument, whose value will be mapped to the gRPC request.
+    + Optional: When omitted, a struct containing all the arguments (except context.Context) will automatically be mapped to the gRPC request.
+- **response**: The name of the method result, whose value will be mapped to the gRPC response.
+    + Optional: When omitted, a struct containing all the results (except error) will automatically be mapped to the gRPC response.
+    
+##### Examples
 
-        ```go
-        type User struct {
-            Name string `json:"name"`
-            Age  int    `json:"age"`
-        }
+- Omitted:
 
-        type Service interface {
-            //kok:grpc request=user
-            CreateUser(ctx context.Context, user User) (err error)
-        }
+    ```go
+    type Service interface {
+        //kok:grpc
+        CreateUser(ctx context.Context, name string, age int) (err error)
+    }
 
-        // gRPC request:
-        // $ grpcurl -d '{"name": "tracey", "age": 1}' ... pb.Service/CreateUser
-        ```
+    // gRPC request:
+    // $ grpcurl -d '{"name": "tracey", "age": 1}' ... pb.Service/CreateUser
+    ```
+
+- Specified:
+
+    ```go
+    type User struct {
+        Name string `json:"name"`
+        Age  int    `json:"age"`
+    }
+
+    type Service interface {
+        //kok:grpc request=user
+        CreateUser(ctx context.Context, user User) (err error)
+    }
+
+    // gRPC request:
+    // $ grpcurl -d '{"name": "tracey", "age": 1}' ... pb.Service/CreateUser
+    ```
 
 </details>
 
