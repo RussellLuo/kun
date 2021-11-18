@@ -6,7 +6,7 @@ package usersvc
 import (
 	"context"
 
-	"github.com/RussellLuo/kok/pkg/httpoption"
+	httpoption "github.com/RussellLuo/kok/pkg/httpoption2"
 	"github.com/RussellLuo/validating/v2"
 	"github.com/go-kit/kit/endpoint"
 )

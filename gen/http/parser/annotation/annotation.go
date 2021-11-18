@@ -71,11 +71,13 @@ func ParseMethodAnnotation(method *ifacetool.Method) (*MethodAnnotation, error) 
 			anno.Op = op
 
 		case "param":
-			param, err := ParseParam(value)
+			params, err := ParseParams(value)
 			if err != nil {
 				return nil, err
 			}
-			anno.Params[param.ArgName] = param
+			for _, p := range params {
+				anno.Params[p.ArgName] = p
+			}
 
 		case "body":
 			if anno.Body != nil {

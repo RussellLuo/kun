@@ -10,7 +10,7 @@ import (
 type User struct {
 	Name string
 	Age  int
-	IP   net.IP `kok:"in=header name=X-Forwarded-For; in=request name=RemoteAddr"`
+	IP   net.IP `kok:"in=header name=X-Forwarded-For, in=request name=RemoteAddr"`
 }
 
 type Service interface {

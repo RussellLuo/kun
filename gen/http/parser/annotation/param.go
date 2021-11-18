@@ -17,48 +17,64 @@ type Param struct {
 	Params  []*spec.Parameter
 }
 
-// ParseParam parses s per the format as below:
+// ParseParams parses s per the format as below:
 //
-//     <argName> [<parameter> [; <parameter2> [; ...]]]
+//     <argName> [<parameter> [, <parameter2> [, ...]]]
 //
 // The format of `<parameter>`:
 //
 //     in=<in> name=<name> required=<required> type=<type> descr=<descr>
 //
-func ParseParam(s string) (*Param, error) {
+// Multiple bindings can be specified in a single semicolon-separated comment.
+//
+func ParseParams(s string) ([]*Param, error) {
 	s = strings.TrimSpace(s)
 	if s == "" {
 		return nil, fmt.Errorf("empty //kok:param")
 	}
 
+	var list []*Param
+
+	for _, text := range strings.Split(s, ";") {
+		p, err := parseParam(text)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, p)
+	}
+
+	return list, nil
+}
+
+func parseParam(s string) (*Param, error) {
+	s = strings.TrimSpace(s)
+
 	r := reKokParam.FindStringSubmatch(s)
 	if len(r) != 3 {
 		return nil, fmt.Errorf("invalid directive arguments: %s", s)
 	}
-	argName, remaining := r[1], r[2]
+	argName, remaining := r[1], strings.TrimSpace(r[2])
 
-	p := &Param{
-		ArgName: argName,
-	}
+	p := &Param{ArgName: argName}
 
-	if len(remaining) == 0 {
+	if remaining == "" {
 		// No remaining parameter definitions after the argument name.
 		return p, nil
 	}
 
-	params, err := ParseParamParameters(argName, remaining)
+	opts, err := ParseParamOptions(argName, remaining)
 	if err != nil {
 		return nil, err
 	}
-	p.Params = append(p.Params, params...)
+	p.Params = append(p.Params, opts...)
 
 	return p, nil
 }
 
-func ParseParamParameters(argName, s string) ([]*spec.Parameter, error) {
+func ParseParamOptions(argName, s string) ([]*spec.Parameter, error) {
 	var params []*spec.Parameter
-	for _, text := range strings.Split(s, ";") {
-		param, err := parseParamParameter(argName, strings.TrimSpace(text))
+	for _, text := range strings.Split(s, ",") {
+		param, err := parseOption(argName, strings.TrimSpace(text))
 		if err != nil {
 			return nil, err
 		}
@@ -67,7 +83,7 @@ func ParseParamParameters(argName, s string) ([]*spec.Parameter, error) {
 	return params, nil
 }
 
-func parseParamParameter(argName, s string) (*spec.Parameter, error) {
+func parseOption(argName, s string) (*spec.Parameter, error) {
 	s = strings.TrimSpace(s)
 	p := new(spec.Parameter)
 

@@ -49,7 +49,7 @@ func ParseBody(s string) (*Body, error) {
 			break
 		}
 
-		param, err := ParseParam(text)
+		param, err := parseParam(text)
 		if err != nil {
 			return nil, err
 		}
