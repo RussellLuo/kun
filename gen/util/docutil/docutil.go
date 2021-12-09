@@ -2,6 +2,8 @@ package docutil
 
 import (
 	"strings"
+
+	"github.com/RussellLuo/kok/gen/util/annotation"
 )
 
 type Transport int
@@ -16,9 +18,10 @@ type Doc []string
 
 func (d Doc) Transport() (t Transport) {
 	for _, comment := range d {
-		if IsKokGRPCAnnotation(comment) {
+		switch dir := annotation.Directive(comment); dir.Dialect() {
+		case annotation.DialectGRPC:
 			t = t | TransportGRPC
-		} else if IsKokAnnotation(comment) {
+		case annotation.DialectHTTP:
 			t = t | TransportHTTP
 		}
 	}
@@ -55,12 +58,4 @@ func (d Doc) JoinComments() (joined Doc) {
 
 func HasContinuationLine(comment string) bool {
 	return strings.HasSuffix(comment, `\`)
-}
-
-func IsKokAnnotation(comment string) bool {
-	return strings.HasPrefix(comment, "//kok:")
-}
-
-func IsKokGRPCAnnotation(comment string) bool {
-	return strings.HasPrefix(comment, "//kok:grpc")
 }

@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/RussellLuo/kok/gen/util/annotation"
 	"github.com/RussellLuo/kok/pkg/caseconv"
 	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
 	"github.com/RussellLuo/kok/pkg/ifacetool"
@@ -28,7 +29,7 @@ var (
 		"[]byte":  "bytes",
 	}
 
-	reKok = regexp.MustCompile(`^//kok:grpc(.*)$`)
+	reGRPC = regexp.MustCompile(`^` + annotation.DirectiveGRPC.String() + `(.*)$`)
 )
 
 type Service struct {
@@ -84,7 +85,7 @@ func Parse(data *ifacetool.Data) (*Service, error) {
 	}
 
 	for _, m := range data.Methods {
-		if len(m.Doc) == 0 || !hasKokGRPCAnnotation(m.Doc) {
+		if len(m.Doc) == 0 || !hasGRPCAnnotation(m.Doc) {
 			continue
 		}
 
@@ -249,28 +250,20 @@ func getFieldName(t *types.Struct, i int) string {
 
 func getDescriptionsFromDoc(doc []string) (comments []string) {
 	for _, comment := range doc {
-		if !isKokAnnotation(comment) && !isKokGRPCAnnotation(comment) {
+		if annotation.Directive(comment).Dialect() == annotation.DialectUnknown {
 			comments = append(comments, comment)
 		}
 	}
 	return
 }
 
-func hasKokGRPCAnnotation(doc []string) bool {
+func hasGRPCAnnotation(doc []string) bool {
 	for _, comment := range doc {
-		if isKokGRPCAnnotation(comment) {
+		if annotation.Directive(comment).Dialect() == annotation.DialectGRPC {
 			return true
 		}
 	}
 	return false
-}
-
-func isKokAnnotation(comment string) bool {
-	return strings.HasPrefix(comment, "//kok:")
-}
-
-func isKokGRPCAnnotation(comment string) bool {
-	return strings.HasPrefix(comment, "//kok:grpc")
 }
 
 type rpcFields struct {
@@ -313,13 +306,13 @@ func (rf *rpcFields) manipulateByComments(method *ifacetool.Method) error {
 	}
 
 	for _, comment := range method.Doc {
-		if !isKokGRPCAnnotation(comment) {
+		if annotation.Directive(comment).Dialect() != annotation.DialectGRPC {
 			continue
 		}
 
-		result := reKok.FindStringSubmatch(comment)
+		result := reGRPC.FindStringSubmatch(comment)
 		if len(result) != 2 {
-			return fmt.Errorf("invalid kok directive: %s", comment)
+			return fmt.Errorf("invalid %s directive: %s", annotation.DirectiveGRPC, comment)
 		}
 		value := strings.TrimSpace(result[1])
 		if value == "" {
@@ -366,7 +359,7 @@ func (rf *rpcFields) manipulateByComments(method *ifacetool.Method) error {
 				rf.Response = structType.Fields
 
 			default:
-				return fmt.Errorf(`unrecognized kok key "%s" in comment: %s`, k, comment)
+				return fmt.Errorf(`unrecognized %s key "%s" in comment: %s`, annotation.Name, k, comment)
 			}
 		}
 	}

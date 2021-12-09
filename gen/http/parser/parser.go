@@ -9,6 +9,7 @@ import (
 
 	"github.com/RussellLuo/kok/gen/http/parser/annotation"
 	"github.com/RussellLuo/kok/gen/http/spec"
+	utilannotation "github.com/RussellLuo/kok/gen/util/annotation"
 	"github.com/RussellLuo/kok/gen/util/docutil"
 	"github.com/RussellLuo/kok/pkg/caseconv"
 	"github.com/RussellLuo/kok/pkg/ifacetool"
@@ -16,8 +17,6 @@ import (
 
 const (
 	OptionNoBody = "-"
-
-	tagName = "kok"
 )
 
 var (
@@ -48,7 +47,7 @@ func Parse(data *ifacetool.Data, snakeCase bool) (*spec.Specification, []docutil
 
 		transport := doc.Transport()
 		if transport == 0 {
-			// Empty transport indicates that there are no kok annotations.
+			// Empty transport indicates that there are no annotations.
 			continue
 		}
 		transports = append(transports, transport)
@@ -90,7 +89,7 @@ func (b *OpBuilder) Build(method *ifacetool.Method) (*spec.Operation, error) {
 	// Set method and pattern.
 	op.Method, op.Pattern = anno.Op.Method, anno.Op.Pattern
 	if op.Method == "" && op.Pattern == "" {
-		return nil, fmt.Errorf("method %s has no comment directive //kok:op", method.Name)
+		return nil, fmt.Errorf("method %s has no comment directive %s", method.Name, utilannotation.DirectiveHTTPOp)
 	}
 
 	// Set request parameters.
@@ -132,11 +131,11 @@ func (b *OpBuilder) setBody(req *spec.Request, body *annotation.Body) error {
 		}
 
 		if binding.In() != spec.InBody {
-			return fmt.Errorf("argument %q manipulated in //kok:body is not located in body", binding.Arg.Name)
+			return fmt.Errorf("argument %q manipulated in %s is not located in body", binding.Arg.Name, utilannotation.DirectiveHTTPBody)
 		}
 
 		binding.SetName(m.Name)
-		// TODO: Modify the endpoint generator to add kok annotations (about OAS type and description) in request struct.
+		// TODO: Modify the endpoint generator to add annotations (about OAS type and description) in request struct.
 		binding.SetType(m.Type)
 		binding.SetDescription(m.Description)
 	}
@@ -397,7 +396,7 @@ type StructField struct {
 }
 
 func (f *StructField) Parse() error {
-	params, err := annotation.ParseParamOptions(f.Name, f.Tag.Get(tagName))
+	params, err := annotation.ParseParamOptions(f.Name, f.Tag.Get(utilannotation.Name))
 	if err != nil {
 		return err
 	}

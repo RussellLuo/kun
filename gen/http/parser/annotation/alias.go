@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/RussellLuo/kok/gen/util/docutil"
+	"github.com/RussellLuo/kok/gen/util/annotation"
 )
 
 var (
@@ -23,16 +23,16 @@ func ParseAliases(doc []string) (Aliases, error) {
 	a := make(map[string]string)
 
 	for _, comment := range doc {
-		if !docutil.IsKokAnnotation(comment) {
+		if !annotation.Directive(comment).IsValid() {
 			continue
 		}
 
-		result := reKok.FindStringSubmatch(comment)
+		result := reHTTP.FindStringSubmatch(comment)
 		if len(result) != 3 || result[1] != "alias" {
 			if result[1] == "oas" {
 				continue
 			}
-			return nil, fmt.Errorf("invalid kok comment: %s", comment)
+			return nil, fmt.Errorf("invalid %s directive: %s", annotation.Name, comment)
 		}
 
 		value := strings.TrimSpace(result[2])

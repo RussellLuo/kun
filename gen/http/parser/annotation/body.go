@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/RussellLuo/kok/gen/http/spec"
+	"github.com/RussellLuo/kok/gen/util/annotation"
 )
 
 const (
@@ -55,7 +56,7 @@ func ParseBody(s string) (*Body, error) {
 		}
 
 		if len(param.Params) != 1 {
-			return nil, fmt.Errorf("bad manipulation %q in //kok:body", s)
+			return nil, fmt.Errorf("bad manipulation %q in %s", s, annotation.DirectiveHTTPBody)
 		}
 		p := param.Params[0]
 
@@ -78,5 +79,5 @@ func ParseBody(s string) (*Body, error) {
 		return &Body{Manipulations: m}, nil
 	}
 
-	return nil, fmt.Errorf("invalid //kok:body directive: %s", s)
+	return nil, fmt.Errorf("invalid %s directive: %s", annotation.DirectiveHTTPBody, s)
 }

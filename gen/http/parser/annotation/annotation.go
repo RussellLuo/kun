@@ -6,12 +6,12 @@ import (
 	"strings"
 
 	"github.com/RussellLuo/kok/gen/http/spec"
-	"github.com/RussellLuo/kok/gen/util/docutil"
+	"github.com/RussellLuo/kok/gen/util/annotation"
 	"github.com/RussellLuo/kok/pkg/ifacetool"
 )
 
 var (
-	reKok = regexp.MustCompile(`^//kok:(\w+)\s+(.+)$`)
+	reHTTP = regexp.MustCompile(`^` + annotation.DirectivePrefix + `(\w+)\s+(.+)$`)
 )
 
 type InterfaceAnnotation struct {
@@ -48,20 +48,20 @@ func ParseMethodAnnotation(method *ifacetool.Method) (*MethodAnnotation, error) 
 	anno := &MethodAnnotation{Params: make(map[string]*Param)}
 
 	for _, comment := range method.Doc {
-		if !docutil.IsKokAnnotation(comment) || docutil.IsKokGRPCAnnotation(comment) {
+		if annotation.Directive(comment).Dialect() != annotation.DialectHTTP {
 			continue
 		}
 
-		result := reKok.FindStringSubmatch(comment)
+		result := reHTTP.FindStringSubmatch(comment)
 		if len(result) != 3 {
-			return nil, fmt.Errorf("invalid kok directive: %s", comment)
+			return nil, fmt.Errorf("invalid %s directive: %s", annotation.Name, comment)
 		}
 
 		key, value := result[1], strings.TrimSpace(result[2])
-		switch key {
-		case "op":
+		switch d := annotation.FromSubDirective(key); d {
+		case annotation.DirectiveHTTPOp:
 			if anno.Op != nil {
-				return nil, fmt.Errorf("duplicate //kok:op directive in: %s", comment)
+				return nil, fmt.Errorf("duplicate %s directive in: %s", d, comment)
 			}
 
 			op, err := ParseOp(value)
@@ -70,7 +70,7 @@ func ParseMethodAnnotation(method *ifacetool.Method) (*MethodAnnotation, error) 
 			}
 			anno.Op = op
 
-		case "param":
+		case annotation.DirectiveHTTPParam:
 			params, err := ParseParams(value)
 			if err != nil {
 				return nil, err
@@ -79,9 +79,9 @@ func ParseMethodAnnotation(method *ifacetool.Method) (*MethodAnnotation, error) 
 				anno.Params[p.ArgName] = p
 			}
 
-		case "body":
+		case annotation.DirectiveHTTPBody:
 			if anno.Body != nil {
-				return nil, fmt.Errorf("duplicate //kok:body directive in: %s", comment)
+				return nil, fmt.Errorf("duplicate %s directive in: %s", d, comment)
 			}
 
 			body, err := ParseBody(value)
@@ -90,9 +90,9 @@ func ParseMethodAnnotation(method *ifacetool.Method) (*MethodAnnotation, error) 
 			}
 			anno.Body = body
 
-		case "success":
+		case annotation.DirectiveHTTPSuccess:
 			if anno.Success != nil {
-				return nil, fmt.Errorf("duplicate //kok:success directive in: %s", comment)
+				return nil, fmt.Errorf("duplicate %s directive in: %s", d, comment)
 			}
 
 			success, err := ParseSuccess(value, method)
@@ -101,9 +101,9 @@ func ParseMethodAnnotation(method *ifacetool.Method) (*MethodAnnotation, error) 
 			}
 			anno.Success = success
 
-		case "oas":
+		case annotation.DirectiveHTTPOAS:
 			if len(anno.Tags) > 0 {
-				return nil, fmt.Errorf("duplicate //kok:oas directive in: %s", comment)
+				return nil, fmt.Errorf("duplicate %s directive in: %s", d, comment)
 			}
 
 			parts := strings.SplitN(value, ":", 2)
@@ -113,7 +113,7 @@ func ParseMethodAnnotation(method *ifacetool.Method) (*MethodAnnotation, error) 
 			anno.Tags = strings.Split(parts[1], ",")
 
 		default:
-			return nil, fmt.Errorf(`unrecognized kok key "%s" in comment: %s`, key, comment)
+			return nil, fmt.Errorf(`unrecognized %s directive "%s" in comment: %s`, annotation.Name, key, comment)
 		}
 	}
 

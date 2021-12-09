@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/RussellLuo/kok/gen/http/spec"
-	"github.com/RussellLuo/kok/gen/util/docutil"
+	"github.com/RussellLuo/kok/gen/util/annotation"
 )
 
 // ParseMetadata parses doc per the format as below:
@@ -22,11 +22,11 @@ func ParseMetadata(doc []string) (*spec.Metadata, error) {
 	}
 
 	for _, comment := range doc {
-		if !docutil.IsKokAnnotation(comment) {
+		if !annotation.Directive(comment).IsValid() {
 			continue
 		}
 
-		result := reKok.FindStringSubmatch(comment)
+		result := reHTTP.FindStringSubmatch(comment)
 		if len(result) != 3 || result[1] != "oas" {
 			if result[1] == "alias" {
 				continue
@@ -63,7 +63,7 @@ func ParseMetadata(doc []string) (*spec.Metadata, error) {
 func GetDescriptionFromDoc(doc []string) string {
 	var comments []string
 	for _, comment := range doc {
-		if !docutil.IsKokAnnotation(comment) {
+		if !annotation.Directive(comment).IsValid() {
 			comments = append(comments, strings.TrimPrefix(comment, "// "))
 		}
 	}
