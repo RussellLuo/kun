@@ -9,9 +9,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/RussellLuo/kok/examples/helloworld"
-	"github.com/RussellLuo/kok/pkg/httpcodec"
-	"github.com/RussellLuo/kok/pkg/httpoption2"
+	"github.com/RussellLuo/kun/examples/helloworld"
+	"github.com/RussellLuo/kun/pkg/httpcodec"
+	"github.com/RussellLuo/kun/pkg/httpoption2"
 )
 
 func main() {

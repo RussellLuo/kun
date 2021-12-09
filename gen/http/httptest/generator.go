@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/RussellLuo/kok/gen/util/annotation"
-	"github.com/RussellLuo/kok/gen/util/generator"
-	"github.com/RussellLuo/kok/pkg/ifacetool"
+	"github.com/RussellLuo/kun/gen/util/annotation"
+	"github.com/RussellLuo/kun/gen/util/generator"
+	"github.com/RussellLuo/kun/pkg/ifacetool"
 )
 
 var (
@@ -303,7 +303,7 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Da
 				if strings.HasPrefix(s, "0x") {
 					// This is a hexadecimal string, decode it into bytes.
 					//
-					// Note that kok borrows the idea from eth2.0 to represent binary data
+					// Note that kun borrows the idea from eth2.0 to represent binary data
 					// as hex encoded strings, see https://github.com/ethereum/eth2.0-spec-tests/issues/5.
 					decoded, err := hex.DecodeString(s[2:])
 					if err != nil {

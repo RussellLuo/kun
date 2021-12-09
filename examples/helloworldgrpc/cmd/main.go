@@ -5,9 +5,9 @@ import (
 	"log"
 	"net"
 
-	"github.com/RussellLuo/kok/examples/helloworldgrpc"
-	"github.com/RussellLuo/kok/examples/helloworldgrpc/pb"
-	"github.com/RussellLuo/kok/pkg/grpccodec"
+	"github.com/RussellLuo/kun/examples/helloworldgrpc"
+	"github.com/RussellLuo/kun/examples/helloworldgrpc/pb"
+	"github.com/RussellLuo/kun/pkg/grpccodec"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )

@@ -2,7 +2,7 @@ package cronapp
 
 import (
 	"github.com/RussellLuo/appx"
-	"github.com/RussellLuo/kok/pkg/appx/wrapper"
+	"github.com/RussellLuo/kun/pkg/appx/wrapper"
 )
 
 type App struct {

@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/RussellLuo/kok/gen/http/parser/annotation"
+	"github.com/RussellLuo/kun/gen/http/parser/annotation"
 )
 
 func TestParseBody(t *testing.T) {

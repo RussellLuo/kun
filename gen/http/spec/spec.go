@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/RussellLuo/kok/gen/util/openapi"
-	"github.com/RussellLuo/kok/pkg/ifacetool"
+	"github.com/RussellLuo/kun/gen/util/openapi"
+	"github.com/RussellLuo/kun/pkg/ifacetool"
 )
 
 type Location string

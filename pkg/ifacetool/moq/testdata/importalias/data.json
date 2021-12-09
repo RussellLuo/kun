@@ -7,11 +7,11 @@
   "Imports": [
     {
       "Alias": "dstclient",
-      "Path": "github.com/RussellLuo/kok/pkg/ifacetool/moq/testdata/importalias/dst/client"
+      "Path": "github.com/RussellLuo/kun/pkg/ifacetool/moq/testdata/importalias/dst/client"
     },
     {
       "Alias": "srcclient",
-      "Path": "github.com/RussellLuo/kok/pkg/ifacetool/moq/testdata/importalias/src/client"
+      "Path": "github.com/RussellLuo/kun/pkg/ifacetool/moq/testdata/importalias/src/client"
     }
   ],
   "Methods": [

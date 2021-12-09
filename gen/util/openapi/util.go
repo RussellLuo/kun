@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/RussellLuo/kok/pkg/ifacetool"
+	"github.com/RussellLuo/kun/pkg/ifacetool"
 )
 
 func buildSuccessResponse(text string, returns map[string]*ifacetool.Param, opName string) *Response {

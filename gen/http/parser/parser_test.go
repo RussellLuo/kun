@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/RussellLuo/kok/gen/http/parser/annotation"
-	"github.com/RussellLuo/kok/gen/http/spec"
-	"github.com/RussellLuo/kok/pkg/ifacetool"
+	"github.com/RussellLuo/kun/gen/http/parser/annotation"
+	"github.com/RussellLuo/kun/gen/http/spec"
+	"github.com/RussellLuo/kun/pkg/ifacetool"
 )
 
 type structField struct {

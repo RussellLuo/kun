@@ -3,9 +3,9 @@ package moq
 import (
 	"go/types"
 
-	"github.com/RussellLuo/kok/pkg/ifacetool"
-	"github.com/RussellLuo/kok/pkg/ifacetool/moq/registry"
-	"github.com/RussellLuo/kok/pkg/ifacetool/moq/template"
+	"github.com/RussellLuo/kun/pkg/ifacetool"
+	"github.com/RussellLuo/kun/pkg/ifacetool/moq/registry"
+	"github.com/RussellLuo/kun/pkg/ifacetool/moq/template"
 )
 
 type Parser struct {

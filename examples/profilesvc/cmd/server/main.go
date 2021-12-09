@@ -9,8 +9,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/RussellLuo/kok/examples/profilesvc"
-	"github.com/RussellLuo/kok/pkg/httpoption2"
+	"github.com/RussellLuo/kun/examples/profilesvc"
+	"github.com/RussellLuo/kun/pkg/httpoption2"
 )
 
 func main() {

@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/RussellLuo/kok/pkg/caseconv"
-	"github.com/RussellLuo/kok/pkg/ifacetool"
+	"github.com/RussellLuo/kun/pkg/caseconv"
+	"github.com/RussellLuo/kun/pkg/ifacetool"
 )
 
 type Transport int

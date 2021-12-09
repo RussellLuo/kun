@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/RussellLuo/kok/pkg/ifacetool/moq/registry"
+	"github.com/RussellLuo/kun/pkg/ifacetool/moq/registry"
 )
 
 // Data is the template data used to render the Moq template.

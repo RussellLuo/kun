@@ -9,7 +9,7 @@ import (
 	"github.com/RussellLuo/appx"
 	"github.com/go-chi/chi"
 
-	"github.com/RussellLuo/kok/pkg/appx/httpapp"
+	"github.com/RussellLuo/kun/pkg/appx/httpapp"
 )
 
 type Hi struct {

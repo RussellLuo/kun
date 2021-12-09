@@ -6,8 +6,8 @@ package fileupload
 import (
 	"context"
 
-	"github.com/RussellLuo/kok/pkg/httpcodec"
-	"github.com/RussellLuo/kok/pkg/httpoption"
+	"github.com/RussellLuo/kun/pkg/httpcodec"
+	"github.com/RussellLuo/kun/pkg/httpoption"
 	"github.com/RussellLuo/validating/v2"
 	"github.com/go-kit/kit/endpoint"
 )

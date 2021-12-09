@@ -6,7 +6,7 @@ package helloworld
 import (
 	"reflect"
 
-	"github.com/RussellLuo/kok/pkg/oas2"
+	"github.com/RussellLuo/kun/pkg/oas2"
 )
 
 var (

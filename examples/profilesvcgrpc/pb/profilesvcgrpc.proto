@@ -3,7 +3,7 @@
 
 syntax = "proto3";
 
-option go_package = "github.com/RussellLuo/kok/examples/profilesvcgrpc/pb";
+option go_package = "github.com/RussellLuo/kun/examples/profilesvcgrpc/pb";
 
 package pb;
 

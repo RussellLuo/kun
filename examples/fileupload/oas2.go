@@ -6,8 +6,8 @@ package fileupload
 import (
 	"reflect"
 
-	"github.com/RussellLuo/kok/pkg/httpcodec"
-	"github.com/RussellLuo/kok/pkg/oas2"
+	"github.com/RussellLuo/kun/pkg/httpcodec"
+	"github.com/RussellLuo/kun/pkg/oas2"
 )
 
 var (

@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"strings"
 
-	"github.com/RussellLuo/kok/pkg/httpcodec"
+	"github.com/RussellLuo/kun/pkg/httpcodec"
 )
 
 type Response struct {

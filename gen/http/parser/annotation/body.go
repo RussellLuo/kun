@@ -5,8 +5,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/RussellLuo/kok/gen/http/spec"
-	"github.com/RussellLuo/kok/gen/util/annotation"
+	"github.com/RussellLuo/kun/gen/http/spec"
+	"github.com/RussellLuo/kun/gen/util/annotation"
 )
 
 const (

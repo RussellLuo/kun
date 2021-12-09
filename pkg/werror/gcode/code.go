@@ -1,7 +1,7 @@
 package gcode
 
 import (
-	"github.com/RussellLuo/kok/pkg/werror"
+	"github.com/RussellLuo/kun/pkg/werror"
 )
 
 // The following error codes are borrowed from gRPC, see

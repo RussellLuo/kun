@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/RussellLuo/kok/examples/profilesvc"
+	"github.com/RussellLuo/kun/examples/profilesvc"
 )
 
 func main() {

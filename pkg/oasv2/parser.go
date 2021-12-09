@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/RussellLuo/kok/pkg/caseconv"
-	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
+	"github.com/RussellLuo/kun/pkg/caseconv"
+	"github.com/RussellLuo/kun/pkg/codec/httpcodec"
 )
 
 type JSONType struct {

@@ -6,7 +6,7 @@ import (
 
 type contextKeyE string
 
-var contextKey = contextKeyE("github.com/RussellLuo/kok/pkg/prometheus/exporter/dbstats.Exporter")
+var contextKey = contextKeyE("github.com/RussellLuo/kun/pkg/prometheus/exporter/dbstats.Exporter")
 
 // NewContext returns a copy of the parent context
 // and associates it with an Exporter.

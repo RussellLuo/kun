@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/RussellLuo/kok/gen/util/docutil"
+	"github.com/RussellLuo/kun/gen/util/docutil"
 )
 
 func TestDoc_JoinLines(t *testing.T) {
@@ -16,24 +16,24 @@ func TestDoc_JoinLines(t *testing.T) {
 		{
 			name: "no backslash",
 			in: []string{
-				"//kok:op POST /logs",
-				"//kok:param ip in=header name=X-Forwarded-For, in=request name=RemoteAddr",
+				"//kun:op POST /logs",
+				"//kun:param ip in=header name=X-Forwarded-For, in=request name=RemoteAddr",
 			},
 			want: []string{
-				"//kok:op POST /logs",
-				"//kok:param ip in=header name=X-Forwarded-For, in=request name=RemoteAddr",
+				"//kun:op POST /logs",
+				"//kun:param ip in=header name=X-Forwarded-For, in=request name=RemoteAddr",
 			},
 		},
 		{
 			name: "has backslash",
 			in: []string{
-				"//kok:op POST /logs",
-				`//kok:param ip in=header name=X-Forwarded-For, \`,
+				"//kun:op POST /logs",
+				`//kun:param ip in=header name=X-Forwarded-For, \`,
 				"//             in=request name=RemoteAddr",
 			},
 			want: []string{
-				"//kok:op POST /logs",
-				"//kok:param ip in=header name=X-Forwarded-For, in=request name=RemoteAddr",
+				"//kun:op POST /logs",
+				"//kun:param ip in=header name=X-Forwarded-For, in=request name=RemoteAddr",
 			},
 		},
 	}
