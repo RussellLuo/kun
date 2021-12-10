@@ -1,6 +1,6 @@
-# kok
+# kun
 
-kok (pronounced keɪ-oʊ-keɪ) is a toolkit of [Go kit][1].
+kun is a communication toolkit for Go services.
 
 
 ## Zen
@@ -36,15 +36,15 @@ kok (pronounced keɪ-oʊ-keɪ) is a toolkit of [Go kit][1].
 ## Installation
 
 ```bash
-$ go install github.com/RussellLuo/kok/cmd/kokgen@latest
+$ go install github.com/RussellLuo/kun/cmd/kungen@latest
 ```
 
 <details open>
   <summary> Usage </summary>
 
 ```bash
-$ kokgen -h
-kokgen [flags] source-file interface-name
+$ kungen -h
+kungen [flags] source-file interface-name
   -flat
         whether to use flat layout (default true)
   -fmt
@@ -92,7 +92,7 @@ kokgen [flags] source-file interface-name
 
     ```go
     type Service interface {
-        //kok:op POST /messages
+        //kun:op POST /messages
         SayHello(ctx context.Context, name string) (message string, err error)
     }
     ```
@@ -101,7 +101,7 @@ kokgen [flags] source-file interface-name
 
     ```bash
     $ cd examples/helloworld
-    $ kokgen ./service.go Service
+    $ kungen ./service.go Service
     ```
 
 5. Consume the service
@@ -216,7 +216,7 @@ kokgen [flags] source-file interface-name
 
     ```go
     type Service interface {
-        //kok:grpc
+        //kun:grpc
         SayHello(ctx context.Context, name string) (message string, err error)
     }
     ```
@@ -225,7 +225,7 @@ kokgen [flags] source-file interface-name
 
     ```bash
     $ cd examples/helloworldgrpc
-    $ kokgen ./service.go Service
+    $ kungen ./service.go Service
     ```
 
 5. Consume the service
@@ -283,20 +283,20 @@ See more examples [here](examples).
 ##### Syntax
 
 ```
-//kok:op <method> <pattern>
+//kun:op <method> <pattern>
 ```
 
 ##### Arguments
 
 - **method**: The request method.
 - **pattern**: The request URL.
-    + NOTE: All variables in **pattern** will automatically be bound to their corresponding method arguments (match by names in *lower camel case*), as **path** parameters, if these variables have not yet been specified explicitly by `//kok:param`.
+    + NOTE: All variables in **pattern** will automatically be bound to their corresponding method arguments (match by names in *lower camel case*), as **path** parameters, if these variables have not yet been specified explicitly by `//kun:param`.
     
 ##### Examples
 
 ```go
 type Service interface {
-    //kok:op DELETE /users/{id}
+    //kun:op DELETE /users/{id}
     DeleteUser(ctx context.Context, id int) (err error)
 }
 
@@ -412,15 +412,15 @@ type Service interface {
 </details>
 
 <details open>
-  <summary> Directive //kok:param </summary>
+  <summary> Directive //kun:param </summary>
 
 ##### Syntax
 
 ```
-//kok:param <argName> [<parameter> [, <parameter2> [, ...]]]
+//kun:param <argName> [<parameter> [, <parameter2> [, ...]]]
 ```
 
-If multiple method arguments are involved, you may need to apply multiple bindings. This can be done by adding a new `//kok:param` directive, or by appending the binding to the end of the last `//kok:param` directive in a semicolon-separated list.
+If multiple method arguments are involved, you may need to apply multiple bindings. This can be done by adding a new `//kun:param` directive, or by appending the binding to the end of the last `//kun:param` directive in a semicolon-separated list.
   
 ##### Arguments
 
@@ -458,8 +458,8 @@ If multiple method arguments are involved, you may need to apply multiple bindin
 
     ```go
     type Service interface {
-        //kok:op PUT /users/{id}
-        //kok:param name in=header name=X-User-Name
+        //kun:op PUT /users/{id}
+        //kun:param name in=header name=X-User-Name
         UpdateUser(ctx context.Context, id int, name string) (err error)
     }
 
@@ -471,14 +471,14 @@ If multiple method arguments are involved, you may need to apply multiple bindin
 
     ```go
     type User struct {
-        ID   int    `kok:"in=path"`  // name defaults to snake case `id`
-        Name string `kok:"in=query"` // name defaults to snake case `name`
-        Age  int    `kok:"in=header name=X-User-Age"`
+        ID   int    `kun:"in=path"`  // name defaults to snake case `id`
+        Name string `kun:"in=query"` // name defaults to snake case `name`
+        Age  int    `kun:"in=header name=X-User-Age"`
     }
 
     type Service interface {
-        //kok:op PUT /users/{id}
-        //kok:param user
+        //kun:op PUT /users/{id}
+        //kun:param user
         UpdateUser(ctx context.Context, user User) (err error)
     }
 
@@ -490,14 +490,14 @@ If multiple method arguments are involved, you may need to apply multiple bindin
 
     ```go
     type User struct {
-        Name    string   // equivalent to `kok:"in=query name=name"`
-        Age     int      // equivalent to `kok:"in=query name=age"`
-        Hobbies []string // equivalent to `kok:"in=query name=hobbies"`
+        Name    string   // equivalent to `kun:"in=query name=name"`
+        Age     int      // equivalent to `kun:"in=query name=age"`
+        Hobbies []string // equivalent to `kun:"in=query name=hobbies"`
     }
 
     type Service interface {
-        //kok:op POST /users
-        //kok:param user
+        //kun:op POST /users
+        //kun:param user
         CreateUser(ctx context.Context, user User) (err error)
     }
 
@@ -509,16 +509,16 @@ If multiple method arguments are involved, you may need to apply multiple bindin
 
     ```go
     type Service interface {
-        //kok:op POST /logs
-        //kok:param ip in=header name=X-Forwarded-For, in=request name=RemoteAddr
+        //kun:op POST /logs
+        //kun:param ip in=header name=X-Forwarded-For, in=request name=RemoteAddr
         Log(ctx context.Context, ip net.IP) (err error)
     }
 
     // The equivalent annotations =>
     // (using backslash-continued annotations)
     type Service interface {
-        //kok:op POST /logs
-        //kok:param ip in=header name=X-Forwarded-For, \
+        //kun:op POST /logs
+        //kun:param ip in=header name=X-Forwarded-For, \
         //             in=request name=RemoteAddr
         Log(ctx context.Context, ip net.IP) (err error)
     }
@@ -530,12 +530,12 @@ If multiple method arguments are involved, you may need to apply multiple bindin
     // $ http POST /logs
     ```
 
-- Multiple bindings in a single `//kok:param`:
+- Multiple bindings in a single `//kun:param`:
 
     ```go
     type Service interface {
-        //kok:op POST /users
-        //kok:param name; age; ip in=header name=X-Forwarded-For, in=request name=RemoteAddr
+        //kun:op POST /users
+        //kun:param name; age; ip in=header name=X-Forwarded-For, in=request name=RemoteAddr
         CreateUser(ctx context.Context, name string, age int, ip net.IP) (err error)
     }
   
@@ -543,8 +543,8 @@ If multiple method arguments are involved, you may need to apply multiple bindin
     // (using backslash-continued annotations)
   
     type Service interface {
-        //kok:op POST /users
-        //kok:param name; \
+        //kun:op POST /users
+        //kun:param name; \
         //          age; \
         //          ip in=header name=X-Forwarded-For, in=request name=RemoteAddr
         CreateUser(ctx context.Context, name string, age int, ip net.IP) (err error)
@@ -624,18 +624,18 @@ If multiple method arguments are involved, you may need to apply multiple bindin
 </details>
 
 <details open>
-  <summary> Directive //kok:body </summary>
+  <summary> Directive //kun:body </summary>
 
 ##### Syntax
 
 ```
-//kok:body <field>
+//kun:body <field>
 ```
 
 or
 
 ```
-//kok:body <manipulation> [; <manipulation2> [; ...]]
+//kun:body <manipulation> [; <manipulation2> [; ...]]
 ```
 
 ##### Arguments
@@ -660,7 +660,7 @@ or
 
     ```go
     type Service interface {
-        //kok:op POST /users
+        //kun:op POST /users
         CreateUser(ctx context.Context, name string, age int) (err error)
     }
 
@@ -677,8 +677,8 @@ or
     }
 
     type Service interface {
-        //kok:op POST /users
-        //kok:body user
+        //kun:op POST /users
+        //kun:body user
         CreateUser(ctx context.Context, user User) (err error)
     }
 
@@ -692,12 +692,12 @@ or
     type User struct {
         Name    string
         Age     int
-        Hobbies []string `kok:"name=hobby"`
+        Hobbies []string `kun:"name=hobby"`
     }
 
     type Service interface {
-        //kok:op POST /users
-        //kok:body -
+        //kun:op POST /users
+        //kun:body -
         CreateUser(ctx context.Context, user User) (err error)
     }
 
@@ -709,8 +709,8 @@ or
 
     ```go
     type Service interface {
-        //kok:op POST /users
-        //kok:body age name=user_age type=string descr=The-user-age
+        //kun:op POST /users
+        //kun:body age name=user_age type=string descr=The-user-age
         CreateUser(ctx context.Context, name string, age int) (err error)
     }
 
@@ -749,12 +749,12 @@ or
 </details>
 
 <details open>
-  <summary> Directive //kok:success </summary>
+  <summary> Directive //kun:success </summary>
 
 ##### Syntax
 
 ```
-//kok:success statusCode=<statusCode> body=<body> manip=`<manipulation> [; <manipulation2> [; ...]]`
+//kun:success statusCode=<statusCode> body=<body> manip=`<manipulation> [; <manipulation2> [; ...]]`
 ```
 
 ##### Arguments
@@ -776,8 +776,8 @@ type User struct {
 }
 
 type Service interface {
-    //kok:op POST /users
-    //kok:success statusCode=201 body=user
+    //kun:op POST /users
+    //kun:success statusCode=201 body=user
     CreateUser(ctx context.Context) (user User, err error)
 }
 ```
@@ -821,12 +821,12 @@ type Service interface {
 </details>
 
 <details open>
-  <summary> Directive //kok:oas </summary>
+  <summary> Directive //kun:oas </summary>
 
 ##### Syntax
 
 ```
-//kok:oas <property>=<value>
+//kun:oas <property>=<value>
 ```
 
 ##### Arguments
@@ -848,13 +848,13 @@ type Service interface {
 
 ```go
 // This is the API documentation of User.
-//kok:oas docsPath=/api-docs
-//kok:oas title=User-API
-//kok:oas version=1.0.0
-//kok:oas basePath=/v1
-//kok:oas tags=user
+//kun:oas docsPath=/api-docs
+//kun:oas title=User-API
+//kun:oas version=1.0.0
+//kun:oas basePath=/v1
+//kun:oas tags=user
 type Service interface {
-    //kok:op POST /users
+    //kun:op POST /users
     CreateUser(ctx context.Context, name string, age int) (err error)
 }
 ```
@@ -900,12 +900,12 @@ type Service interface {
 </details>
 
 <details open>
-  <summary> Directive //kok:alias </summary>
+  <summary> Directive //kun:alias </summary>
 
 ##### Syntax
 
 ```
-//kok:alias <name>=`<value>`
+//kun:alias <name>=`<value>`
 ```
 
 ##### Arguments
@@ -917,25 +917,25 @@ type Service interface {
 
 ```go
 type Service interface {
-    //kok:op POST /users
-    //kok:param operatorID in=header name=Authorization required=true
+    //kun:op POST /users
+    //kun:param operatorID in=header name=Authorization required=true
     CreateUser(ctx context.Context, operatorID int) (err error)
 
-    //kok:op DELETE /users/{id}
-    //kok:param operatorID in=header name=Authorization required=true
+    //kun:op DELETE /users/{id}
+    //kun:param operatorID in=header name=Authorization required=true
     DeleteUser(ctx context.Context, id, operatorID int) (err error)
 }
 
 // The equivalent annotations =>
 
-//kok:alias opID=`operatorID in=header name=Authorization required=true`
+//kun:alias opID=`operatorID in=header name=Authorization required=true`
 type Service interface {
-    //kok:op POST /users
-    //kok:param $opID
+    //kun:op POST /users
+    //kun:param $opID
     CreateUser(ctx context.Context, operatorID int) (err error)
 
-    //kok:op DELETE /users/{id}
-    //kok:param $opID
+    //kun:op DELETE /users/{id}
+    //kun:param $opID
     DeleteUser(ctx context.Context, id, operatorID int) (err error)
 }
 ```
@@ -1000,12 +1000,12 @@ See the [OAS Schema](https://github.com/RussellLuo/kok/blob/master/pkg/oasv2/sch
 </details>
 
 <details open>
-  <summary> Directive //kok:grpc </summary>
+  <summary> Directive //kun:grpc </summary>
 
 ##### Syntax
 
 ```
-//kok:grpc request=<request> response=<response>
+//kun:grpc request=<request> response=<response>
 ```
 
 ##### Arguments
@@ -1021,7 +1021,7 @@ See the [OAS Schema](https://github.com/RussellLuo/kok/blob/master/pkg/oasv2/sch
 
     ```go
     type Service interface {
-        //kok:grpc
+        //kun:grpc
         CreateUser(ctx context.Context, name string, age int) (err error)
     }
 
@@ -1038,7 +1038,7 @@ See the [OAS Schema](https://github.com/RussellLuo/kok/blob/master/pkg/oasv2/sch
     }
 
     type Service interface {
-        //kok:grpc request=user
+        //kun:grpc request=user
         CreateUser(ctx context.Context, user User) (err error)
     }
 

@@ -29,7 +29,7 @@ $ go run cmd/main.go
 Consume by [grpcurl][3]:
 
 ```bash
-$ grpcurl -plaintext -d '{"profile": {"id": "1234", "name": "kok"}}' :8080 pb.Service/PostProfile
+$ grpcurl -plaintext -d '{"profile": {"id": "1234", "name": "kun"}}' :8080 pb.Service/PostProfile
 {
 
 }
@@ -37,7 +37,7 @@ $ grpcurl -plaintext -d '{"id": "1234"}' :8080 pb.Service/GetProfile
 {
   "profile": {
     "id": "1234",
-    "name": "kok"
+    "name": "kun"
   }
 }
 ```
