@@ -1,8 +1,8 @@
 package httpoption
 
 import (
-	"github.com/RussellLuo/kok/pkg/werror"
-	"github.com/RussellLuo/kok/pkg/werror/gcode"
+	"github.com/RussellLuo/kun/pkg/werror"
+	"github.com/RussellLuo/kun/pkg/werror/gcode"
 	"github.com/RussellLuo/validating/v2"
 )
 

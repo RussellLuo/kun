@@ -3,8 +3,8 @@ package profilesvc
 import (
 	"net/http"
 
-	"github.com/RussellLuo/kok/pkg/httpcodec"
-	"github.com/RussellLuo/kok/pkg/oas2"
+	"github.com/RussellLuo/kun/pkg/httpcodec"
+	"github.com/RussellLuo/kun/pkg/oas2"
 )
 
 type Codec struct {

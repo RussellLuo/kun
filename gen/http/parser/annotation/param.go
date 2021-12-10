@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/RussellLuo/kok/gen/http/spec"
+	"github.com/RussellLuo/kun/gen/http/spec"
 )
 
 var (

@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/RussellLuo/kok/pkg/ifacetool"
-	"github.com/RussellLuo/kok/pkg/ifacetool/moq"
+	"github.com/RussellLuo/kun/pkg/ifacetool"
+	"github.com/RussellLuo/kun/pkg/ifacetool/moq"
 	"golang.org/x/tools/go/packages"
 )
 

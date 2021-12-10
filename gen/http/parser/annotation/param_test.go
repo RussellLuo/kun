@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/RussellLuo/kok/gen/http/parser/annotation"
-	"github.com/RussellLuo/kok/gen/http/spec"
+	"github.com/RussellLuo/kun/gen/http/parser/annotation"
+	"github.com/RussellLuo/kun/gen/http/spec"
 )
 
 func TestParseParams(t *testing.T) {

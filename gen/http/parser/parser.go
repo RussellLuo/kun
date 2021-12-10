@@ -7,12 +7,12 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/RussellLuo/kok/gen/http/parser/annotation"
-	"github.com/RussellLuo/kok/gen/http/spec"
-	utilannotation "github.com/RussellLuo/kok/gen/util/annotation"
-	"github.com/RussellLuo/kok/gen/util/docutil"
-	"github.com/RussellLuo/kok/pkg/caseconv"
-	"github.com/RussellLuo/kok/pkg/ifacetool"
+	"github.com/RussellLuo/kun/gen/http/parser/annotation"
+	"github.com/RussellLuo/kun/gen/http/spec"
+	utilannotation "github.com/RussellLuo/kun/gen/util/annotation"
+	"github.com/RussellLuo/kun/gen/util/docutil"
+	"github.com/RussellLuo/kun/pkg/caseconv"
+	"github.com/RussellLuo/kun/pkg/ifacetool"
 )
 
 const (
@@ -188,7 +188,7 @@ func (b *OpBuilder) setParams(req *spec.Request, method *ifacetool.Method, param
 
 	// Add path parameters according to the path pattern.
 	for _, name := range pathVarNames {
-		// If name is already bound to a path parameter by //kok:param or
+		// If name is already bound to a path parameter by //kun:param or
 		// by struct tags, do not reset it.
 		if isAlreadyPathParam(name, req.Bindings) {
 			continue
@@ -255,7 +255,7 @@ func (b *OpBuilder) buildParams(arg *ifacetool.Param, annoParams []*spec.Paramet
 func (b *OpBuilder) inferAnnotationParams(methodName string, arg *ifacetool.Param) ([]*spec.Parameter, error) {
 	newParamWithType := func(typ string) *spec.Parameter {
 		return &spec.Parameter{
-			// Method arguments specified in //kok:param are mapped to the query by default.
+			// Method arguments specified in //kun:param are mapped to the query by default.
 			In:   spec.InQuery,
 			Name: b.defaultName(arg.Name),
 			Type: typ,

@@ -6,11 +6,11 @@ tests:
         request:
           method: POST
           path: /profiles
-          body: '{"profile": {"id": "1234", "name": "kok"}}'
+          body: '{"profile": {"id": "1234", "name": "kun"}}'
         wantIn: |
           profile: Profile{
             ID: "1234",
-            Name: "kok",
+            Name: "kun",
           },
         out: |
           err: nil,
@@ -21,11 +21,11 @@ tests:
         request:
           method: POST
           path: /profiles
-          body: '{"profile": {"id": "1234", "name": "kok"}}'
+          body: '{"profile": {"id": "1234", "name": "kun"}}'
         wantIn: |
           profile: Profile{
             ID: "1234",
-            Name: "kok",
+            Name: "kun",
           },
         out: |
           err: ErrAlreadyExists,
@@ -43,12 +43,12 @@ tests:
         out: |
           profile: Profile{
             ID: "1234",
-            Name: "kok",
+            Name: "kun",
           },
           err: nil,
         wantResponse:
           statusCode: http.StatusOK
-          body: '{"profile":{"id":"1234","name":"kok"}}'
+          body: '{"profile":{"id":"1234","name":"kun"}}'
       - name: err
         request:
           method: GET
@@ -67,12 +67,12 @@ tests:
         request:
           method: PUT
           path: /profiles/1234
-          body: '{"profile": {"id": "1234", "name": "kok", "addresses": [{"id": "0", "location": "here"}]}}'
+          body: '{"profile": {"id": "1234", "name": "kun", "addresses": [{"id": "0", "location": "here"}]}}'
         wantIn: |
           id: "1234",
           profile: Profile{
             ID:   "1234",
-            Name: "kok",
+            Name: "kun",
             Addresses: []Address{
               {
                 ID:       "0",
@@ -89,12 +89,12 @@ tests:
         request:
           method: PUT
           path: /profiles/1234
-          body: '{"profile": {"id": "5678", "name": "kok", "addresses": [{"id": "0", "location": "here"}]}}'
+          body: '{"profile": {"id": "5678", "name": "kun", "addresses": [{"id": "0", "location": "here"}]}}'
         wantIn: |
           id: "1234",
           profile: Profile{
             ID:   "5678",
-            Name: "kok",
+            Name: "kun",
             Addresses: []Address{
               {
                 ID:       "0",
@@ -113,12 +113,12 @@ tests:
         request:
           method: PATCH
           path: /profiles/1234
-          body: '{"profile": {"id": "1234", "name": "kok", "addresses": [{"id": "?", "location": "where"}]}}'
+          body: '{"profile": {"id": "1234", "name": "kun", "addresses": [{"id": "?", "location": "where"}]}}'
         wantIn: |
           id: "1234",
           profile: Profile{
             ID:   "1234",
-            Name: "kok",
+            Name: "kun",
             Addresses: []Address{
               {
                 ID:       "?",

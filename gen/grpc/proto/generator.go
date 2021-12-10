@@ -3,12 +3,12 @@ package proto
 import (
 	"fmt"
 
-	"github.com/RussellLuo/kok/gen/grpc/parser"
-	"github.com/RussellLuo/kok/gen/util/annotation"
-	"github.com/RussellLuo/kok/gen/util/generator"
-	"github.com/RussellLuo/kok/pkg/caseconv"
-	"github.com/RussellLuo/kok/pkg/ifacetool"
-	"github.com/RussellLuo/kok/pkg/pkgtool"
+	"github.com/RussellLuo/kun/gen/grpc/parser"
+	"github.com/RussellLuo/kun/gen/util/annotation"
+	"github.com/RussellLuo/kun/gen/util/generator"
+	"github.com/RussellLuo/kun/pkg/caseconv"
+	"github.com/RussellLuo/kun/pkg/ifacetool"
+	"github.com/RussellLuo/kun/pkg/pkgtool"
 )
 
 var (

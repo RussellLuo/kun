@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/RussellLuo/kok/gen/util/annotation"
-	"github.com/RussellLuo/kok/gen/util/generator"
-	"github.com/RussellLuo/kok/gen/util/openapi"
+	"github.com/RussellLuo/kun/gen/util/annotation"
+	"github.com/RussellLuo/kun/gen/util/generator"
+	"github.com/RussellLuo/kun/gen/util/openapi"
 )
 
 var (
@@ -24,7 +24,7 @@ import (
 	"text/template"
 
 	chimiddleware "github.com/go-chi/chi/middleware"
-	"github.com/RussellLuo/kok/pkg/oas2"
+	"github.com/RussellLuo/kun/pkg/oas2"
 
 	{{- if .PkgInfo.EndpointPkgPath}}
 	"{{.PkgInfo.EndpointPkgPath}}"
@@ -240,7 +240,7 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, spec *openapi.Specifica
 				// | basic or slice  | string (UNSUPPORTED) |
 				// | struct or other | string               |
 				//
-				// Adding one more optional tag `type` in the @kok(param)
+				// Adding one more optional tag `type` in the @kun(param)
 				// annotation may be a better solution?
 
 				switch {

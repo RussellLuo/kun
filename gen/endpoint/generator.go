@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/RussellLuo/kok/gen/util/annotation"
-	"github.com/RussellLuo/kok/gen/util/generator"
-	"github.com/RussellLuo/kok/gen/util/openapi"
-	"github.com/RussellLuo/kok/pkg/caseconv"
-	"github.com/RussellLuo/kok/pkg/ifacetool"
+	"github.com/RussellLuo/kun/gen/util/annotation"
+	"github.com/RussellLuo/kun/gen/util/generator"
+	"github.com/RussellLuo/kun/gen/util/openapi"
+	"github.com/RussellLuo/kun/pkg/caseconv"
+	"github.com/RussellLuo/kun/pkg/ifacetool"
 )
 
 var (
@@ -18,7 +18,7 @@ package {{.PkgInfo.CurrentPkgName}}
 import (
 	"github.com/RussellLuo/validating/v2"
 	"github.com/go-kit/kit/endpoint"
-	"github.com/RussellLuo/kok/pkg/httpoption2"
+	"github.com/RussellLuo/kun/pkg/httpoption2"
 
 	{{- range .Data.Imports}}
 	{{.ImportString}}

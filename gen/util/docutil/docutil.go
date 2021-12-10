@@ -3,7 +3,7 @@ package docutil
 import (
 	"strings"
 
-	"github.com/RussellLuo/kok/gen/util/annotation"
+	"github.com/RussellLuo/kun/gen/util/annotation"
 )
 
 type Transport int

@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/RussellLuo/kok/pkg/prometheus/metric"
-	"github.com/RussellLuo/kok/pkg/tickdoer"
+	"github.com/RussellLuo/kun/pkg/prometheus/metric"
+	"github.com/RussellLuo/kun/pkg/tickdoer"
 	"github.com/prometheus/client_golang/prometheus"
 )
 

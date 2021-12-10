@@ -1,7 +1,7 @@
 package httpoption
 
 import (
-	"github.com/RussellLuo/kok/pkg/oasv2"
+	"github.com/RussellLuo/kun/pkg/oasv2"
 )
 
 type Options struct {

@@ -4,12 +4,12 @@ import (
 	"context"
 )
 
-//go:generate kokgen ./service.go Service
+//go:generate kungen ./service.go Service
 
 // Service is used for saying hello.
 type Service interface {
 	// SayHello says hello to the given name.
-	//kok:op POST /messages
+	//kun:op POST /messages
 	SayHello(ctx context.Context, name string) (message string, err error)
 }
 

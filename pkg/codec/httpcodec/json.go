@@ -7,8 +7,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/RussellLuo/kok/pkg/werror"
-	"github.com/RussellLuo/kok/pkg/werror/gcode"
+	"github.com/RussellLuo/kun/pkg/werror"
+	"github.com/RussellLuo/kun/pkg/werror/gcode"
 )
 
 type Error struct {

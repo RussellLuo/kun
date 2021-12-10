@@ -5,10 +5,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/RussellLuo/kok/gen/util/annotation"
-	"github.com/RussellLuo/kok/gen/util/generator"
-	"github.com/RussellLuo/kok/gen/util/openapi"
-	"github.com/RussellLuo/kok/pkg/ifacetool"
+	"github.com/RussellLuo/kun/gen/util/annotation"
+	"github.com/RussellLuo/kun/gen/util/generator"
+	"github.com/RussellLuo/kun/gen/util/openapi"
+	"github.com/RussellLuo/kun/pkg/ifacetool"
 )
 
 var (
@@ -19,7 +19,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"github.com/RussellLuo/kok/pkg/httpcodec"
+	"github.com/RussellLuo/kun/pkg/httpcodec"
 
 	{{- range .Data.Imports}}
 	{{.ImportString}}

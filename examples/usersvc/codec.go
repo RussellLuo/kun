@@ -5,7 +5,7 @@ import (
 	"net"
 	"strings"
 
-	"github.com/RussellLuo/kok/pkg/httpcodec"
+	"github.com/RussellLuo/kun/pkg/httpcodec"
 )
 
 // IPCodec is used to encode and decode an IP. It can be reused wherever needed.

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/RussellLuo/kok/gen/http/parser"
+	"github.com/RussellLuo/kun/gen/http/parser"
 )
 
 const (

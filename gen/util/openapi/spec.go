@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/RussellLuo/kok/pkg/caseconv"
+	"github.com/RussellLuo/kun/pkg/caseconv"
 )
 
 const (

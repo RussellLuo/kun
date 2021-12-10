@@ -6,35 +6,35 @@ import (
 	"sync"
 )
 
-//go:generate kokgen ./service.go Service
+//go:generate kungen ./service.go Service
 
 // Service is a simple CRUD interface for user profiles.
 type Service interface {
-	//kok:grpc
+	//kun:grpc
 	PostProfile(ctx context.Context, profile Profile) (err error)
 
-	//kok:grpc
+	//kun:grpc
 	GetProfile(ctx context.Context, id string) (profile Profile, err error)
 
-	//kok:grpc
+	//kun:grpc
 	PutProfile(ctx context.Context, id string, profile Profile) (err error)
 
-	//kok:grpc
+	//kun:grpc
 	PatchProfile(ctx context.Context, id string, profile Profile) (err error)
 
-	//kok:grpc
+	//kun:grpc
 	DeleteProfile(ctx context.Context, id string) (err error)
 
-	//kok:grpc
+	//kun:grpc
 	GetAddresses(ctx context.Context, id string) (addresses []Address, err error)
 
-	//kok:grpc
+	//kun:grpc
 	GetAddress(ctx context.Context, id string, addressID string) (address Address, err error)
 
-	//kok:grpc
+	//kun:grpc
 	PostAddress(ctx context.Context, id string, address Address) (err error)
 
-	//kok:grpc
+	//kun:grpc
 	DeleteAddress(ctx context.Context, id string, addressID string) (err error)
 }
 

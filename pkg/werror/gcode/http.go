@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/RussellLuo/kok/pkg/werror"
+	"github.com/RussellLuo/kun/pkg/werror"
 )
 
 func HTTPStatusCode(err error) int {

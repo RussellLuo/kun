@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	Name = "kok"
+	Name = "kun"
 
 	DirectivePrefix = "//" + Name + ":"
 

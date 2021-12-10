@@ -9,7 +9,7 @@ import (
 	"github.com/RussellLuo/micron/cron"
 	nillocker "github.com/RussellLuo/micron/locker/nil"
 
-	"github.com/RussellLuo/kok/pkg/appx/cronapp"
+	"github.com/RussellLuo/kun/pkg/appx/cronapp"
 )
 
 type task func()

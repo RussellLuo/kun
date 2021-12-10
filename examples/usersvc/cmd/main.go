@@ -9,7 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/RussellLuo/kok/examples/usersvc"
+	"github.com/RussellLuo/kun/examples/usersvc"
 )
 
 func main() {

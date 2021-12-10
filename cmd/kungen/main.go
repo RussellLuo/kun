@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/RussellLuo/kok/gen"
+	"github.com/RussellLuo/kun/gen"
 )
 
 type userFlags struct {

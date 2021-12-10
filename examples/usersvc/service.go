@@ -5,18 +5,18 @@ import (
 	"net"
 )
 
-//go:generate kokgen ./service.go Service
+//go:generate kungen ./service.go Service
 
 type User struct {
 	Name string
 	Age  int
-	IP   net.IP `kok:"in=header name=X-Forwarded-For, in=request name=RemoteAddr"`
+	IP   net.IP `kun:"in=header name=X-Forwarded-For, in=request name=RemoteAddr"`
 }
 
 type Service interface {
-	//kok:op POST /users
-	//kok:param user
-	//kok:success body=result
+	//kun:op POST /users
+	//kun:param user
+	//kun:success body=result
 	CreateUser(ctx context.Context, user User) (result User, err error)
 }
 

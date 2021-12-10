@@ -9,8 +9,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/RussellLuo/kok/examples/fileupload"
-	"github.com/RussellLuo/kok/pkg/httpcodec"
+	"github.com/RussellLuo/kun/examples/fileupload"
+	"github.com/RussellLuo/kun/pkg/httpcodec"
 )
 
 func main() {

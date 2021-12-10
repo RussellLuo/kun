@@ -1,4 +1,4 @@
-module github.com/RussellLuo/kok
+module github.com/RussellLuo/kun
 
 go 1.14
 

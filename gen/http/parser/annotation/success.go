@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/RussellLuo/kok/gen/http/spec"
-	"github.com/RussellLuo/kok/pkg/ifacetool"
+	"github.com/RussellLuo/kun/gen/http/spec"
+	"github.com/RussellLuo/kun/pkg/ifacetool"
 )
 
 // ParseSuccess parses s per the format as below:

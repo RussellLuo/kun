@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/RussellLuo/kok/gen/util/annotation"
-	"github.com/RussellLuo/kok/gen/util/generator"
-	"github.com/RussellLuo/kok/gen/util/openapi"
-	"github.com/RussellLuo/kok/pkg/caseconv"
-	"github.com/RussellLuo/kok/pkg/ifacetool"
+	"github.com/RussellLuo/kun/gen/util/annotation"
+	"github.com/RussellLuo/kun/gen/util/generator"
+	"github.com/RussellLuo/kun/gen/util/openapi"
+	"github.com/RussellLuo/kun/pkg/caseconv"
+	"github.com/RussellLuo/kun/pkg/ifacetool"
 )
 
 var (
@@ -26,11 +26,11 @@ import (
 	"strconv"
 
 	{{- if $enableTracing}}
-	"github.com/RussellLuo/kok/pkg/trace/xnet"
+	"github.com/RussellLuo/kun/pkg/trace/xnet"
 	{{- end}}
 	"github.com/go-chi/chi"
 	kithttp "github.com/go-kit/kit/transport/http"
-	"github.com/RussellLuo/kok/pkg/httpoption2"
+	"github.com/RussellLuo/kun/pkg/httpoption2"
 
 	{{- range .Data.Imports}}
 	{{.ImportString}}

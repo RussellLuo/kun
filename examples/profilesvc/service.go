@@ -6,35 +6,35 @@ import (
 	"sync"
 )
 
-//go:generate kokgen ./service.go Service
+//go:generate kungen ./service.go Service
 
 // Service is a simple CRUD interface for user profiles.
 type Service interface {
-	//kok:op POST /profiles
+	//kun:op POST /profiles
 	PostProfile(ctx context.Context, profile Profile) (err error)
 
-	//kok:op GET /profiles/{id}
+	//kun:op GET /profiles/{id}
 	GetProfile(ctx context.Context, id string) (profile Profile, err error)
 
-	//kok:op PUT /profiles/{id}
+	//kun:op PUT /profiles/{id}
 	PutProfile(ctx context.Context, id string, profile Profile) (err error)
 
-	//kok:op PATCH /profiles/{id}
+	//kun:op PATCH /profiles/{id}
 	PatchProfile(ctx context.Context, id string, profile Profile) (err error)
 
-	//kok:op DELETE /profiles/{id}
+	//kun:op DELETE /profiles/{id}
 	DeleteProfile(ctx context.Context, id string) (err error)
 
-	//kok:op GET /profiles/{id}/addresses
+	//kun:op GET /profiles/{id}/addresses
 	GetAddresses(ctx context.Context, id string) (addresses []Address, err error)
 
-	//kok:op GET /profiles/{id}/addresses/{addressID}
+	//kun:op GET /profiles/{id}/addresses/{addressID}
 	GetAddress(ctx context.Context, id string, addressID string) (address Address, err error)
 
-	//kok:op POST /profiles/{id}/addresses
+	//kun:op POST /profiles/{id}/addresses
 	PostAddress(ctx context.Context, id string, address Address) (err error)
 
-	//kok:op DELETE /profiles/{id}/addresses/{addressID}
+	//kun:op DELETE /profiles/{id}/addresses/{addressID}
 	DeleteAddress(ctx context.Context, id string, addressID string) (err error)
 }
 
