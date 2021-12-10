@@ -6,7 +6,7 @@ package helloworldgrpc
 import (
 	"context"
 
-	"github.com/RussellLuo/kok/examples/helloworldgrpc/pb"
+	"github.com/RussellLuo/kun/examples/helloworldgrpc/pb"
 	"github.com/RussellLuo/kun/pkg/grpccodec"
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
 )

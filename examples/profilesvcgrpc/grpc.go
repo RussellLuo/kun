@@ -6,7 +6,7 @@ package profilesvcgrpc
 import (
 	"context"
 
-	"github.com/RussellLuo/kok/examples/profilesvcgrpc/pb"
+	"github.com/RussellLuo/kun/examples/profilesvcgrpc/pb"
 	"github.com/RussellLuo/kun/pkg/grpccodec"
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
 )

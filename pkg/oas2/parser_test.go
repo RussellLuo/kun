@@ -44,13 +44,13 @@ func TestParser_AddDefinition(t *testing.T) {
 			inBody: struct {
 				Name    string          `json:"name"`
 				Male    bool            `json:"male"`
-				Age     int             `json:"age" kok:"descr=the-age"`
+				Age     int             `json:"age" kun:"descr=the-age"`
 				Hobbies []string        `json:"hobbies"`
-				Datum   *Datum          `json:"datum" kok:"descr=the-datum"`
+				Datum   *Datum          `json:"datum" kun:"descr=the-datum"`
 				Data    []Datum         `json:"data"`
 				Time    time.Time       `json:"time"`
-				TimeStr string          `json:"time_str" kok:"type=time"`
-				Other   map[string]bool `json:"other" kok:"descr=other-is-a-map"`
+				TimeStr string          `json:"time_str" kun:"type=time"`
+				Other   map[string]bool `json:"other" kun:"descr=other-is-a-map"`
 			}{
 				Name:    "xxx",
 				Male:    true,

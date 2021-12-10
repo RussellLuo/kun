@@ -65,7 +65,7 @@ func TestOpBuilder_setParams(t *testing.T) {
 							{
 								name: "Field2",
 								typ:  types.Typ[types.Bool],
-								tag:  `kok:"in=header name=field_2"`,
+								tag:  `kun:"in=header name=field_2"`,
 							},
 						}),
 					},
@@ -368,22 +368,22 @@ func TestOpBuilder_inferAnnotationParams(t *testing.T) {
 					{
 						name: "Field2",
 						typ:  types.Typ[types.Uint],
-						tag:  `kok:"name=field_2"`,
+						tag:  `kun:"name=field_2"`,
 					},
 					{
 						name: "Field3",
 						typ:  types.Typ[types.Bool],
-						tag:  `kok:"in=header name=field_3"`,
+						tag:  `kun:"in=header name=field_3"`,
 					},
 					{
 						name: "Field4",
 						typ:  types.Typ[types.String],
-						tag:  `kok:"in=path name=field_4 required=true"`,
+						tag:  `kun:"in=path name=field_4 required=true"`,
 					},
 					{
 						name: "Field5",
 						typ:  types.Typ[types.String],
-						tag:  `kok:"name=-"`,
+						tag:  `kun:"name=-"`,
 					},
 				}),
 			},
@@ -473,7 +473,7 @@ func TestStructField_Parse(t *testing.T) {
 			in: &StructField{
 				Name: "Name",
 				Type: "string",
-				Tag:  `kok:"in=path"`,
+				Tag:  `kun:"in=path"`,
 			},
 			wantOmitted: false,
 			wantParams: []*spec.Parameter{
@@ -490,7 +490,7 @@ func TestStructField_Parse(t *testing.T) {
 			in: &StructField{
 				Name: "Name",
 				Type: "string",
-				Tag:  `kok:"name=-"`,
+				Tag:  `kun:"name=-"`,
 			},
 			wantOmitted: true,
 			wantParams:  nil,
@@ -500,7 +500,7 @@ func TestStructField_Parse(t *testing.T) {
 			in: &StructField{
 				Name: "Name",
 				Type: "string",
-				Tag:  `kok:"required=true"`,
+				Tag:  `kun:"required=true"`,
 			},
 			wantOmitted: false,
 			wantParams: []*spec.Parameter{
@@ -517,7 +517,7 @@ func TestStructField_Parse(t *testing.T) {
 			in: &StructField{
 				Name: "Name",
 				Type: "string",
-				Tag:  `kok:"type=bool"`,
+				Tag:  `kun:"type=bool"`,
 			},
 			wantOmitted: false,
 			wantParams: []*spec.Parameter{
@@ -533,7 +533,7 @@ func TestStructField_Parse(t *testing.T) {
 			in: &StructField{
 				Name: "Name",
 				Type: "string",
-				Tag:  `kok:"descr=the-description"`,
+				Tag:  `kun:"descr=the-description"`,
 			},
 			wantOmitted: false,
 			wantParams: []*spec.Parameter{
