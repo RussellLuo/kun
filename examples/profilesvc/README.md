@@ -5,18 +5,18 @@ Let's take [profilesvc](https://github.com/go-kit/kit/tree/266ff8dc37c693d064970
 
 ## Prerequisites
 
-1. Adjust the [Service](https://github.com/RussellLuo/kok/blob/master/examples/profilesvc/service.go#L11-L39) interface
+1. Adjust the [Service](https://github.com/RussellLuo/kun/blob/master/examples/profilesvc/service.go#L11-L39) interface
 
     - Add a meaningful name to each input/output parameter, to get more human-readable field names in the corresponding request/response structs.
     - Add kun-specific comments (i.e. comments start with "// @kun") in a [OAS](http://spec.openapis.org/oas/v3.0.3)-inspired format, to describe the properties of the exposed HTTP APIs.
 
 2. Customize HTTP encoders and decoders
 
-    - Override the method [Codec.EncodeFailureResponse](https://github.com/RussellLuo/kok/blob/master/examples/profilesvc/codec.go#L14-L18), to transform any business error to an HTTP response.
+    - Override the method [Codec.EncodeFailureResponse](https://github.com/RussellLuo/kun/blob/master/examples/profilesvc/codec.go#L14-L18), to transform any business error to an HTTP response.
 
 3. List business errors for generating failure responses in OAS (**Optional**)
 
-    - See [GetFailures](https://github.com/RussellLuo/kok/blob/master/examples/profilesvc/codec.go#L37-L52).
+    - See [GetFailures](https://github.com/RussellLuo/kun/blob/master/examples/profilesvc/codec.go#L37-L52).
 
 4. Define HTTP test-cases in YAML (**Optional**)
 

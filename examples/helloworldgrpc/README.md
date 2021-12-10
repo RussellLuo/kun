@@ -36,6 +36,6 @@ $ grpcurl -plaintext -d '{"name": "Tracey"}' :8080 pb.Service/SayHello
 ```
 
 
-[1]: https://github.com/RussellLuo/kok/tree/master/examples/helloworld
+[1]: https://github.com/RussellLuo/kun/tree/master/examples/helloworld
 [2]: http://www.grpc.io/docs/quickstart/go.html#prerequisites
 [3]: https://github.com/fullstorydev/grpcurl

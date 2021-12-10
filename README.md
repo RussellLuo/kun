@@ -20,7 +20,7 @@ kun is a communication toolkit for Go services.
             + [x] HTTP Server
             + [x] HTTP Client
             + [x] HTTP Test
-            + [x] [OAS-v2][2] Documentation
+            + [x] [OAS2][2] Documentation
         - [x] gRPC
             + [x] gRPC Server
             + [ ] gRPC Client
@@ -316,7 +316,7 @@ type Service interface {
     + **argName**: The name of the method argument.
         - *Argument aggregation*: By specifying the same **argName**, multiple request parameters (each one is of basic type or repeated basic type) can be aggregated into one method argument (of any type).
             + You do not need to repeat the **argName**, only the first one is required.
-        - *Blank identifier*: By specifying the **argName** with a double underscore prefix `__`, the corresponding request parameter(s) will not be mapped to any method argument. See [here](https://github.com/RussellLuo/kok/issues/15) for more details.
+        - *Blank identifier*: By specifying the **argName** with a double underscore prefix `__`, the corresponding request parameter(s) will not be mapped to any method argument. See [here](https://github.com/RussellLuo/kun/issues/15) for more details.
     + **in**:
         - **path**: The method argument is sourced from a [path parameter](https://swagger.io/docs/specification/describing-parameters/#path-parameters).
             + Optional: All variables in **pattern** will automatically be bound to their corresponding method arguments (matches by name in *lower camel case*), as **path** parameters.
@@ -426,7 +426,7 @@ If multiple method arguments are involved, you may need to apply multiple bindin
 
 - **argName**: The name of the method argument.
     + *Argument aggregation*: By specifying multiple `<parameter>`s in a comma-separated list, multiple request parameters (each one is of basic type or repeated basic type) can be aggregated into one method argument (of any type).
-    + *Blank identifier*: By specifying the **argName** with a double underscore prefix `__`, the corresponding request parameter(s) will not be mapped to any method argument. See [here](https://github.com/RussellLuo/kok/issues/15) for more details.
+    + *Blank identifier*: By specifying the **argName** with a double underscore prefix `__`, the corresponding request parameter(s) will not be mapped to any method argument. See [here](https://github.com/RussellLuo/kun/issues/15) for more details.
 - **parameter**: The definition of a single request parameter, to which the method argument will be mapped.
     + Syntax: `in=<in> name=<name> required=<required> type=<type> descr=<descr>`
     + Options:
@@ -944,14 +944,14 @@ type Service interface {
 
 ### Encoding and decoding
 
-See the [HTTP Codec](https://github.com/RussellLuo/kok/blob/master/pkg/codec/httpcodec/codec.go#L8-L22) interface.
+See the [HTTP Codec](https://github.com/RussellLuo/kun/blob/master/pkg/codec/httpcodec/codec.go#L8-L22) interface.
 
-Also see [here](https://github.com/RussellLuo/kok/issues/8) for examples.
+Also see [here](https://github.com/RussellLuo/kun/issues/8) for examples.
 
 
 ### OAS Schema
 
-See the [OAS Schema](https://github.com/RussellLuo/kok/blob/master/pkg/oasv2/schema.go#L18-L21) interface.
+See the [OAS Schema](https://github.com/RussellLuo/kun/blob/master/pkg/oasv2/schema.go#L18-L21) interface.
 
 
 ## gRPC
@@ -1063,4 +1063,4 @@ Checkout the [Godoc][5].
 [2]: https://swagger.io/specification/v2/
 [3]: https://github.com/RussellLuo/appx
 [4]: https://pkg.go.dev/golang.org/x/net/trace
-[5]: https://pkg.go.dev/github.com/RussellLuo/kok
+[5]: https://pkg.go.dev/github.com/RussellLuo/kun
