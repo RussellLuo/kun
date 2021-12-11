@@ -1,29 +1,44 @@
 # kun
 
-kun is a communication toolkit for Go services.
+kun is a communication toolkit for Go services. It concentrates on handling the communications between Go services, to free developers to focus on the business logic.
+
+Ultimately, kun may support the following communication types:
+
+- In-process function call
+- RPC (e.g. HTTP and gRPC)
+- Asynchronous messaging (not supported yet)
 
 
-## Zen
+## The Zen of kun
 
-- Embrace [the Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html) for non-trivial applications.
-- Just write code for your business logic, generate everything else.
-- Implement the service once, consume it in various ways (in-process function call or RPC).
+- **Focus on the most valuable things**
+
+    Service communication is important, but is less important than the service itself (i.e., your business value).
+
+    Furthermore, it should be effortless to change the communication types.
+
+- **Write code in Go whenever possible**
+
+    Prefer Go to other DSLs (e.g., [OpenAPI](https://spec.openapis.org/oas/latest.html), [Protocol Buffers](https://developers.google.com/protocol-buffers) or [AsyncAPI](https://www.asyncapi.com/)).
+
+- **Maintainability counts**
+
+    Embrace the spirit of [the Clean Architecture][1] for non-trivial applications.
 
 
 ## Features
 
 1. Code Generation Tool
 
-    - [x] Endpoint
-    - [x] Transport
-        - [x] HTTP
-            + [x] HTTP Server
-            + [x] HTTP Client
-            + [x] HTTP Test
-            + [x] [OAS2][2] Documentation
-        - [x] gRPC
-            + [x] gRPC Server
-            + [ ] gRPC Client
+    - [x] HTTP
+        + [x] HTTP Server
+        + [x] HTTP Client
+        + [x] HTTP Test
+        + [x] [OAS2][2] Documentation
+    - [x] gRPC
+        + [x] Protocol Buffers
+        + [x] gRPC Server
+        + [ ] gRPC Client
 
 2. Useful Packages
 
@@ -278,7 +293,7 @@ See more examples [here](examples).
 </details>
 
 <details open>
-  <summary> Directive //kok:op </summary>
+  <summary> Directive //kun:op </summary>
 
 ##### Syntax
 
@@ -1059,7 +1074,7 @@ Checkout the [Godoc][5].
 [MIT](LICENSE)
 
 
-[1]: https://github.com/go-kit/kit
+[1]: https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html
 [2]: https://swagger.io/specification/v2/
 [3]: https://github.com/RussellLuo/appx
 [4]: https://pkg.go.dev/golang.org/x/net/trace
