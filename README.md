@@ -5,7 +5,7 @@ kun is a communication toolkit for Go services. It concentrates on handling the 
 Ultimately, kun may support the following communication types:
 
 - In-process function call
-- RPC (e.g. HTTP and gRPC)
+- RPC (e.g., HTTP and gRPC)
 - Asynchronous messaging (not supported yet)
 
 
@@ -19,7 +19,7 @@ Ultimately, kun may support the following communication types:
 
 - **Write code in Go whenever possible**
 
-    Prefer Go to other DSLs (e.g., [OpenAPI](https://spec.openapis.org/oas/latest.html), [Protocol Buffers](https://developers.google.com/protocol-buffers) or [AsyncAPI](https://www.asyncapi.com/)).
+    Prefer Go to other DSLs (e.g., [OpenAPI](https://spec.openapis.org/oas/latest.html), [Protocol Buffers](https://developers.google.com/protocol-buffers) or [AsyncAPI](https://www.asyncapi.com/)) for service definitions.
 
 - **Maintainability counts**
 
@@ -34,7 +34,7 @@ Ultimately, kun may support the following communication types:
         + [x] HTTP Server
         + [x] HTTP Client
         + [x] HTTP Test
-        + [x] [OAS2][2] Documentation
+        + [x] [OAS2][2] Document
     - [x] gRPC
         + [x] Protocol Buffers
         + [x] gRPC Server
