@@ -8,6 +8,8 @@ Ultimately, kun may support the following communication types:
 - RPC (e.g., HTTP and gRPC)
 - Asynchronous messaging (not supported yet)
 
+中文博客：[Go 服务通信工具 Kun](http://russellluo.com/2021/12/kun.html)。
+
 
 ## The Zen of kun
 
@@ -46,6 +48,17 @@ Ultimately, kun may support the following communication types:
     - [prometheus](pkg/prometheus): Prometheus metrics utilities.
     - [trace](pkg/trace): A thin wrapper of [x/net/trace][4] for Go kit.
     - [werror](pkg/werror): Classified business errors.
+
+
+## How it works
+
+### HTTP Generation
+
+![http-generation](docs/http-generation.png)
+
+### gRPC Generation
+
+![grpc-generation](docs/grpc-generation.png)
 
 
 ## Installation
