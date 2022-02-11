@@ -4,7 +4,7 @@ go 1.14
 
 require (
 	github.com/RussellLuo/appx v0.0.0-20210610081121-2d2842cc1993
-	github.com/RussellLuo/micron v0.0.0-20200517141348-ec849ba60d74
+	github.com/RussellLuo/micron/cron v0.0.0-20220211083222-9c7043d2a83a
 	github.com/RussellLuo/validating/v2 v2.1.1
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-kit/kit v0.10.0

@@ -7,7 +7,6 @@ import (
 
 	"github.com/RussellLuo/appx"
 	"github.com/RussellLuo/micron/cron"
-	nillocker "github.com/RussellLuo/micron/locker/nil"
 
 	"github.com/RussellLuo/kun/pkg/appx/cronapp"
 )
@@ -67,7 +66,7 @@ func (g *Greeter) Scheduler() cronapp.Scheduler {
 }
 
 func (g *Greeter) Init(ctx appx.Context) error {
-	g.c = cron.New(nillocker.New(), nil)
+	g.c = cron.New(cron.NewNilLocker(), nil)
 	return nil
 }
 
