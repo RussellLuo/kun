@@ -74,19 +74,21 @@ $ go install github.com/RussellLuo/kun/cmd/kungen@latest
 $ kungen -h
 kungen [flags] source-file interface-name
   -flat
-        whether to use flat layout (default true)
+    	whether to use flat layout (default true)
   -fmt
-        whether to make code formatted (default true)
+    	whether to make code formatted (default true)
+  -force
+    	whether to remove previously generated files before generating new ones
   -old
-        whether to use the old annotation syntax
+    	whether to use the old annotation syntax
   -out string
-        output directory (default ".")
+    	output directory (default ".")
   -snake
-        whether to use snake-case for default names (default true)
+    	whether to use snake-case for default names (default true)
   -test string
-        the YAML file that provides test-cases for HTTP (default "./http.test.yaml")
+    	the YAML file that provides test-cases for HTTP (default "./http.test.yaml")
   -trace
-        whether to enable tracing
+    	whether to enable tracing
 ```
 
 </details>

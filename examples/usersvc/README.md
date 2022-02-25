@@ -1,6 +1,6 @@
 # usersvc
 
-This example illustrates how to apply *Argument aggregation* in struct fields.
+This example illustrates how to apply *Argument aggregation* to struct fields.
 
 
 ## Generate the code
