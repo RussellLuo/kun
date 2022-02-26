@@ -58,14 +58,14 @@ func NewHTTPRouter(svc {{$.Data.SrcPkgQualifier}}{{$.Data.InterfaceName}}, codec
 
 	{{- range .Spec.Operations}}
 
-	codec = codecs.EncodeDecoder("{{.Name}}")
-	validator = options.RequestValidator("{{.Name}}")
+	codec = codecs.EncodeDecoder("{{.GoMethodName}}")
+	validator = options.RequestValidator("{{.GoMethodName}}")
 	r.Method(
 		"{{.Method}}", "{{.Pattern}}",
 		kithttp.NewServer(
-			{{$endpointPkgPrefix}}MakeEndpointOf{{.Name}}(svc),
+			{{$endpointPkgPrefix}}MakeEndpointOf{{.GoMethodName}}(svc),
 			decode{{.Name}}Request(codec, validator),
-			httpcodec.MakeResponseEncoder(codec, {{getStatusCode .SuccessResponse.StatusCode .Name}}),
+			httpcodec.MakeResponseEncoder(codec, {{getStatusCode .SuccessResponse.StatusCode .GoMethodName}}),
 			append(kitOptions,
 				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
 				{{- if $enableTracing}}
@@ -93,7 +93,7 @@ func NewHTTPRouterWithOAS(svc {{$.Data.SrcPkgQualifier}}{{$.Data.InterfaceName}}
 func decode{{.Name}}Request(codec httpcodec.Codec, validator httpoption.Validator) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		{{- if $nonCtxParams}}
-		var _req {{$endpointPkgPrefix}}{{.Name}}Request
+		var _req {{$endpointPkgPrefix}}{{.GoMethodName}}Request
 
 		{{end -}}
 

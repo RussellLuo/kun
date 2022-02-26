@@ -63,9 +63,10 @@ func (s *Specification) OldSpec() *openapi.Specification {
 
 	for _, o := range s.Operations {
 		old.Operations = append(old.Operations, &openapi.Operation{
-			Name:    o.Name,
-			Method:  o.Method,
-			Pattern: o.Pattern,
+			Name:         o.Name,
+			GoMethodName: o.GoMethodName,
+			Method:       o.Method,
+			Pattern:      o.Pattern,
 			Request: openapi.Request{
 				MediaType: o.Request.MediaType,
 				BodyField: o.Request.BodyField,
@@ -231,7 +232,11 @@ type Response struct {
 }
 
 type Operation struct {
-	Name             string
+	// In cases where multiple `//kun:op` are specified for one Go method,
+	// Name and GoMethodName will be different.
+	Name         string
+	GoMethodName string
+
 	Method           string
 	Pattern          string
 	Request          *Request
@@ -241,11 +246,12 @@ type Operation struct {
 	Tags             []string
 }
 
-func NewOperation(name, description string) *Operation {
+func NewOperation(name, goMethodName, description string) *Operation {
 	op := &Operation{
-		Name:        name,
-		Description: description,
-		Request:     new(Request),
+		Name:         name,
+		GoMethodName: goMethodName,
+		Description:  description,
+		Request:      new(Request),
 	}
 	op.Resp(http.StatusOK, MediaTypeJSON, nil)
 	return op

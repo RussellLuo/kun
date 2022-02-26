@@ -445,6 +445,122 @@ func Test_extractPathVarNames(t *testing.T) {
 	}
 }
 
+func Test_removePathParamsNotItsOwn(t *testing.T) {
+	tests := []struct {
+		name           string
+		inBindings     []*spec.Binding
+		inPathVarNames []string
+		wantBindings   []*spec.Binding
+	}{
+		{
+			name: "normal binding",
+			inBindings: []*spec.Binding{
+				{
+					Arg: &ifacetool.Param{
+						Name:       "userID",
+						TypeString: "string",
+						Type:       types.Typ[types.String],
+					},
+					Params: []*spec.Parameter{
+						{
+							In:       spec.InPath,
+							Name:     "userID",
+							Required: true,
+							Type:     "string",
+						},
+					},
+				},
+				{
+					Arg: &ifacetool.Param{
+						Name:       "messageID",
+						TypeString: "string",
+						Type:       types.Typ[types.String],
+					},
+					Params: []*spec.Parameter{
+						{
+							In:       spec.InPath,
+							Name:     "messageID",
+							Required: true,
+							Type:     "string",
+						},
+					},
+				},
+			},
+			inPathVarNames: []string{"messageID"},
+			wantBindings: []*spec.Binding{
+				{
+					Arg: &ifacetool.Param{
+						Name:       "messageID",
+						TypeString: "string",
+						Type:       types.Typ[types.String],
+					},
+					Params: []*spec.Parameter{
+						{
+							In:       spec.InPath,
+							Name:     "messageID",
+							Required: true,
+							Type:     "string",
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "aggregate binding",
+			inBindings: []*spec.Binding{
+				{
+					Arg: &ifacetool.Param{
+						Name:       "req",
+						TypeString: "GetMessageRequest",
+						Type:       nil,
+					},
+					Params: []*spec.Parameter{
+						{
+							In:       spec.InPath,
+							Name:     "userID",
+							Required: true,
+							Type:     "string",
+						},
+						{
+							In:       spec.InPath,
+							Name:     "messageID",
+							Required: true,
+							Type:     "string",
+						},
+					},
+				},
+			},
+			inPathVarNames: []string{"messageID"},
+			wantBindings: []*spec.Binding{
+				{
+					Arg: &ifacetool.Param{
+						Name:       "req",
+						TypeString: "GetMessageRequest",
+						Type:       nil,
+					},
+					Params: []*spec.Parameter{
+						{
+							In:       spec.InPath,
+							Name:     "messageID",
+							Required: true,
+							Type:     "string",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotBindings := removePathParamsNotItsOwn(tt.inBindings, tt.inPathVarNames)
+			if !reflect.DeepEqual(gotBindings, tt.wantBindings) {
+				t.Fatalf("Bindings: got (%#v), want (%#v)", gotBindings, tt.wantBindings)
+			}
+		})
+	}
+}
+
 func TestStructField_Parse(t *testing.T) {
 	tests := []struct {
 		name        string
