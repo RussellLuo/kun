@@ -318,12 +318,16 @@ See more examples [here](examples).
 
 If a Go method needs to correspond to more than one URI (or HTTP method), you can specify multiple `//kun:op` directives, which will produce multiple HTTP request operations.
 
-Note that the only differences among these HTTP request operations are the path parameters.
+Note that there are only three possible differences among these HTTP request operations:
+
+- HTTP method
+- URI
+- Path parameters (defined in URI)
 
 ##### Arguments
 
 - **method**: The request method.
-- **pattern**: The request URL.
+- **pattern**: The request URI.
     + NOTE: All variables in **pattern** will automatically be bound to their corresponding method arguments (match by names in *lower camel case*), as **path** parameters, if these variables have not yet been specified explicitly by `//kun:param`.
     
 ##### Examples
