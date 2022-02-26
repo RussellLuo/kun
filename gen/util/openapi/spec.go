@@ -143,6 +143,7 @@ type Response struct {
 
 type Operation struct {
 	Name             string
+	GoMethodName     string
 	Method           string
 	Pattern          string
 	Request          Request

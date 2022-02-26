@@ -5,6 +5,7 @@ import (
 	"go/types"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/RussellLuo/kun/gen/http/parser/annotation"
@@ -54,7 +55,7 @@ func Parse(data *ifacetool.Data, snakeCase bool) (*spec.Specification, []docutil
 
 		if transport&docutil.TransportHTTP != docutil.TransportHTTP {
 			// Add operations for generating endpoint code for gRPC.
-			op := spec.NewOperation(m.Name, annotation.GetDescriptionFromDoc(m.Doc))
+			op := spec.NewOperation(m.Name, m.Name, annotation.GetDescriptionFromDoc(m.Doc))
 			for _, arg := range m.Params {
 				op.Request.Bind(arg, opBuilder.buildParams(arg, nil))
 			}
@@ -62,12 +63,12 @@ func Parse(data *ifacetool.Data, snakeCase bool) (*spec.Specification, []docutil
 			continue
 		}
 
-		op, err := opBuilder.Build(m)
+		ops, err := opBuilder.Build(m)
 		if err != nil {
 			return nil, nil, err
 		}
 
-		s.Operations = append(s.Operations, op)
+		s.Operations = append(s.Operations, ops...)
 	}
 
 	return s, transports, nil
@@ -78,40 +79,83 @@ type OpBuilder struct {
 	aliases   annotation.Aliases
 }
 
-func (b *OpBuilder) Build(method *ifacetool.Method) (*spec.Operation, error) {
-	op := spec.NewOperation(method.Name, annotation.GetDescriptionFromDoc(method.Doc))
-
+func (b *OpBuilder) Build(method *ifacetool.Method) ([]*spec.Operation, error) {
 	anno, err := annotation.ParseMethodAnnotation(method)
 	if err != nil {
 		return nil, err
 	}
 
-	// Set method and pattern.
-	op.Method, op.Pattern = anno.Op.Method, anno.Op.Pattern
-	if op.Method == "" && op.Pattern == "" {
+	if len(anno.Ops) == 0 {
 		return nil, fmt.Errorf("method %s has no comment directive %s", method.Name, utilannotation.DirectiveHTTPOp)
 	}
 
-	// Set request parameters.
-	pathVarNames := extractPathVarNames(op.Pattern)
-	if err := b.setParams(op.Request, method, anno.Params, pathVarNames); err != nil {
-		return nil, err
+	var allPathVarNames PathVarNames
+	for _, annoOp := range anno.Ops {
+		allPathVarNames.Add(extractPathVarNames(annoOp.Pattern))
 	}
 
-	// Set request body.
-	if err := b.setBody(op.Request, anno.Body); err != nil {
-		return nil, err
+	var ops []*spec.Operation
+	for i, annoOp := range anno.Ops {
+		name := method.Name
+		if i > 0 {
+			// Append a suffix to the name from the second operation, if any,
+			// to differentiate one operation from another.
+			name += strconv.Itoa(i)
+		}
+		op := spec.NewOperation(name, method.Name, annotation.GetDescriptionFromDoc(method.Doc))
+		{
+			// Set method and pattern.
+			op.Method, op.Pattern = annoOp.Method, annoOp.Pattern
+
+			// Set request parameters.
+			//
+			// Note that the way to handle path parameters here:
+			//   - First, we set all path parameters collected from all patterns in anno.Ops;
+			//   - Then we remove the path parameters which are not defined in op's own pattern.
+			//
+			// The reason for doing so, is to properly handle the cases where path parameters
+			// are specified explicitly, either in annotations or in struct tags. For example:
+			//
+			// ```go
+			// type GetMessageRequest struct {
+			//     userID    string `kun:"in=path name=userID"`
+			//     messageID string `kun:"in=path name=messageID"`
+			// }
+			//
+			// type Service interface {
+			//     //kun:op GET /messages/{messageID}
+			//     //kun:op GET /users/{userID}/messages/{messageID}
+			//     //kun:param req
+			//     GetMessage(ctx context.Context, req GetMessageRequest) (text string, err error)
+			// }
+			// ```
+			//
+			// If we don't pass in all path parameters, for `//kun:op GET /messages/{messageID}`,
+			// the binding specified by `kun:"in=path name=userID"` will trigger an error since
+			// the associated path parameter `userID` is not defined in the corresponding pattern.
+			if err := b.setParams(op.Request, method, anno.Params, allPathVarNames.Squash()); err != nil {
+				return nil, err
+			}
+			op.Request.Bindings = removePathParamsNotItsOwn(op.Request.Bindings, allPathVarNames.Get(i))
+
+			// Set request body.
+			if err := b.setBody(op.Request, anno.Body); err != nil {
+				return nil, err
+			}
+
+			// Set success response.
+			if anno.Success != nil {
+				op.SuccessResponse = anno.Success
+			}
+
+			// Set OAS tags.
+			op.Tags = anno.Tags
+		}
+
+		ops = append(ops, op)
 	}
 
-	// Set success response.
-	if anno.Success != nil {
-		op.SuccessResponse = anno.Success
-	}
-
-	// Set OAS tags.
-	op.Tags = anno.Tags
-
-	return op, nil
+	return ops, nil
 }
 
 func (b *OpBuilder) setBody(req *spec.Request, body *annotation.Body) error {
@@ -186,7 +230,9 @@ func (b *OpBuilder) setParams(req *spec.Request, method *ifacetool.Method, param
 		req.Bind(arg, b.buildParams(arg, p.Params))
 	}
 
-	// Add path parameters according to the path pattern.
+	// TODO: ensure that all path parameters — specified explicitly — are defined in the pattern.
+
+	// Automatically bind path parameters defined in the pattern.
 	for _, name := range pathVarNames {
 		// If name is already bound to a path parameter by //kun:param or
 		// by struct tags, do not reset it.
@@ -348,6 +394,32 @@ func (b *OpBuilder) defaultName(name string) string {
 	return caseconv.ToLowerCamelCase(name)
 }
 
+type PathVarNames [][]string
+
+func (pvn *PathVarNames) Add(names []string) {
+	*pvn = append(*pvn, names)
+}
+
+func (pvn *PathVarNames) Get(i int) []string {
+	if i >= len(*pvn) {
+		return nil
+	}
+	return (*pvn)[i]
+}
+
+// Squash de-duplicates all the nested names and squash them into a flat list.
+func (pvn *PathVarNames) Squash() []string {
+	var flat []string
+	for _, names := range *pvn {
+		for _, n := range names {
+			if !sliceContains(flat, n) {
+				flat = append(flat, n)
+			}
+		}
+	}
+	return flat
+}
+
 // isBasic returns whether the parameter is of basic type, or of
 // slice type (whose element is of basic type).
 func isBasic(arg *ifacetool.Param) bool {
@@ -383,6 +455,43 @@ func isAlreadyPathParam(name string, bindings []*spec.Binding) bool {
 		}
 	}
 	return false
+}
+
+func sliceContains(slice []string, target string) bool {
+	for _, s := range slice {
+		if target == s {
+			return true
+		}
+	}
+	return false
+}
+
+// removePathParamsNotItsOwn removes all path parameters, which are not
+// contained in pathVarNames.
+func removePathParamsNotItsOwn(bindings []*spec.Binding, pathVarNames []string) []*spec.Binding {
+	var result []*spec.Binding
+
+	for _, b := range bindings {
+		switch {
+		case b.IsAggregate():
+			var params []*spec.Parameter
+			for _, p := range b.Params {
+				if p.In != spec.InPath || sliceContains(pathVarNames, p.Name) {
+					params = append(params, p)
+				}
+			}
+			if len(params) > 0 {
+				result = append(result, &spec.Binding{
+					Arg:    b.Arg,
+					Params: params,
+				})
+			}
+		case b.In() != spec.InPath || sliceContains(pathVarNames, b.Name()):
+			result = append(result, b)
+		}
+	}
+
+	return result
 }
 
 type StructField struct {

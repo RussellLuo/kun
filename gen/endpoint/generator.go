@@ -126,7 +126,7 @@ func New(opts *Options) *Generator {
 func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Data, spec *openapi.Specification) (*generator.File, error) {
 	operationMap := make(map[string]*openapi.Operation)
 	for _, op := range spec.Operations {
-		operationMap[op.Name] = op
+		operationMap[op.GoMethodName] = op
 	}
 
 	type MethodWithOp struct {

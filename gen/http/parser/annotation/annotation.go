@@ -37,7 +37,7 @@ func ParseInterfaceAnnotation(doc []string) (*InterfaceAnnotation, error) {
 }
 
 type MethodAnnotation struct {
-	Op      *Op
+	Ops     []*Op
 	Params  map[string]*Param
 	Body    *Body
 	Success *spec.Response
@@ -60,15 +60,11 @@ func ParseMethodAnnotation(method *ifacetool.Method) (*MethodAnnotation, error) 
 		key, value := result[1], strings.TrimSpace(result[2])
 		switch d := annotation.FromSubDirective(key); d {
 		case annotation.DirectiveHTTPOp:
-			if anno.Op != nil {
-				return nil, fmt.Errorf("duplicate %s directive in: %s", d, comment)
-			}
-
 			op, err := ParseOp(value)
 			if err != nil {
 				return nil, err
 			}
-			anno.Op = op
+			anno.Ops = append(anno.Ops, op)
 
 		case annotation.DirectiveHTTPParam:
 			params, err := ParseParams(value)
