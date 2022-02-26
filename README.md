@@ -316,6 +316,10 @@ See more examples [here](examples).
 //kun:op <method> <pattern>
 ```
 
+If a Go method needs to correspond to more than one URI (or HTTP method), you can specify multiple `//kun:op` directives, which will produce multiple HTTP request operations.
+
+Note that the only differences among these HTTP request operations are the path parameters.
+
 ##### Arguments
 
 - **method**: The request method.
@@ -324,15 +328,33 @@ See more examples [here](examples).
     
 ##### Examples
 
-```go
-type Service interface {
-    //kun:op DELETE /users/{id}
-    DeleteUser(ctx context.Context, id int) (err error)
-}
+- Single operation:
 
-// HTTP request:
-// $ http DELETE /users/101
-```
+    ```go
+    type Service interface {
+        //kun:op DELETE /users/{id}
+        DeleteUser(ctx context.Context, id int) (err error)
+    }
+
+    // HTTP request:
+    // $ http DELETE /users/101
+    ```
+
+- Multiple operations:
+
+    ```go
+    type Service interface {
+        //kun:op GET /messages/{messageID}
+        //kun:op GET /users/{userID}/messages/{messageID}
+        GetMessage(ctx context.Context, userID string, messageID string) (text string, err error)
+    }
+  
+    // See a runnable example in examples/messaging.
+
+    // HTTP request:
+    // $ http GET /messages/123456
+    // $ http GET /users/me/messages/123456
+    ```
 
 </details>
 
