@@ -98,7 +98,8 @@ func (b *OpBuilder) Build(method *ifacetool.Method) ([]*spec.Operation, error) {
 	for i, annoOp := range anno.Ops {
 		name := method.Name
 		if i > 0 {
-			// Only add a suffix starting from the second operation, if any.
+			// Append a suffix to the name from the second operation, if any,
+			// to differentiate one operation from another.
 			name += strconv.Itoa(i)
 		}
 		op := spec.NewOperation(name, method.Name, annotation.GetDescriptionFromDoc(method.Doc))
