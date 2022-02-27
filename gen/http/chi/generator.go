@@ -86,13 +86,14 @@ func NewHTTPRouterWithOAS(svc {{$.Data.SrcPkgQualifier}}{{$.Data.InterfaceName}}
 {{- range .Spec.Operations}}
 
 {{- $nonCtxParams := nonCtxParams .Request.Params}}
+{{- $methodHasNonCtxParams := methodHasNonCtxParams .GoMethodName}}
 {{- $nonBodyParamsGroupByName := nonBodyParamsGroupByName $nonCtxParams}}
 {{- $hasBodyParams := hasBodyParams $nonCtxParams}}
 {{- $bodyField := getBodyField .Request.BodyField}}
 
 func decode{{.Name}}Request(codec httpcodec.Codec, validator httpoption.Validator) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
-		{{- if $nonCtxParams}}
+		{{- if $methodHasNonCtxParams}}
 		var _req {{$endpointPkgPrefix}}{{.GoMethodName}}Request
 
 		{{end -}}
@@ -138,7 +139,7 @@ func decode{{.Name}}Request(codec httpcodec.Codec, validator httpoption.Validato
 
 		{{end -}} {{/* range $nonBodyParamsGroupByName */}}
 
-		{{- if $nonCtxParams}}
+		{{- if $methodHasNonCtxParams}}
 
 		if err := validator.Validate({{addAmpersand "_req"}}); err != nil {
 			return nil, err
@@ -147,7 +148,7 @@ func decode{{.Name}}Request(codec httpcodec.Codec, validator httpoption.Validato
 		return {{addAmpersand "_req"}}, nil
 		{{- else -}}
 		return nil, nil
-		{{- end}} {{/* End of if $nonCtxParams */}}
+		{{- end}} {{/* End of if $methodHasNonCtxParams */}}
 	}
 }
 
@@ -282,6 +283,19 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Da
 					}
 				}
 				return
+			},
+			"methodHasNonCtxParams": func(methodName string) bool {
+				method, ok := methodMap[methodName]
+				if !ok {
+					panic(fmt.Errorf("no method named %q", methodName))
+				}
+
+				for _, p := range method.Params {
+					if p.TypeString != "context.Context" {
+						return true
+					}
+				}
+				return false
 			},
 			"getStatusCode": func(givenStatusCode int, name string) int {
 				method, ok := methodMap[name]
