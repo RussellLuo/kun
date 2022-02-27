@@ -91,7 +91,7 @@ paths:
         - name: body
           in: body
           schema:
-            $ref: "#/definitions/{{.Name}}RequestBody"
+            $ref: "#/definitions/{{.GoMethodName}}RequestBody"
         {{- end}}
       {{- end -}} {{/* if $nonCtxParams */}}
       %s
@@ -105,7 +105,7 @@ func getResponses(schema oas2.Schema) []oas2.OASResponses {
 	return []oas2.OASResponses{
 		{{- range $operationsGroupByPattern}}
 		{{- range .Operations}}
-		oas2.GetOASResponses(schema, "{{.Name}}", {{.SuccessResponse.StatusCode}}, {{endpointPrefix .GoMethodName}}Response{}),
+		oas2.GetOASResponses(schema, "{{.GoMethodName}}", {{.SuccessResponse.StatusCode}}, {{endpointPrefix .GoMethodName}}Response{}),
 		{{- end}} {{/* range .Operations */}}
 		{{- end}} {{/* range $operationsGroupByPattern */}}
 	}
@@ -120,15 +120,15 @@ func getDefinitions(schema oas2.Schema) map[string]oas2.Definition {
 	{{- $bodyParams := bodyParams $nonCtxParams}}
 	{{- $bodyField := getBodyField .Request.BodyField}}
 	{{- if $bodyField}}
-	oas2.AddDefinition(defs, "{{.Name}}RequestBody", reflect.ValueOf(({{endpointPrefix .GoMethodName}}Request{}).{{title $bodyField}}))
+	oas2.AddDefinition(defs, "{{.GoMethodName}}RequestBody", reflect.ValueOf(({{endpointPrefix .GoMethodName}}Request{}).{{title $bodyField}}))
 	{{- else if $bodyParams}}
-	oas2.AddDefinition(defs, "{{.Name}}RequestBody", reflect.ValueOf(&struct{
+	oas2.AddDefinition(defs, "{{.GoMethodName}}RequestBody", reflect.ValueOf(&struct{
 		{{- range $bodyParams}}
 		{{title .Name}} {{.Type}} {{addTag .Alias .Type}}
 		{{- end}} {{/* range $bodyParams */}}
 	}{}))
 	{{- end}} {{/* if $bodyField */}}
-	oas2.AddResponseDefinitions(defs, schema, "{{.Name}}", {{.SuccessResponse.StatusCode}}, ({{endpointPrefix .GoMethodName}}Response{}).Body())
+	oas2.AddResponseDefinitions(defs, schema, "{{.GoMethodName}}", {{.SuccessResponse.StatusCode}}, ({{endpointPrefix .GoMethodName}}Response{}).Body())
 
     {{end -}} {{/* range .Spec.Operations */}}
 

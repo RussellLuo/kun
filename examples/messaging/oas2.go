@@ -60,7 +60,7 @@ paths:
 func getResponses(schema oas2.Schema) []oas2.OASResponses {
 	return []oas2.OASResponses{
 		oas2.GetOASResponses(schema, "GetMessage", 200, &GetMessageResponse{}),
-		oas2.GetOASResponses(schema, "GetMessage1", 200, &GetMessageResponse{}),
+		oas2.GetOASResponses(schema, "GetMessage", 200, &GetMessageResponse{}),
 	}
 }
 
@@ -69,7 +69,7 @@ func getDefinitions(schema oas2.Schema) map[string]oas2.Definition {
 
 	oas2.AddResponseDefinitions(defs, schema, "GetMessage", 200, (&GetMessageResponse{}).Body())
 
-	oas2.AddResponseDefinitions(defs, schema, "GetMessage1", 200, (&GetMessageResponse{}).Body())
+	oas2.AddResponseDefinitions(defs, schema, "GetMessage", 200, (&GetMessageResponse{}).Body())
 
 	return defs
 }
