@@ -265,7 +265,12 @@ func (b *OpBuilder) setParams(req *spec.Request, method *ifacetool.Method, param
 	if req.BodyField == OptionNoBody {
 		for _, binding := range req.Bindings {
 			if !binding.IsManual() {
-				binding.SetIn(spec.InQuery)
+				// Rebind binding.Arg as HTTP request parameters.
+				annoParams, err := b.inferAnnotationParams(method.Name, binding.Arg)
+				if err != nil {
+					return err
+				}
+				binding.Params = b.buildParams(binding.Arg, annoParams)
 			}
 		}
 	}
@@ -297,7 +302,8 @@ func (b *OpBuilder) buildParams(arg *ifacetool.Param, annoParams []*spec.Paramet
 	return annoParams
 }
 
-// inferAnnotationParams extracts parameters by parsing annotations from struct tags.
+// inferAnnotationParams extracts parameters by parsing annotations from struct tags,
+// which are only used for HTTP request parameters.
 func (b *OpBuilder) inferAnnotationParams(methodName string, arg *ifacetool.Param) ([]*spec.Parameter, error) {
 	newParamWithType := func(typ string) *spec.Parameter {
 		return &spec.Parameter{

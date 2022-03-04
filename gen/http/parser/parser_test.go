@@ -193,7 +193,7 @@ func TestOpBuilder_setParams(t *testing.T) {
 			},
 		},
 		{
-			name:        "nobody to query",
+			name:        "nobody to query (basic arguments)",
 			inOpBuilder: &OpBuilder{snakeCase: true},
 			inReq:       &spec.Request{BodyField: "-"},
 			inMethod: &ifacetool.Method{
@@ -224,6 +224,55 @@ func TestOpBuilder_setParams(t *testing.T) {
 					{
 						In:   spec.InQuery,
 						Name: "arg2",
+						Type: "string",
+					},
+				},
+			},
+		},
+		{
+			name:        "nobody to query (struct argument)",
+			inOpBuilder: &OpBuilder{snakeCase: true},
+			inReq:       &spec.Request{BodyField: "-"},
+			inMethod: &ifacetool.Method{
+				Name: "Test",
+				Params: []*ifacetool.Param{
+					{
+						Name:       "arg1",
+						TypeString: "StructArg",
+						Type: newStruct([]*structField{
+							{
+								name: "Field1",
+								typ:  types.Typ[types.Uint],
+							},
+							{
+								name: "Field2",
+								typ:  types.Typ[types.Bool],
+							},
+							{
+								name: "Field3",
+								typ:  types.Typ[types.String],
+								tag:  `kun:"in=header"`,
+							},
+						}),
+					},
+				},
+			},
+			inParams: nil,
+			wantBindings: map[string][]*spec.Parameter{
+				"arg1": {
+					{
+						In:   spec.InQuery,
+						Name: "field1",
+						Type: "uint",
+					},
+					{
+						In:   spec.InQuery,
+						Name: "field2",
+						Type: "bool",
+					},
+					{
+						In:   spec.InHeader,
+						Name: "field3",
 						Type: "string",
 					},
 				},
