@@ -471,6 +471,17 @@ func TestOpBuilder_inferAnnotationParams(t *testing.T) {
 			},
 			wantErrStr: `parameter cannot be mapped to argument "arg1" (of type [][]string) in method Test`,
 		},
+		{
+			name:         "interface argument",
+			inOpBuilder:  &OpBuilder{snakeCase: true},
+			inMethodName: "Test",
+			inArg: &ifacetool.Param{
+				Name:       "ctx",
+				TypeString: "context.Context",
+				Type:       types.NewInterfaceType(nil, nil),
+			},
+			wantErrStr: "", // no error
+		},
 	}
 
 	for _, tt := range tests {

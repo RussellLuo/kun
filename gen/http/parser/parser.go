@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	OptionNoBody = "-"
+	OptionNoRequestBody = "-"
 )
 
 var (
@@ -104,10 +104,15 @@ func (b *OpBuilder) Build(method *ifacetool.Method) ([]*spec.Operation, error) {
 		}
 		op := spec.NewOperation(name, method.Name, annotation.GetDescriptionFromDoc(method.Doc))
 		{
-			// Set method and pattern.
+			// Set the HTTP method and the URI pattern.
 			op.Method, op.Pattern = annoOp.Method, annoOp.Pattern
 
-			// Set request parameters.
+			// Set the request body field.
+			//
+			// We must do this before setting request parameters, in case no-request-body is specified.
+			b.setBodyField(op.Request, anno.Body)
+
+			// Set the request parameters.
 			//
 			// Note that the way to handle path parameters here:
 			//   - First, we set all path parameters collected from all patterns in anno.Ops;
@@ -138,17 +143,17 @@ func (b *OpBuilder) Build(method *ifacetool.Method) ([]*spec.Operation, error) {
 			}
 			op.Request.Bindings = removePathParamsNotItsOwn(op.Request.Bindings, allPathVarNames.Get(i))
 
-			// Set request body.
-			if err := b.setBody(op.Request, anno.Body); err != nil {
+			// Manipulate the request body.
+			if err := b.manipulateBody(op.Request, anno.Body); err != nil {
 				return nil, err
 			}
 
-			// Set success response.
+			// Set the success response.
 			if anno.Success != nil {
 				op.SuccessResponse = anno.Success
 			}
 
-			// Set OAS tags.
+			// Set the OAS tags.
 			op.Tags = anno.Tags
 		}
 
@@ -158,13 +163,28 @@ func (b *OpBuilder) Build(method *ifacetool.Method) ([]*spec.Operation, error) {
 	return ops, nil
 }
 
-func (b *OpBuilder) setBody(req *spec.Request, body *annotation.Body) error {
+func (b *OpBuilder) setBodyField(req *spec.Request, body *annotation.Body) {
 	if body == nil {
-		return nil
+		return
 	}
 
 	if body.Field != "" {
 		req.BodyField = body.Field
+	}
+}
+
+func (b *OpBuilder) manipulateBody(req *spec.Request, body *annotation.Body) error {
+	if body == nil {
+		return nil
+	}
+
+	if req.BodyField != "" {
+		if len(body.Manipulations) > 0 {
+			if req.BodyField == OptionNoRequestBody {
+				return fmt.Errorf("useless manipulations in %s since there is no request body", utilannotation.DirectiveHTTPBody)
+			}
+			return fmt.Errorf("useless manipulations in %s since the request body has been mapped to argument %q", utilannotation.DirectiveHTTPBody, req.BodyField)
+		}
 		return nil
 	}
 
@@ -262,7 +282,7 @@ func (b *OpBuilder) setParams(req *spec.Request, method *ifacetool.Method, param
 	}
 
 	// Add possible query parameters if no-request-body is specified.
-	if req.BodyField == OptionNoBody {
+	if req.BodyField == OptionNoRequestBody {
 		for _, binding := range req.Bindings {
 			if !binding.IsManual() {
 				// Rebind binding.Arg as HTTP request parameters.
@@ -385,6 +405,10 @@ func (b *OpBuilder) inferAnnotationParams(methodName string, arg *ifacetool.Para
 	//	for n, t := range nts {
 	//		nameTypes[n] = t
 	//	}
+
+	case *types.Interface:
+		// We assume this is `context.Context`, just ignore it.
+		return nil, nil
 
 	default:
 		return nil, newError(arg.Name, t)
