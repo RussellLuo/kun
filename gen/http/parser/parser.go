@@ -80,7 +80,7 @@ type OpBuilder struct {
 }
 
 func (b *OpBuilder) Build(method *ifacetool.Method) ([]*spec.Operation, error) {
-	anno, err := annotation.ParseMethodAnnotation(method)
+	anno, err := annotation.ParseMethodAnnotation(method, b.aliases)
 	if err != nil {
 		return nil, err
 	}

@@ -44,7 +44,7 @@ type MethodAnnotation struct {
 	Tags    []string
 }
 
-func ParseMethodAnnotation(method *ifacetool.Method) (*MethodAnnotation, error) {
+func ParseMethodAnnotation(method *ifacetool.Method, aliases Aliases) (*MethodAnnotation, error) {
 	anno := &MethodAnnotation{Params: make(map[string]*Param)}
 
 	for _, comment := range method.Doc {
@@ -67,7 +67,12 @@ func ParseMethodAnnotation(method *ifacetool.Method) (*MethodAnnotation, error) 
 			anno.Ops = append(anno.Ops, op)
 
 		case annotation.DirectiveHTTPParam:
-			params, err := ParseParams(value)
+			v, err := aliases.Eval(value)
+			if err != nil {
+				return nil, err
+			}
+
+			params, err := ParseParams(v)
 			if err != nil {
 				return nil, err
 			}
