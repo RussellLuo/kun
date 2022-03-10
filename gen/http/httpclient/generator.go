@@ -5,14 +5,15 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/RussellLuo/kun/gen/util/annotation"
+	"github.com/RussellLuo/kun/gen/http/parser/annotation"
+	utilannotation "github.com/RussellLuo/kun/gen/util/annotation"
 	"github.com/RussellLuo/kun/gen/util/generator"
 	"github.com/RussellLuo/kun/gen/util/openapi"
 	"github.com/RussellLuo/kun/pkg/ifacetool"
 )
 
 var (
-	template = annotation.FileHeader + `
+	template = utilannotation.FileHeader + `
 package {{.PkgInfo.CurrentPkgName}}
 
 import (
@@ -310,7 +311,7 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Da
 				return
 			},
 			"getBodyField": func(name string) string {
-				if name != "" && name != openapi.OptionNoBody {
+				if name != "" && name != annotation.OptionNoBody {
 					return name
 				}
 				return ""

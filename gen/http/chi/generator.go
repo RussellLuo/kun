@@ -5,7 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/RussellLuo/kun/gen/util/annotation"
+	"github.com/RussellLuo/kun/gen/http/parser/annotation"
+	utilannotation "github.com/RussellLuo/kun/gen/util/annotation"
 	"github.com/RussellLuo/kun/gen/util/generator"
 	"github.com/RussellLuo/kun/gen/util/openapi"
 	"github.com/RussellLuo/kun/pkg/caseconv"
@@ -13,7 +14,7 @@ import (
 )
 
 var (
-	template = annotation.FileHeader + `
+	template = utilannotation.FileHeader + `
 {{- $srcPkgName := .Data.SrcPkgName}}
 {{- $endpointPkgPrefix := .PkgInfo.EndpointPkgPrefix}}
 {{- $enableTracing := .Opts.EnableTracing}}
@@ -320,7 +321,7 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Da
 				return givenStatusCode
 			},
 			"getBodyField": func(name string) string {
-				if name != "" && name != openapi.OptionNoBody {
+				if name != "" && name != annotation.OptionNoBody {
 					return name
 				}
 				return ""

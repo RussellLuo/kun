@@ -15,6 +15,7 @@ import (
 	"github.com/RussellLuo/kun/gen/http/httptest"
 	"github.com/RussellLuo/kun/gen/http/oas2"
 	httpparser "github.com/RussellLuo/kun/gen/http/parser"
+	"github.com/RussellLuo/kun/gen/util/docutil"
 	"github.com/RussellLuo/kun/gen/util/generator"
 	"github.com/RussellLuo/kun/gen/util/openapi"
 	"github.com/RussellLuo/kun/pkg/ifacetool"
@@ -29,7 +30,6 @@ type Options struct {
 	Formatted     bool
 	SnakeCase     bool
 	EnableTracing bool
-	OldAnnotation bool
 }
 
 type Generator struct {
@@ -91,25 +91,11 @@ func (g *Generator) Generate(srcFilename, interfaceName, testFilename string) (f
 		return nil, err
 	}
 
-	var (
-		spec       *openapi.Specification
-		transports []openapi.Transport
-	)
-	if g.opts.OldAnnotation {
-		spec, transports, err = openapi.FromDoc(data, g.opts.SnakeCase)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		newSpec, newTransports, err := httpparser.Parse(data, g.opts.SnakeCase)
-		if err != nil {
-			return nil, err
-		}
-		spec = newSpec.OldSpec()
-		for _, t := range newTransports {
-			transports = append(transports, openapi.Transport(t))
-		}
+	newSpec, transports, err := httpparser.Parse(data, g.opts.SnakeCase)
+	if err != nil {
+		return nil, err
 	}
+	spec := newSpec.OldSpec()
 
 	epFile, err := g.generateEndpoint(data, spec)
 	if err != nil {
@@ -118,21 +104,21 @@ func (g *Generator) Generate(srcFilename, interfaceName, testFilename string) (f
 	files = append(files, epFile)
 
 	switch mergeTransports(transports) {
-	case openapi.TransportHTTP:
+	case docutil.TransportHTTP:
 		httpFiles, err := g.generateHTTP(data, spec, testFilename)
 		if err != nil {
 			return files, err
 		}
 		files = append(files, httpFiles...)
 
-	case openapi.TransportGRPC:
+	case docutil.TransportGRPC:
 		grpcFiles, err := g.generateGRPC(data)
 		if err != nil {
 			return files, err
 		}
 		files = append(files, grpcFiles...)
 
-	case openapi.TransportAll:
+	case docutil.TransportAll:
 		httpFiles, err := g.generateHTTP(data, spec, testFilename)
 		if err != nil {
 			return files, err
@@ -309,7 +295,7 @@ func (g *Generator) getPkgInfo(dir string) *generator.PkgInfo {
 	return pkgInfo
 }
 
-func mergeTransports(transports []openapi.Transport) (result openapi.Transport) {
+func mergeTransports(transports []docutil.Transport) (result docutil.Transport) {
 	for _, t := range transports {
 		result = result | t
 	}

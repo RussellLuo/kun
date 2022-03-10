@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/RussellLuo/kun/gen/util/annotation"
+	"github.com/RussellLuo/kun/gen/http/parser/annotation"
+	utilannotation "github.com/RussellLuo/kun/gen/util/annotation"
 	"github.com/RussellLuo/kun/gen/util/generator"
 	"github.com/RussellLuo/kun/gen/util/openapi"
 )
 
 var (
-	template = annotation.FileHeader + `
+	template = utilannotation.FileHeader + `
 package {{.PkgInfo.CurrentPkgName}}
 
 import (
@@ -303,7 +304,7 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, spec *openapi.Specifica
 				return fmt.Sprintf("`%s:\"%s\"`", g.opts.SchemaTag, name)
 			},
 			"getBodyField": func(name string) string {
-				if name != "" && name != openapi.OptionNoBody {
+				if name != "" && name != annotation.OptionNoBody {
 					return name
 				}
 				return ""

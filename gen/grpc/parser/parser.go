@@ -7,9 +7,9 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/RussellLuo/kun/gen/http/parser"
 	"github.com/RussellLuo/kun/gen/util/annotation"
 	"github.com/RussellLuo/kun/pkg/caseconv"
-	"github.com/RussellLuo/kun/pkg/codec/httpcodec"
 	"github.com/RussellLuo/kun/pkg/ifacetool"
 )
 
@@ -234,18 +234,19 @@ func parseStructType(name string, typ types.Type, t *types.Struct) (*Type, error
 }
 
 func getFieldName(t *types.Struct, i int) string {
-	field := reflect.StructField{
-		Tag:  reflect.StructTag(t.Tag(i)),
+	field := &parser.StructField{
 		Name: t.Field(i).Name(),
+		Tag:  reflect.StructTag(t.Tag(i)),
 	}
-
-	kokField := httpcodec.GetKokField(field)
-	if kokField.Omitted {
+	if err := field.Parse(); err != nil {
 		return ""
 	}
 
-	parts := strings.SplitN(kokField.Name, ".", 2)
-	return parts[1]
+	if field.Omitted {
+		return ""
+	}
+
+	return field.Name
 }
 
 func getDescriptionsFromDoc(doc []string) (comments []string) {
