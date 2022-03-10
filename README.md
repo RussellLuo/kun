@@ -574,7 +574,7 @@ or
     ```go
     type Service interface {
         //kun:op POST /users
-        //kun:body age name=user_age type=string descr=The-user-age
+        //kun:body age name=user_age type=string descr='The user age'
         CreateUser(ctx context.Context, name string, age int) (err error)
     }
 

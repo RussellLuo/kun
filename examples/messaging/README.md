@@ -1,6 +1,6 @@
 # messaging
 
-This example illustrates how to specify multiple HTTP operations.
+This example illustrates how to specify multiple HTTP request operations.
 
 
 ## Generate the code
