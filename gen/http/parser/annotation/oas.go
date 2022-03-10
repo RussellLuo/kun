@@ -31,7 +31,7 @@ func ParseMetadata(doc []string) (*spec.Metadata, error) {
 			if result[1] == "alias" {
 				continue
 			}
-			return nil, fmt.Errorf("invalid kok directive: %s", comment)
+			return nil, fmt.Errorf("invalid %s directive: %s", annotation.DirectiveHTTPOAS, comment)
 		}
 
 		value := strings.TrimSpace(result[2])
@@ -53,7 +53,7 @@ func ParseMetadata(doc []string) (*spec.Metadata, error) {
 		case "tags":
 			m.DefaultTags = strings.Split(v, ",")
 		default:
-			return nil, fmt.Errorf(`invalid key %q for //kok:oas in %q`, k, value)
+			return nil, fmt.Errorf(`invalid key %q for %s in %q`, k, annotation.DirectiveHTTPOAS, value)
 		}
 	}
 

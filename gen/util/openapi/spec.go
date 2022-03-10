@@ -46,8 +46,6 @@ type Param struct {
 	Description string // OAS description
 
 	IsBlank bool // Whether this parameter is a blank identifier.
-
-	inUse bool // Indicates this parameter already has a corresponding @kok(param).
 }
 
 type Request struct {

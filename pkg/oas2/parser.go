@@ -133,26 +133,26 @@ func (p *Parser) addStructDefinition(name string, value reflect.Value, embedded 
 
 		var fieldValueType reflect.Type
 
-		kokField := &parser.StructField{
+		structField := &parser.StructField{
 			Name:      field.Name,
 			//CamelCase: false,
 			Type:      field.Type.Name(),
 			Tag:       field.Tag,
 		}
-		if err := kokField.Parse(); err != nil {
+		if err := structField.Parse(); err != nil {
 			panic(err)
 		}
 
-		if len(kokField.Params) > 1 {
+		if len(structField.Params) > 1 {
 			// XXX: Add support for Argument aggregation.
 			panic(fmt.Errorf("argument aggregation is unsupported in OAS now"))
 		}
-		kokFieldParam := kokField.Params[0]
+		structFieldParam := structField.Params[0]
 
-		if kokFieldParam.Type != kokField.Type {
+		if structFieldParam.Type != structField.Type {
 			// Use the user-specified type (a basic type) if any.
 			var err error
-			if fieldValueType, err = getReflectType(kokFieldParam.Type); err != nil {
+			if fieldValueType, err = getReflectType(structFieldParam.Type); err != nil {
 				panic(err)
 			}
 		} else {
@@ -181,7 +181,7 @@ func (p *Parser) addStructDefinition(name string, value reflect.Value, embedded 
 			// Otherwise, append this field as a property.
 			properties = append(properties, Property{
 				Name: fieldName,
-				Type: p.getJSONType(fieldValueType, caseconv.ToUpperCamelCase(fieldName), kokFieldParam.Description),
+				Type: p.getJSONType(fieldValueType, caseconv.ToUpperCamelCase(fieldName), structFieldParam.Description),
 			})
 		}
 	}

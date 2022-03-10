@@ -280,7 +280,7 @@ func TestStructParams_Decode(t *testing.T) {
 		Bools    []bool
 		String   string
 		Strings  []string
-		Required string `kok:"required=true"`
+		Required string
 	}
 
 	testIn := map[string][]string{

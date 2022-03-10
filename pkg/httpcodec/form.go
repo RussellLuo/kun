@@ -193,8 +193,8 @@ func writeFile(writer *multipart.Writer, fieldName string, file *FormFile) error
 }
 
 func getFormFieldName(field reflect.StructField) (name string, omitted bool) {
-	kokTag := field.Tag.Get("json")
-	parts := strings.SplitN(kokTag, ",", 2)
+	jsonTag := field.Tag.Get("json")
+	parts := strings.SplitN(jsonTag, ",", 2)
 
 	name = parts[0]
 

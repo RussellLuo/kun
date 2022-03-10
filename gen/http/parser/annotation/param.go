@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/RussellLuo/kun/gen/http/spec"
+	"github.com/RussellLuo/kun/gen/util/annotation"
 )
 
 var (
@@ -30,7 +31,7 @@ type Param struct {
 func ParseParams(s string) ([]*Param, error) {
 	s = strings.TrimSpace(s)
 	if s == "" {
-		return nil, fmt.Errorf("empty //kok:param")
+		return nil, fmt.Errorf("empty %s", annotation.DirectiveHTTPParam)
 	}
 
 	var list []*Param

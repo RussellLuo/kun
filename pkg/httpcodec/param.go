@@ -402,24 +402,24 @@ func (p StructParams) Decode(in map[string][]string, out interface{}) error {
 		field := structType.Field(i)
 		fieldValue := structValue.Field(i)
 
-		kokField := &parser.StructField{
+		structField := &parser.StructField{
 			Name:      field.Name,
 			CamelCase: p.camelCase,
 			Type:      field.Type.Name(),
 			Tag:       field.Tag,
 		}
-		if err := kokField.Parse(); err != nil {
+		if err := structField.Parse(); err != nil {
 			return err
 		}
 
-		if kokField.Omitted {
+		if structField.Omitted {
 			// Omit this field.
 			continue
 		}
 
 		// Build values needed by this field for decoding.
 		values := make(map[string][]string)
-		for _, param := range kokField.Params {
+		for _, param := range structField.Params {
 			key := param.UniqueKey()
 			values[key] = in[key]
 		}
@@ -462,17 +462,17 @@ func (p StructParams) Encode(in interface{}) (out map[string][]string) {
 		field := structType.Field(i)
 		fieldValue := inValue.Field(i)
 
-		kokField := &parser.StructField{
+		structField := &parser.StructField{
 			Name:      field.Name,
 			CamelCase: p.camelCase,
 			Type:      field.Type.Name(),
 			Tag:       field.Tag,
 		}
-		if err := kokField.Parse(); err != nil {
+		if err := structField.Parse(); err != nil {
 			panic(err)
 		}
 
-		if kokField.Omitted {
+		if structField.Omitted {
 			// Omit this field.
 			continue
 		}
@@ -480,11 +480,11 @@ func (p StructParams) Encode(in interface{}) (out map[string][]string) {
 		codec := p.fieldCodec(field.Name)
 		for k, v := range codec.Encode(fieldValue.Interface()) {
 			if k == specialKey {
-				if len(kokField.Params) != 1 {
+				if len(structField.Params) != 1 {
 					panic(fmt.Errorf("special key %q is reserved for use in codecs wrapped by ToParamsCodec()", specialKey))
 				}
 				// Use the key of the parameter.
-				k = kokField.Params[0].UniqueKey()
+				k = structField.Params[0].UniqueKey()
 			}
 
 			if k == "" {
