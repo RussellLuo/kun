@@ -6,7 +6,7 @@ package messaging
 import (
 	"context"
 
-	httpoption "github.com/RussellLuo/kun/pkg/httpoption2"
+	"github.com/RussellLuo/kun/pkg/httpoption"
 	"github.com/RussellLuo/validating/v2"
 	"github.com/go-kit/kit/endpoint"
 )

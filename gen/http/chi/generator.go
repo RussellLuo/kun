@@ -30,7 +30,7 @@ import (
 	{{- end}}
 	"github.com/go-chi/chi"
 	kithttp "github.com/go-kit/kit/transport/http"
-	"github.com/RussellLuo/kun/pkg/httpoption2"
+	"github.com/RussellLuo/kun/pkg/httpoption"
 
 	{{- range .Data.Imports}}
 	{{.ImportString}}

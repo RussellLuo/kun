@@ -3,7 +3,7 @@ package helloworld
 import (
 	"regexp"
 
-	"github.com/RussellLuo/kun/pkg/httpoption2"
+	"github.com/RussellLuo/kun/pkg/httpoption"
 	v "github.com/RussellLuo/validating/v2"
 )
 

@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/RussellLuo/kun/pkg/httpcodec"
-	httpoption "github.com/RussellLuo/kun/pkg/httpoption2"
+	"github.com/RussellLuo/kun/pkg/httpoption"
 	"github.com/RussellLuo/kun/pkg/oas2"
 	"github.com/go-chi/chi"
 	kithttp "github.com/go-kit/kit/transport/http"
