@@ -17,7 +17,7 @@ func TestParseParams(t *testing.T) {
 	}{
 		{
 			name: "one binding one sub-parameter",
-			in:   "name in=header name=X-User-Name required=true type=string descr=user-name",
+			in:   "name in=header name=X-User-Name required=true type=string descr='user name'",
 			wantOut: []*annotation.Param{
 				{
 					ArgName: "name",
@@ -27,7 +27,7 @@ func TestParseParams(t *testing.T) {
 							Name:        "X-User-Name",
 							Required:    true,
 							Type:        "string",
-							Description: "user-name",
+							Description: "user name",
 						},
 					},
 				},
@@ -107,14 +107,19 @@ func TestParseParams(t *testing.T) {
 			},
 		},
 		{
-			name:       "invalid parameter pair",
+			name:       "invalid parameter option",
 			in:         "name x:y",
-			wantErrStr: "invalid parameter pair: x:y",
+			wantErrStr: "invalid parameter option: x:y",
 		},
 		{
 			name:       "invalid location",
 			in:         "name in=xxx",
 			wantErrStr: `invalid location value: xxx (must be "path", "query", "header" or "request")`,
+		},
+		{
+			name:       "invalid parameter option key",
+			in:         "name xxx=yyy",
+			wantErrStr: "invalid parameter option: xxx=yyy",
 		},
 	}
 

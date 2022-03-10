@@ -47,7 +47,7 @@ func TestParseBody(t *testing.T) {
 		{
 			name:       "invalid directive",
 			in:         "user name:xx",
-			wantErrStr: "invalid parameter pair: name:xx",
+			wantErrStr: "invalid parameter option: name:xx",
 		},
 	}
 

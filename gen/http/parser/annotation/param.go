@@ -10,7 +10,12 @@ import (
 )
 
 var (
-	reKokParam = regexp.MustCompile(`^(\w+)(.*)$`)
+	reKunParam = regexp.MustCompile(`^(\w+)(.*)$`)
+
+	// Supported formats:
+	//   - k1=v1
+	//   - k2='v2'
+	reKunParamOption = regexp.MustCompile(`(\w+)=('[^']+'|\S+)`)
 )
 
 type Param struct {
@@ -50,7 +55,7 @@ func ParseParams(s string) ([]*Param, error) {
 func parseParam(s string) (*Param, error) {
 	s = strings.TrimSpace(s)
 
-	r := reKokParam.FindStringSubmatch(s)
+	r := reKunParam.FindStringSubmatch(s)
 	if len(r) != 3 {
 		return nil, fmt.Errorf("invalid directive arguments: %s", s)
 	}
@@ -88,32 +93,29 @@ func parseOption(argName, s string) (*spec.Parameter, error) {
 	s = strings.TrimSpace(s)
 	p := new(spec.Parameter)
 
-	for _, part := range strings.Fields(s) {
-		part = strings.TrimSpace(part)
-		kv := strings.SplitN(part, "=", 2)
-		if len(kv) != 2 {
-			return nil, fmt.Errorf("invalid parameter pair: %s", part)
-		}
+	pairs, err := parseOptionPairs(s)
+	if err != nil {
+		return nil, err
+	}
 
-		k, v := kv[0], kv[1]
-
-		switch k {
+	for _, pair := range pairs {
+		switch pair.k {
 		case "in":
-			p.In = spec.Location(v)
+			p.In = spec.Location(pair.v)
 
 			if err := validateLocation(p.In); err != nil {
 				return nil, err
 			}
 		case "name":
-			p.Name = v
+			p.Name = pair.v
 		case "required":
-			p.Required = v == "true"
+			p.Required = pair.v == "true"
 		case "type":
-			p.Type = v
+			p.Type = pair.v
 		case "descr":
-			p.Description = v
+			p.Description = pair.v
 		default:
-			return nil, fmt.Errorf("invalid directive argument: %s", part)
+			return nil, fmt.Errorf("invalid parameter option: %s=%s", pair.k, pair.v)
 		}
 	}
 
@@ -132,6 +134,28 @@ func parseOption(argName, s string) (*spec.Parameter, error) {
 	}
 
 	return p, nil
+}
+
+type optionPair struct{ k, v string }
+
+func parseOptionPairs(s string) ([]optionPair, error) {
+	// NOTE: Instead of using ReplaceAllString and then FindAllStringSubmatch,
+	// a more performant alternative solution may be to use ReplaceAllStringFunc once.
+
+	unmatched := strings.TrimSpace(reKunParamOption.ReplaceAllString(s, ""))
+	if unmatched != "" {
+		return nil, fmt.Errorf("invalid parameter option: %s", unmatched)
+	}
+
+	var pairs []optionPair
+	result := reKunParamOption.FindAllStringSubmatch(s, -1)
+	for _, r := range result {
+		pairs = append(pairs, optionPair{
+			k: r[1],
+			v: strings.Trim(strings.TrimSpace(r[2]), "'"),
+		})
+	}
+	return pairs, nil
 }
 
 func validateLocation(in spec.Location) error {
