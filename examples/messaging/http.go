@@ -55,10 +55,6 @@ func NewHTTPRouter(svc Service, codecs httpcodec.Codecs, opts ...httpoption.Opti
 	return r
 }
 
-func NewHTTPRouterWithOAS(svc Service, codecs httpcodec.Codecs, schema oas2.Schema) chi.Router {
-	return NewHTTPRouter(svc, codecs, httpoption.ResponseSchema(schema))
-}
-
 func decodeGetMessageRequest(codec httpcodec.Codec, validator httpoption.Validator) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req GetMessageRequest

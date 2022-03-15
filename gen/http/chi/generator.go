@@ -80,10 +80,6 @@ func NewHTTPRouter(svc {{$.Data.SrcPkgQualifier}}{{$.Data.InterfaceName}}, codec
 	return r
 }
 
-func NewHTTPRouterWithOAS(svc {{$.Data.SrcPkgQualifier}}{{$.Data.InterfaceName}}, codecs httpcodec.Codecs, schema oas2.Schema) chi.Router {
-	return NewHTTPRouter(svc, codecs, httpoption.ResponseSchema(schema))
-}
-
 {{- range .Spec.Operations}}
 
 {{- $nonCtxParams := nonCtxParams .Request.Params}}
