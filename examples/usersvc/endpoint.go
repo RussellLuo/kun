@@ -28,7 +28,7 @@ type CreateUserResponse struct {
 	Err    error `json:"-"`
 }
 
-func (r *CreateUserResponse) Body() interface{} { return r.Result }
+func (r *CreateUserResponse) Body() interface{} { return &r.Result }
 
 // Failed implements endpoint.Failer.
 func (r *CreateUserResponse) Failed() error { return r.Err }

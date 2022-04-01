@@ -155,6 +155,7 @@ func (c *HTTPClient) {{.Name}}({{.ArgList}}) {{.ReturnArgNamedValueList}} {
 	}
 
 	{{if $nonErrReturns -}}
+		{{/* respBody must be a pointer here, otherwise respBody.Body() will return a copy of the body. */}}
 		respBody := {{endpointPrefix .Name}}Response{}
 		err = codec.DecodeSuccessResponse(_resp.Body, respBody.Body())
 		if err != nil {

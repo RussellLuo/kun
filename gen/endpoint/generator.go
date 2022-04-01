@@ -56,7 +56,7 @@ type {{.Name}}Response struct {
 
 {{- $respBodyField := .Op.SuccessResponse.BodyField}}
 {{- if $respBodyField}}
-func (r {{addAsterisks .Name}}Response) Body() interface{} { return r.{{title $respBodyField}} }
+func (r {{addAsterisks .Name}}Response) Body() interface{} { return &r.{{title $respBodyField}} }
 {{- else}}
 func (r {{addAsterisks .Name}}Response) Body() interface{} { return r }
 {{- end}}
