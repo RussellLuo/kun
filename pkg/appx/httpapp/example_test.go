@@ -7,9 +7,8 @@ import (
 	"time"
 
 	"github.com/RussellLuo/appx"
-	"github.com/go-chi/chi"
-
 	"github.com/RussellLuo/kun/pkg/appx/httpapp"
+	"github.com/go-chi/chi"
 )
 
 type Hi struct {
@@ -108,8 +107,8 @@ func Example() {
 	}
 
 	// Make two HTTP requests to demonstrate that our server is running.
-	http.Get("http://localhost:8080/hi")  // nolint:errcheck
-	http.Get("http://localhost:8080/bye") // nolint:errcheck
+	_, _ = http.Get("http://localhost:8080/hi")
+	_, _ = http.Get("http://localhost:8080/bye")
 
 	// Stop the greeter.
 	stopCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

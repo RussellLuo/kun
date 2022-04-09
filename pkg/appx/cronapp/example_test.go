@@ -6,9 +6,8 @@ import (
 	"time"
 
 	"github.com/RussellLuo/appx"
-	"github.com/RussellLuo/micron/cron"
-
 	"github.com/RussellLuo/kun/pkg/appx/cronapp"
+	"github.com/RussellLuo/micron/cron"
 )
 
 type task func()

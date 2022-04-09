@@ -3,13 +3,43 @@ package httpapp
 import (
 	"fmt"
 
+	"github.com/RussellLuo/appx"
 	"github.com/go-chi/chi"
 )
 
-// Value holds attributes of an HTTP application in Go kit.
-type Value struct {
-	Service interface{} // The Go kit service.
-	Router  chi.Router  // The HTTP router.
+func MountOn(parent, pattern string) appx.Middleware {
+	return func(next appx.Instance) appx.Instance {
+		return middleware{
+			Standard: appx.Standardize(next),
+			parent:   parent,
+			pattern:  pattern,
+		}
+	}
+}
+
+type middleware struct {
+	appx.Standard
+	parent  string
+	pattern string
+}
+
+func (m middleware) Init(ctx appx.Context) error {
+	if err := m.Standard.Init(ctx); err != nil {
+		return err
+	}
+
+	parent, err := getChiRouter(ctx.MustLoad(m.parent))
+	if err != nil {
+		return err
+	}
+
+	r, err := getChiRouter(m.Standard.Instance())
+	if err != nil {
+		return err
+	}
+
+	MountRouter(parent, m.pattern, r)
+	return nil
 }
 
 func MountRouter(parent chi.Router, pattern string, r chi.Router) {
@@ -32,7 +62,7 @@ type ChiRouter interface {
 	Router() chi.Router
 }
 
-func GetChiRouter(instance interface{}) (chi.Router, error) {
+func getChiRouter(instance interface{}) (chi.Router, error) {
 	r, ok := instance.(ChiRouter)
 	if !ok {
 		return nil, fmt.Errorf("instance %#v does not implement httpapp.ChiRouter", instance)

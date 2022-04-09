@@ -65,7 +65,7 @@ func TestGetCronScheduler(t *testing.T) {
 		},
 	}
 	for _, c := range cases {
-		router, err := GetCronScheduler(c.in)
+		router, err := getCronScheduler(c.in)
 		if router != c.wantScheduler {
 			t.Fatalf("Scheduler: got (%#v), want (%#v)", router, c.wantScheduler)
 		}
@@ -100,7 +100,7 @@ func TestGetCronJob(t *testing.T) {
 		},
 	}
 	for _, c := range cases {
-		router, err := GetCronJob(c.in)
+		router, err := getCronJob(c.in)
 		if router != c.wantJob {
 			t.Fatalf("Job: got (%#v), want (%#v)", router, c.wantJob)
 		}

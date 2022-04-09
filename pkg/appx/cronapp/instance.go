@@ -2,7 +2,46 @@ package cronapp
 
 import (
 	"fmt"
+
+	"github.com/RussellLuo/appx"
 )
+
+func ScheduledBy(name, scheduler, expression string) appx.Middleware {
+	return func(next appx.Instance) appx.Instance {
+		return middleware{
+			Standard:   appx.Standardize(next),
+			name:       name,
+			scheduler:  scheduler,
+			expression: expression,
+		}
+	}
+}
+
+type middleware struct {
+	appx.Standard
+	name       string
+	scheduler  string
+	expression string
+}
+
+func (m middleware) Init(ctx appx.Context) error {
+	if err := m.Standard.Init(ctx); err != nil {
+		return err
+	}
+
+	scheduler, err := getCronScheduler(ctx.MustLoad(m.scheduler))
+	if err != nil {
+		return err
+	}
+
+	job, err := getCronJob(m.Standard.Instance())
+	if err != nil {
+		return err
+	}
+
+	_ = scheduler.Add(m.name, m.expression, job.Task)
+	return nil
+}
 
 // Scheduler represents a cron scheduler.
 type Scheduler interface {
@@ -24,7 +63,7 @@ type CronJob interface {
 	Job() Job
 }
 
-func GetCronScheduler(instance interface{}) (Scheduler, error) {
+func getCronScheduler(instance interface{}) (Scheduler, error) {
 	r, ok := instance.(CronScheduler)
 	if !ok {
 		return nil, fmt.Errorf("instance %#v does not implement httpapp.CronScheduler", instance)
@@ -38,7 +77,7 @@ func GetCronScheduler(instance interface{}) (Scheduler, error) {
 	return result, nil
 }
 
-func GetCronJob(instance interface{}) (Job, error) {
+func getCronJob(instance interface{}) (Job, error) {
 	r, ok := instance.(CronJob)
 	if !ok {
 		return nil, fmt.Errorf("instance %#v does not implement httpapp.CronJob", instance)

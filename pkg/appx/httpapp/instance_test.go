@@ -41,7 +41,7 @@ func TestGetChiRouter(t *testing.T) {
 		},
 	}
 	for _, c := range cases {
-		router, err := GetChiRouter(c.in)
+		router, err := getChiRouter(c.in)
 		if router != c.wantRouter {
 			t.Fatalf("Router: got (%#v), want (%#v)", router, c.wantRouter)
 		}
