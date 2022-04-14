@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 
 	"github.com/RussellLuo/kun/gen/endpoint"
+	eventgenerator "github.com/RussellLuo/kun/gen/event/generator"
+	eventparser "github.com/RussellLuo/kun/gen/event/parser"
 	"github.com/RussellLuo/kun/gen/grpc/grpc"
 	grpcparser "github.com/RussellLuo/kun/gen/grpc/parser"
 	"github.com/RussellLuo/kun/gen/grpc/proto"
@@ -40,6 +42,7 @@ type Generator struct {
 	oas2       *oas2.Generator
 	proto      *proto.Generator
 	grpc       *grpc.Generator
+	event      *eventgenerator.Generator
 
 	opts *Options
 }
@@ -81,6 +84,11 @@ func New(opts *Options) *Generator {
 			SchemaTag: opts.SchemaTag,
 			Formatted: opts.Formatted,
 		}),
+		event: eventgenerator.New(&eventgenerator.Options{
+			SchemaPtr: opts.SchemaPtr,
+			SchemaTag: opts.SchemaTag,
+			Formatted: opts.Formatted,
+		}),
 		opts: opts,
 	}
 }
@@ -118,6 +126,13 @@ func (g *Generator) Generate(srcFilename, interfaceName, testFilename string) (f
 		}
 		files = append(files, grpcFiles...)
 
+	case docutil.TransportEvent:
+		eventFiles, err := g.generateEvent(data, spec)
+		if err != nil {
+			return files, err
+		}
+		files = append(files, eventFiles...)
+
 	case docutil.TransportAll:
 		httpFiles, err := g.generateHTTP(data, spec, testFilename)
 		if err != nil {
@@ -130,6 +145,12 @@ func (g *Generator) Generate(srcFilename, interfaceName, testFilename string) (f
 			return files, err
 		}
 		files = append(files, grpcFiles...)
+
+		eventFiles, err := g.generateEvent(data, spec)
+		if err != nil {
+			return files, err
+		}
+		files = append(files, eventFiles...)
 	}
 
 	return files, nil
@@ -253,6 +274,34 @@ func (g *Generator) generateGRPC(data *ifacetool.Data) (files []*generator.File,
 	// Generate the glue code for adapting the gRPC definition to Go kit.
 	pkgInfo := g.getPkgInfo(outDir)
 	f, err = g.grpc.Generate(pkgInfo, pbPkgPath, data, service)
+	if err != nil {
+		return files, err
+	}
+	files = append(files, f)
+
+	return files, nil
+}
+
+// generateEvent generates the event code.
+func (g *Generator) generateEvent(data *ifacetool.Data, spec *openapi.Specification) (files []*generator.File, err error) {
+	outDir := g.getOutDir("event")
+	if err := ensureDir(outDir); err != nil {
+		return files, err
+	}
+	defer func() {
+		for _, f := range files {
+			f.MoveTo(outDir)
+		}
+	}()
+
+	pkgInfo := g.getPkgInfo(outDir)
+
+	eventInfo, err := eventparser.Parse(data, g.opts.SnakeCase)
+	if err != nil {
+		return files, err
+	}
+
+	f, err := g.event.Generate(pkgInfo, data, eventInfo, spec)
 	if err != nil {
 		return files, err
 	}

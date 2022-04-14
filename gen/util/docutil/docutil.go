@@ -9,9 +9,10 @@ import (
 type Transport int
 
 const (
-	TransportHTTP Transport = 0b0001
-	TransportGRPC Transport = 0b0010
-	TransportAll  Transport = 0b0011
+	TransportHTTP  Transport = 0b0001
+	TransportGRPC  Transport = 0b0010
+	TransportEvent Transport = 0b0100
+	TransportAll   Transport = 0b0111
 )
 
 type Doc []string
@@ -19,10 +20,12 @@ type Doc []string
 func (d Doc) Transport() (t Transport) {
 	for _, comment := range d {
 		switch dir := annotation.Directive(comment); dir.Dialect() {
-		case annotation.DialectGRPC:
-			t = t | TransportGRPC
 		case annotation.DialectHTTP:
 			t = t | TransportHTTP
+		case annotation.DialectGRPC:
+			t = t | TransportGRPC
+		case annotation.DialectEvent:
+			t = t | TransportEvent
 		}
 	}
 	return t
