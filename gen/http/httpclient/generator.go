@@ -59,6 +59,7 @@ func NewHTTPClient(codecs httpcodec.Codecs, httpClient *http.Client, baseURL str
 {{$pathParams := pathParams $op.Request.Params}}
 {{$queryParams := queryParams $op.Request.Params}}
 {{$headerParams := headerParams $op.Request.Params}}
+{{$hasCtxParam := hasCtxParam $op.Request.Params}}
 {{$nonCtxParams := nonCtxParams $op.Request.Params}}
 {{$bodyParams := bodyParams $nonCtxParams}}
 {{$bodyField := getBodyField $op.Request.BodyField}}
@@ -112,7 +113,11 @@ func (c *HTTPClient) {{.Name}}({{.ArgList}}) {{.ReturnArgNamedValueList}} {
 		return {{returnErr .Returns}}
 	}
 
+	{{if $hasCtxParam -}}
+	_req, err := http.NewRequestWithContext(ctx, "{{$op.Method}}", u.String(), reqBodyReader)
+	{{- else -}}
 	_req, err := http.NewRequest("{{$op.Method}}", u.String(), reqBodyReader)
+	{{- end}} {{/* if $hasCtxParam */}}
 	if err != nil {
 		return {{returnErr .Returns}}
 	}
@@ -128,7 +133,11 @@ func (c *HTTPClient) {{.Name}}({{.ArgList}}) {{.ReturnArgNamedValueList}} {
 
 	{{- else -}} {{/* if $bodyParams */}}
 
+	{{if $hasCtxParam -}}
+	_req, err := http.NewRequestWithContext(ctx, "{{$op.Method}}", u.String(), nil)
+	{{- else -}}
 	_req, err := http.NewRequest("{{$op.Method}}", u.String(), nil)
+	{{- end}} {{/* if $hasCtxParam */}}
 	if err != nil {
 		return {{returnErr .Returns}}
 	}
@@ -340,6 +349,14 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Da
 					}
 				}
 				return
+			},
+			"hasCtxParam": func(params []*openapi.Param) bool {
+				for _, p := range params {
+					if p.Type == "context.Context" {
+						return true
+					}
+				}
+				return false
 			},
 			"nonCtxParams": func(params []*openapi.Param) (out []*openapi.Param) {
 				for _, p := range params {

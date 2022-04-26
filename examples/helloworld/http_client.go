@@ -54,7 +54,7 @@ func (c *HTTPClient) SayHello(ctx context.Context, name string) (message string,
 		return "", err
 	}
 
-	_req, err := http.NewRequest("POST", u.String(), reqBodyReader)
+	_req, err := http.NewRequestWithContext(ctx, "POST", u.String(), reqBodyReader)
 	if err != nil {
 		return "", err
 	}

@@ -47,7 +47,7 @@ func (c *HTTPClient) GetMessage(ctx context.Context, userID string, messageID st
 		Path:   c.pathPrefix + path,
 	}
 
-	_req, err := http.NewRequest("GET", u.String(), nil)
+	_req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
 	if err != nil {
 		return "", err
 	}

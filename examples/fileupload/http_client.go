@@ -54,7 +54,7 @@ func (c *HTTPClient) Upload(ctx context.Context, file *httpcodec.FormFile) (err 
 		return err
 	}
 
-	_req, err := http.NewRequest("POST", u.String(), reqBodyReader)
+	_req, err := http.NewRequestWithContext(ctx, "POST", u.String(), reqBodyReader)
 	if err != nil {
 		return err
 	}

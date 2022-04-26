@@ -53,7 +53,7 @@ func (c *HTTPClient) CreateUser(ctx context.Context, user User) (result User, er
 	}
 	u.RawQuery = q.Encode()
 
-	_req, err := http.NewRequest("POST", u.String(), nil)
+	_req, err := http.NewRequestWithContext(ctx, "POST", u.String(), nil)
 	if err != nil {
 		return User{}, err
 	}
