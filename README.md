@@ -6,7 +6,7 @@ Ultimately, kun may support the following communication types:
 
 - In-process function call
 - RPC (e.g., HTTP and gRPC)
-- Asynchronous messaging (not supported yet)
+- Asynchronous messaging
 
 中文博客：[Go 服务通信工具 Kun](http://russellluo.com/2021/12/kun.html)。
 
@@ -41,6 +41,9 @@ Ultimately, kun may support the following communication types:
         + [x] Protocol Buffers
         + [x] gRPC Server
         + [ ] gRPC Client
+    - [x] Event
+        + [x] Event Subscriber
+        + [ ] Event Publisher
 
 2. Useful Packages
 
@@ -771,6 +774,57 @@ See the [OAS Schema](https://github.com/RussellLuo/kun/blob/master/pkg/oasv2/sch
 
     // gRPC request:
     // $ grpcurl -d '{"name": "tracey", "age": 1}' ... pb.Service/CreateUser
+    ```
+
+</details>
+
+
+## Event
+
+### Annotations
+
+<details open>
+  <summary> Directive //kun:event </summary>
+
+##### Syntax
+
+```
+//kun:event type=<type> data=<data>
+```
+
+##### Arguments
+
+- **type**: The type of the event.
+    + Optional: Defaults to the name of the corresponding method (snake-case, or lower-camel-case if `-snake=false`) if not specified.
+- **data**: The name of the method argument whose value is mapped to the event data.
+    + Optional: When omitted, a struct containing all the arguments will automatically be mapped to the event data.
+
+##### Examples
+
+- Omitted:
+
+    ```go
+    type Service interface {
+        //kun:event
+        EventCreated(ctx context.Context, id int) (err error)
+    }
+
+    // event: {"type": "event_created", "data": `{"id": 1}`}
+    ```
+
+- Specified:
+
+    ```go
+    type Data struct {
+        ID int `json:"id"`
+    }
+  
+    type Service interface {
+        //kun:event type=created data=data
+        EventCreated(ctx context.Context, data Data) (err error)
+    }
+
+    // event: {"type": "created", "data": `{"id": 1}`}
     ```
 
 </details>

@@ -23,6 +23,8 @@ var (
 	DirectiveHTTPAlias   = FromSubDirective("alias")
 
 	DirectiveGRPC = FromSubDirective("grpc")
+
+	DirectiveEvent = FromSubDirective("event")
 )
 
 type Directive string
@@ -40,10 +42,14 @@ func (d Directive) Dialect() Dialect {
 		return DialectUnknown
 	}
 
-	if d.SubDirective() == DirectiveGRPC.SubDirective() {
+	switch d.SubDirective() {
+	case DirectiveGRPC.SubDirective():
 		return DialectGRPC
+	case DirectiveEvent.SubDirective():
+		return DialectEvent
+	default:
+		return DialectHTTP
 	}
-	return DialectHTTP
 }
 
 func (d Directive) SubDirective() string {
@@ -69,4 +75,5 @@ const (
 	DialectUnknown Dialect = ""
 	DialectHTTP    Dialect = "http"
 	DialectGRPC    Dialect = "grpc"
+	DialectEvent   Dialect = "event"
 )
