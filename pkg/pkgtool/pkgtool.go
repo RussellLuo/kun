@@ -4,11 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"go/ast"
-	"go/build"
 	"go/parser"
 	"go/token"
 	"path/filepath"
-	"strings"
 
 	"github.com/RussellLuo/kun/pkg/ifacetool"
 	"github.com/RussellLuo/kun/pkg/ifacetool/moq"
@@ -128,39 +126,46 @@ func getInterfaceDoc(ts *ast.TypeSpec, gd *ast.GenDecl) *ast.CommentGroup {
 	return nil
 }
 
-func PkgPathFromDir(dir string) (pkgPath string) {
+func PkgPathFromDir(dir string) string {
 	abs, err := filepath.Abs(dir)
-	if err == nil {
-		pkgPath = stripGopath(abs)
+	if err != nil {
+		panic(err)
 	}
-	return
+
+	pkg, err := pkgInfoFromPath(abs, packages.NeedModule)
+	if err != nil {
+		panic(err)
+	}
+
+	if pkg == nil || pkg.Module == nil {
+		return ""
+	}
+
+	// Remove the module root directory.
+	rel, err := filepath.Rel(pkg.Module.Dir, abs)
+	if err != nil {
+		panic(err)
+	}
+	// Add the module path prefix.
+	return filepath.Join(pkg.Module.Path, rel)
 }
 
 func PkgNameFromDir(dir string) string {
-	pkg, _ := pkgInfoFromPath(dir, packages.NeedName)
+	abs, err := filepath.Abs(dir)
+	if err != nil {
+		panic(err)
+	}
+
+	pkg, err := pkgInfoFromPath(abs, packages.NeedName)
+	if err != nil {
+		panic(err)
+	}
 	if pkg != nil && pkg.Name != "" {
 		return pkg.Name
 	}
 
 	// Default to the directory name.
-	abs, err := filepath.Abs(dir)
-	if err != nil {
-		panic(err)
-	}
 	return filepath.Base(abs)
-}
-
-// stripGopath takes the directory to a package and removes the
-// $GOPATH/src path to get the canonical package name.
-func stripGopath(p string) string {
-	for _, srcDir := range build.Default.SrcDirs() {
-		rel, err := filepath.Rel(srcDir, p)
-		if err != nil || strings.HasPrefix(rel, "..") {
-			continue
-		}
-		return filepath.ToSlash(rel)
-	}
-	return p
 }
 
 func pkgInfoFromPath(srcDir string, mode packages.LoadMode) (*packages.Package, error) {

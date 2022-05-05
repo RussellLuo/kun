@@ -76,15 +76,15 @@ func New(opts *Options) *Generator {
 	return &Generator{opts: opts}
 }
 
-func (g *Generator) Generate(pkgPath string, ifaceData *ifacetool.Data, service *parser.Service) (*generator.File, error) {
+func (g *Generator) Generate(outDir string, ifaceData *ifacetool.Data, service *parser.Service) (*generator.File, error) {
 	data := struct {
 		PkgPath  string
 		PkgName  string
 		Service  *parser.Service
 		Messages map[string]*parser.Type
 	}{
-		PkgPath:  pkgPath,
-		PkgName:  pkgtool.PkgNameFromDir(pkgPath),
+		PkgPath:  pkgtool.PkgPathFromDir(outDir),
+		PkgName:  pkgtool.PkgNameFromDir(outDir),
 		Service:  service,
 		Messages: getMessages(service),
 	}

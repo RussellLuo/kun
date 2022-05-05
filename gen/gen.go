@@ -249,8 +249,7 @@ func (g *Generator) generateGRPC(data *ifacetool.Data) (files []*generator.File,
 	if err = ensureDir(pbOutDir); err != nil {
 		return files, err
 	}
-	pbPkgPath := pkgtool.PkgPathFromDir(pbOutDir)
-	f, err := g.proto.Generate(pbPkgPath, data, service)
+	f, err := g.proto.Generate(pbOutDir, data, service)
 	if err != nil {
 		return files, err
 	}
@@ -273,7 +272,7 @@ func (g *Generator) generateGRPC(data *ifacetool.Data) (files []*generator.File,
 
 	// Generate the glue code for adapting the gRPC definition to Go kit.
 	pkgInfo := g.getPkgInfo(outDir)
-	f, err = g.grpc.Generate(pkgInfo, pbPkgPath, data, service)
+	f, err = g.grpc.Generate(pkgInfo, pbOutDir, data, service)
 	if err != nil {
 		return files, err
 	}

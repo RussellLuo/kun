@@ -101,7 +101,7 @@ func New(opts *Options) *Generator {
 	return &Generator{opts: opts}
 }
 
-func (g *Generator) Generate(pkgInfo *generator.PkgInfo, pbPkgPath string, ifaceData *ifacetool.Data, service *parser.Service) (*generator.File, error) {
+func (g *Generator) Generate(pkgInfo *generator.PkgInfo, pbOutDir string, ifaceData *ifacetool.Data, service *parser.Service) (*generator.File, error) {
 	data := struct {
 		PBPkgPath   string
 		PBPkgPrefix string
@@ -109,8 +109,8 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, pbPkgPath string, iface
 		PkgInfo     *generator.PkgInfo
 		Service     *parser.Service
 	}{
-		PBPkgPath:   pbPkgPath,
-		PBPkgPrefix: pkgtool.PkgNameFromDir(pbPkgPath) + ".",
+		PBPkgPath:   pkgtool.PkgPathFromDir(pbOutDir),
+		PBPkgPrefix: pkgtool.PkgNameFromDir(pbOutDir) + ".",
 		Data:        ifaceData,
 		PkgInfo:     pkgInfo,
 		Service:     service,
