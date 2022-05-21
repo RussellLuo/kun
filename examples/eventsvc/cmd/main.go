@@ -5,6 +5,7 @@ import (
 
 	"github.com/RussellLuo/kun/examples/eventsvc"
 	"github.com/RussellLuo/kun/pkg/eventcodec"
+	"github.com/RussellLuo/kun/pkg/eventpubsub"
 )
 
 type event struct {
@@ -20,15 +21,26 @@ func (e *event) Data() interface{} {
 	return e.data
 }
 
-func main() {
-	svc := &eventsvc.Subscriber{}
-	handler := eventsvc.NewEventHandler(svc, eventcodec.NewDefaultCodecs(nil))
+type publisher struct {
+	sub eventpubsub.Handler
+}
 
+func (p *publisher) Publish(ctx context.Context, typ string, data interface{}) error {
 	e := &event{
-		typ:  "created",
-		data: []byte(`{"id": 1}`),
+		typ:  typ,
+		data: data.([]byte),
 	}
-	if err := handler.Handle(context.Background(), e); err != nil {
+
+	// For demonstration, we deliver the event e to the subscriber sub directly.
+	return p.sub.Handle(ctx, e)
+}
+
+func main() {
+	codecs := eventcodec.NewDefaultCodecs(nil)
+	sub := eventsvc.NewEventHandler(&eventsvc.Subscriber{}, codecs)
+
+	pub := eventsvc.NewEventPublisher(codecs, &publisher{sub: sub})
+	if err := pub.EventCreated(context.Background(), 1); err != nil {
 		panic(err)
 	}
 }

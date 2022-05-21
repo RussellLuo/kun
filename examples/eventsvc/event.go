@@ -34,3 +34,36 @@ func decodeEventCreatedInput(codec eventcodec.Codec) eventpubsub.DecodeInputFunc
 		return &input, nil
 	}
 }
+
+// EventPublisher implements Service on the publisher side.
+//
+// EventPublisher should only be used in limited scenarios where only one subscriber
+// is involved and the publisher depends on the interface provided by the subscriber.
+//
+// In typical use cases of the publish-subscribe pattern - many subscribers are
+// involved and the publisher knows nothing about the subscribers - you should
+// just send the event in the way it should be.
+type EventPublisher struct {
+	codecs    eventcodec.Codecs
+	publisher eventpubsub.Publisher
+}
+
+func NewEventPublisher(codecs eventcodec.Codecs, publisher eventpubsub.Publisher) *EventPublisher {
+	return &EventPublisher{
+		codecs:    codecs,
+		publisher: publisher,
+	}
+}
+
+func (p *EventPublisher) EventCreated(ctx context.Context, id int) (err error) {
+	codec := p.codecs.EncodeDecoder("EventCreated")
+
+	data, err := codec.Encode(&EventCreatedRequest{
+		Id: id,
+	})
+	if err != nil {
+		return err
+	}
+
+	return p.publisher.Publish(ctx, "created", data)
+}

@@ -43,7 +43,7 @@ Ultimately, kun may support the following communication types:
         + [ ] gRPC Client
     - [x] Event
         + [x] Event Subscriber
-        + [ ] Event Publisher
+        + [x] Event Publisher
 
 2. Useful Packages
 

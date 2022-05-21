@@ -66,18 +66,73 @@ func decode{{.Name}}Input(codec eventcodec.Codec) eventpubsub.DecodeInputFunc {
 		if err := codec.Decode(event.Data(), &input); err != nil {
 			return nil, err
 		}
-		{{end -}}
+		{{end -}} {{/* if $dataField */}}
 
 		{{- if $methodHasNonCtxParams}}
 
 		return {{addAmpersand "input"}}, nil
 		{{- else -}}
 		return nil, nil
-		{{- end}} {{/* End of if $methodHasNonCtxParams */}}
+		{{- end}} {{/* if $methodHasNonCtxParams */}}
 	}
 }
 
-{{- end}}
+{{- end}} {{/* range .Spec.Operations */}}
+
+// EventPublisher implements {{$.Data.SrcPkgQualifier}}{{$.Data.InterfaceName}} on the publisher side.
+//
+// EventPublisher should only be used in limited scenarios where only one subscriber
+// is involved and the publisher depends on the interface provided by the subscriber.
+//
+// In typical use cases of the publish-subscribe pattern - many subscribers are
+// involved and the publisher knows nothing about the subscribers - you should
+// just send the event in the way it should be.
+type EventPublisher struct {
+	codecs    eventcodec.Codecs
+	publisher eventpubsub.Publisher
+}
+
+func NewEventPublisher(codecs eventcodec.Codecs, publisher eventpubsub.Publisher) *EventPublisher {
+	return &EventPublisher{
+		codecs: codecs,
+		publisher: publisher,
+	}
+}
+
+{{- range .Spec.Operations}}
+
+{{- $nonCtxParams := nonCtxParams .Request.Params}}
+{{- $methodHasNonCtxParams := methodHasNonCtxParams .GoMethodName}}
+{{- $dataField := getDataField}}
+{{- $method := getMethod .GoMethodName}}
+
+func (p *EventPublisher) {{$method.Name}}({{$method.ArgList}}) {{$method.ReturnArgNamedValueList}} {
+	{{- if $nonCtxParams}}
+	codec := p.codecs.EncodeDecoder("{{.GoMethodName}}")
+
+	{{if $dataField -}}
+	data, err := codec.Encode($dataField)
+	{{- else}}
+	data, err := codec.Encode({{addAmpersand ""}}{{$endpointPkgPrefix}}{{.GoMethodName}}Request{
+		{{- range $nonCtxParams}}
+		{{title .Name}}: {{.Name}},
+		{{- end}}
+	})
+	{{- end}} {{/* if $dataField */}}
+	if err != nil {
+		return err
+	}
+	{{- end}} {{/* if $nonCtxParams */}}
+
+	{{- if $nonCtxParams}}
+
+	return p.publisher.Publish({{getCtxArg .GoMethodName}}, "{{getEventType .GoMethodName}}", data)
+	{{- else}}
+	return p.publisher.Publish({{getCtxArg .GoMethodName}}, "{{getEventType .GoMethodName}}", nil)
+	{{- end}} {{/* if $nonCtxParams */}}
+}
+
+{{- end}} {{/* range .Spec.Operations */}}
 `
 )
 
@@ -157,6 +212,26 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Da
 			},
 			"getEventType": func(methodName string) string {
 				return eventInfo.Types[methodName]
+			},
+			"getMethod": func(methodName string) *ifacetool.Method {
+				method, ok := methodMap[methodName]
+				if !ok {
+					panic(fmt.Errorf("no method named %q", methodName))
+				}
+				return method
+			},
+			"getCtxArg": func(methodName string) string {
+				method, ok := methodMap[methodName]
+				if !ok {
+					panic(fmt.Errorf("no method named %q", methodName))
+				}
+
+				for _, p := range method.Params {
+					if p.TypeString == "context.Context" {
+						return p.Name
+					}
+				}
+				return "context.Background()"
 			},
 		},
 		Formatted:      g.opts.Formatted,

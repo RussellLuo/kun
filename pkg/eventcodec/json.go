@@ -26,3 +26,7 @@ func (j JSON) Decode(data, out interface{}) error {
 	}
 	return nil
 }
+
+func (j JSON) Encode(in interface{}) (interface{}, error) {
+	return json.Marshal(in)
+}
