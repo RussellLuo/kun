@@ -39,7 +39,7 @@ func main() {
 	codecs := eventcodec.NewDefaultCodecs(nil)
 	sub := eventsvc.NewEventHandler(&eventsvc.Subscriber{}, codecs)
 
-	pub := eventsvc.NewEventPublisher(codecs, &publisher{sub: sub})
+	pub := eventsvc.NewEventPublisher(&publisher{sub: sub}, codecs)
 	if err := pub.EventCreated(context.Background(), 1); err != nil {
 		panic(err)
 	}

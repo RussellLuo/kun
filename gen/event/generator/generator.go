@@ -88,14 +88,14 @@ func decode{{.Name}}Input(codec eventcodec.Codec) eventpubsub.DecodeInputFunc {
 // involved and the publisher knows nothing about the subscribers - you should
 // just send the event in the way it should be.
 type EventPublisher struct {
-	codecs    eventcodec.Codecs
 	publisher eventpubsub.Publisher
+	codecs    eventcodec.Codecs
 }
 
-func NewEventPublisher(codecs eventcodec.Codecs, publisher eventpubsub.Publisher) *EventPublisher {
+func NewEventPublisher(publisher eventpubsub.Publisher, codecs eventcodec.Codecs) *EventPublisher {
 	return &EventPublisher{
-		codecs: codecs,
 		publisher: publisher,
+		codecs:    codecs,
 	}
 }
 
