@@ -23,6 +23,8 @@ import (
 	{{- range .Data.Imports}}
 	{{.ImportString}}
 	{{- end}}
+	"github.com/RussellLuo/kun/pkg/eventcodec"
+	"github.com/RussellLuo/kun/pkg/eventpubsub"
 
 	{{- if .PkgInfo.EndpointPkgPath}}
 	"{{.PkgInfo.EndpointPkgPath}}"
@@ -111,9 +113,9 @@ func (p *EventPublisher) {{$method.Name}}({{$method.ArgList}}) {{$method.ReturnA
 	codec := p.codecs.EncodeDecoder("{{.GoMethodName}}")
 
 	{{if $dataField -}}
-	data, err := codec.Encode($dataField)
+	_data, err := codec.Encode({{$dataField}})
 	{{- else}}
-	data, err := codec.Encode({{addAmpersand ""}}{{$endpointPkgPrefix}}{{.GoMethodName}}Request{
+	_data, err := codec.Encode({{addAmpersand ""}}{{$endpointPkgPrefix}}{{.GoMethodName}}Request{
 		{{- range $nonCtxParams}}
 		{{title .Name}}: {{.Name}},
 		{{- end}}
@@ -126,7 +128,7 @@ func (p *EventPublisher) {{$method.Name}}({{$method.ArgList}}) {{$method.ReturnA
 
 	{{- if $nonCtxParams}}
 
-	return p.publisher.Publish({{getCtxArg .GoMethodName}}, "{{getEventType .GoMethodName}}", data)
+	return p.publisher.Publish({{getCtxArg .GoMethodName}}, "{{getEventType .GoMethodName}}", _data)
 	{{- else}}
 	return p.publisher.Publish({{getCtxArg .GoMethodName}}, "{{getEventType .GoMethodName}}", nil)
 	{{- end}} {{/* if $nonCtxParams */}}
