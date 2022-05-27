@@ -147,7 +147,10 @@ func PkgPathFromDir(dir string) string {
 		panic(err)
 	}
 	// Add the module path prefix.
-	return filepath.Join(pkg.Module.Path, rel)
+	modPath := filepath.Join(pkg.Module.Path, rel)
+
+	// The final module path must be separated by slashes ('/').
+	return filepath.ToSlash(modPath)
 }
 
 func PkgNameFromDir(dir string) string {
