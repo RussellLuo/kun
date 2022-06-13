@@ -35,7 +35,6 @@ Ultimately, kun may support the following communication types:
     - [x] HTTP
         + [x] HTTP Server
         + [x] HTTP Client
-        + [x] HTTP Test
         + [x] [OAS2][2] Document
     - [x] gRPC
         + [x] Protocol Buffers
@@ -86,8 +85,6 @@ kungen [flags] source-file interface-name
     	output directory (default ".")
   -snake
     	whether to use snake-case for default names (default true)
-  -test string
-    	the YAML file that provides test-cases for HTTP (default "./http.test.yaml")
   -trace
     	whether to enable tracing
 ```

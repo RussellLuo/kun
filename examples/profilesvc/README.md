@@ -18,10 +18,6 @@ Let's take [profilesvc](https://github.com/go-kit/kit/tree/266ff8dc37c693d064970
 
     - See [GetFailures](https://github.com/RussellLuo/kun/blob/master/examples/profilesvc/codec.go#L37-L52).
 
-4. Define HTTP test-cases in YAML (**Optional**)
-
-    - See [http.test.yaml](http.test.yaml).
-
 
 ## Generate the code
 
@@ -45,7 +41,6 @@ Code generated:
 
 - [endpoint.go](endpoint.go)
 - [http.go](http.go)
-- [http_test.go](http_test.go)
 - [http_client.go](http_client.go)
 - [oasv2.go](oasv2.go)
 

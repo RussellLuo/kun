@@ -14,7 +14,6 @@ import (
 	"github.com/RussellLuo/kun/gen/grpc/proto"
 	"github.com/RussellLuo/kun/gen/http/chi"
 	"github.com/RussellLuo/kun/gen/http/httpclient"
-	"github.com/RussellLuo/kun/gen/http/httptest"
 	"github.com/RussellLuo/kun/gen/http/oas2"
 	httpparser "github.com/RussellLuo/kun/gen/http/parser"
 	"github.com/RussellLuo/kun/gen/util/docutil"
@@ -37,7 +36,6 @@ type Options struct {
 type Generator struct {
 	endpoint   *endpoint.Generator
 	chi        *chi.Generator
-	httptest   *httptest.Generator
 	httpclient *httpclient.Generator
 	oas2       *oas2.Generator
 	proto      *proto.Generator
@@ -60,9 +58,6 @@ func New(opts *Options) *Generator {
 			SchemaTag:     opts.SchemaTag,
 			Formatted:     opts.Formatted,
 			EnableTracing: opts.EnableTracing,
-		}),
-		httptest: httptest.New(&httptest.Options{
-			Formatted: opts.Formatted,
 		}),
 		httpclient: httpclient.New(&httpclient.Options{
 			SchemaPtr: opts.SchemaPtr,
@@ -93,7 +88,7 @@ func New(opts *Options) *Generator {
 	}
 }
 
-func (g *Generator) Generate(srcFilename, interfaceName, testFilename string) (files []*generator.File, err error) {
+func (g *Generator) Generate(srcFilename, interfaceName string) (files []*generator.File, err error) {
 	data, err := g.parseInterface(srcFilename, interfaceName)
 	if err != nil {
 		return nil, err
@@ -113,7 +108,7 @@ func (g *Generator) Generate(srcFilename, interfaceName, testFilename string) (f
 
 	switch mergeTransports(transports) {
 	case docutil.TransportHTTP:
-		httpFiles, err := g.generateHTTP(data, spec, testFilename)
+		httpFiles, err := g.generateHTTP(data, spec)
 		if err != nil {
 			return files, err
 		}
@@ -134,7 +129,7 @@ func (g *Generator) Generate(srcFilename, interfaceName, testFilename string) (f
 		files = append(files, eventFiles...)
 
 	case docutil.TransportAll:
-		httpFiles, err := g.generateHTTP(data, spec, testFilename)
+		httpFiles, err := g.generateHTTP(data, spec)
 		if err != nil {
 			return files, err
 		}
@@ -178,7 +173,7 @@ func (g *Generator) generateEndpoint(data *ifacetool.Data, spec *openapi.Specifi
 }
 
 // generateHTTP generates the HTTP code.
-func (g *Generator) generateHTTP(data *ifacetool.Data, spec *openapi.Specification, testFilename string) (files []*generator.File, err error) {
+func (g *Generator) generateHTTP(data *ifacetool.Data, spec *openapi.Specification) (files []*generator.File, err error) {
 	outDir := g.getOutDir("http")
 	if err := ensureDir(outDir); err != nil {
 		return files, err
@@ -205,19 +200,7 @@ func (g *Generator) generateHTTP(data *ifacetool.Data, spec *openapi.Specificati
 	}
 	files = append(files, f)
 
-	// Generate the HTTP tests code.
-	f, err = g.httptest.Generate(pkgInfo, data, testFilename)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return files, err
-		}
-		fmt.Printf("WARNING: Skip generating the HTTP tests due to an error (%v)\n", err)
-	}
-	if f != nil {
-		files = append(files, f)
-	}
-
-	// Generate the helper OASv2 code.
+	// Generate the helper OAS2 code.
 	f, err = g.oas2.Generate(pkgInfo, spec)
 	if err != nil {
 		return files, err
