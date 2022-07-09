@@ -360,7 +360,6 @@ func (b *OpBuilder) inferAnnotationParams(methodName string, arg *ifacetool.Para
 			fmt.Printf("WARNING: manually specified `in:%s` is ignored for struct argument `%s` in method %s\n", a.In, a.ArgName, p.methodName)
 		}*/
 
-	NextField:
 		for i := 0; i < t.NumFields(); i++ {
 			var typeName string
 			switch ft := t.Field(i).Type().Underlying().(type) {
@@ -390,7 +389,7 @@ func (b *OpBuilder) inferAnnotationParams(methodName string, arg *ifacetool.Para
 
 			if field.Omitted {
 				// Omit this field.
-				continue NextField
+				continue
 			}
 
 			params = append(params, field.Params...)

@@ -58,12 +58,12 @@ func NewEventPublisher(publisher eventpubsub.Publisher, codecs eventcodec.Codecs
 func (p *EventPublisher) EventCreated(ctx context.Context, id int) (err error) {
 	codec := p.codecs.EncodeDecoder("EventCreated")
 
-	data, err := codec.Encode(&EventCreatedRequest{
+	_data, err := codec.Encode(&EventCreatedRequest{
 		Id: id,
 	})
 	if err != nil {
 		return err
 	}
 
-	return p.publisher.Publish(ctx, "created", data)
+	return p.publisher.Publish(ctx, "created", _data)
 }

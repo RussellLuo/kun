@@ -505,7 +505,7 @@ or
 ##### Arguments
 
 - **field**: The name of the method argument whose value is mapped to the HTTP request body.
-    + Optional: When omitted, a struct containing all the arguments, which are not located in **path**/**query**/**header**, will automatically be mapped to the HTTP request body.
+    + Optional: When omitted, a struct containing all the arguments (except context.Context), which are not located in **path**/**query**/**header**, will automatically be mapped to the HTTP request body.
     + The special name `-` can be used, to define that there is no HTTP request body. As a result, every argument, which is not located in **path**/**query**/**header**, will automatically be mapped to one or more query parameters.
 - **manipulation**:
     + Syntax: `<argName> name=<name> type=<type> descr=<descr>`
@@ -712,14 +712,14 @@ type Service interface {
 
 ### Encoding and decoding
 
-See the [HTTP Codec](https://github.com/RussellLuo/kun/blob/master/pkg/codec/httpcodec/codec.go#L8-L22) interface.
+See the [HTTP Codec](https://github.com/RussellLuo/kun/blob/master/pkg/httpcodec/codec.go#L8-L23) interface.
 
 Also see [here](https://github.com/RussellLuo/kun/issues/8) for examples.
 
 
 ### OAS Schema
 
-See the [OAS Schema](https://github.com/RussellLuo/kun/blob/master/pkg/oasv2/schema.go#L18-L21) interface.
+See the [OAS Schema](https://github.com/RussellLuo/kun/blob/master/pkg/oas2/schema.go#L18-L21) interface.
 
 
 ## gRPC
@@ -794,7 +794,7 @@ See the [OAS Schema](https://github.com/RussellLuo/kun/blob/master/pkg/oasv2/sch
 - **type**: The type of the event.
     + Optional: Defaults to the name of the corresponding method (snake-case, or lower-camel-case if `-snake=false`) if not specified.
 - **data**: The name of the method argument whose value is mapped to the event data.
-    + Optional: When omitted, a struct containing all the arguments will automatically be mapped to the event data.
+    + Optional: When omitted, a struct containing all the arguments (except context.Context) will automatically be mapped to the event data.
 
 ##### Examples
 

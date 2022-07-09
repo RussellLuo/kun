@@ -35,7 +35,7 @@ var (
         {{- end}}
 `))
 
-	funcs = map[string]interface{}{
+	funcs = template.FuncMap{
 		"basicJSONType": func(typ string) string {
 			switch typ {
 			case "bool":
