@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+
+	"sigs.k8s.io/yaml"
 )
 
 var (
@@ -209,7 +211,26 @@ type APIDocFunc func(schema Schema) string
 
 func Handler(apiDocFn APIDocFunc, schema Schema) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		fmt.Fprintln(w, apiDocFn(schema))
+		yamlContent := []byte(apiDocFn(schema))
+
+		if r.Header.Get("Accept") == "application/json" || r.URL.Query().Get("accept") == "json" {
+			// Content negotiation methods:
+			//
+			//     Accept: application/json
+			//     ?accept=json
+
+			jsonContent, err := yaml.YAMLToJSON(yamlContent)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			_, _ = w.Write(jsonContent)
+			return
+		}
+
+		w.Header().Set("Content-Type", "text/yaml; charset=utf-8")
+		_, _ = w.Write(yamlContent)
 	}
 }

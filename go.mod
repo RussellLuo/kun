@@ -13,5 +13,5 @@ require (
 	golang.org/x/tools v0.1.10
 	google.golang.org/grpc v1.36.0
 	google.golang.org/protobuf v1.27.1
-	gopkg.in/yaml.v2 v2.2.8
+	sigs.k8s.io/yaml v1.3.0
 )
