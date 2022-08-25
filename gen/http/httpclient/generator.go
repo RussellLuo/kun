@@ -2,6 +2,7 @@ package httpclient
 
 import (
 	"fmt"
+	"go/types"
 	"sort"
 	"strings"
 
@@ -373,7 +374,15 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Da
 				return param.Name
 			},
 			"returnErr": func(params []*ifacetool.Param) string {
-				emptyValue := func(typ string) string {
+				emptyValue := func(param *ifacetool.Param) string {
+					t := param.Type.Underlying()
+					typ := param.TypeString
+
+					_, ok := t.(*types.Interface)
+					if ok {
+						return "nil"
+					}
+
 					switch typ {
 					case "int", "int8", "int16", "int32", "int64",
 						"uint", "uint8", "uint16", "uint32", "uint64":
@@ -389,7 +398,7 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Da
 							strings.HasPrefix(typ, "*") { // pointer
 							return "nil"
 						} else {
-							// interface or struct
+							// struct
 							return typ + "{}"
 						}
 					}
@@ -397,7 +406,7 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Da
 
 				var returns []string
 				for i := 0; i < len(params)-1; i++ {
-					returns = append(returns, emptyValue(params[i].TypeString))
+					returns = append(returns, emptyValue(params[i]))
 				}
 
 				returns = append(returns, "err")
