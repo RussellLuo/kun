@@ -2,6 +2,7 @@ package httpclient
 
 import (
 	"fmt"
+	"go/types"
 	"sort"
 	"strings"
 
@@ -373,31 +374,9 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Da
 				return param.Name
 			},
 			"returnErr": func(params []*ifacetool.Param) string {
-				emptyValue := func(typ string) string {
-					switch typ {
-					case "int", "int8", "int16", "int32", "int64",
-						"uint", "uint8", "uint16", "uint32", "uint64":
-						return "0"
-					case "string":
-						return `""`
-					case "bool":
-						return "false"
-					default:
-						if strings.HasPrefix(typ, "map") || //map
-							strings.HasPrefix(typ, "chan") || // channel
-							strings.HasPrefix(typ, "[") || // slice or array
-							strings.HasPrefix(typ, "*") { // pointer
-							return "nil"
-						} else {
-							// interface or struct
-							return typ + "{}"
-						}
-					}
-				}
-
 				var returns []string
 				for i := 0; i < len(params)-1; i++ {
-					returns = append(returns, emptyValue(params[i].TypeString))
+					returns = append(returns, emptyValue(params[i]))
 				}
 
 				returns = append(returns, "err")
@@ -408,4 +387,30 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Da
 		Formatted:      g.opts.Formatted,
 		TargetFileName: "http_client.go",
 	})
+}
+
+//Returns the empty value that should be returned depending on it's type.
+//Defaults to returning 'nil' if type can't be found
+func emptyValue(param *ifacetool.Param) string {
+	t := param.Type.Underlying()
+
+	switch v := t.(type) {
+	case *types.Basic:
+		switch v.Info() {
+		case types.IsInteger:
+			return "0"
+		case types.IsString:
+			return `""`
+		case types.IsBoolean:
+			return "false"
+		default:
+			return `""`
+		}
+	case *types.Map, *types.Chan, *types.Slice, *types.Array, *types.Pointer, *types.Interface:
+		return "nil"
+	case *types.Struct:
+		return param.TypeString + "{}"
+	default:
+		return "nil"
+	}
 }
