@@ -60,7 +60,7 @@ func TestReturnError(t *testing.T) {
 		},
 	} {
 		t.Run("test return error", func(t *testing.T) {
-			got := createReturnError(tt.input)
+			got := emptyValue(tt.input)
 			if got != tt.want {
 				t.Fatalf("got (%v), want (%#v)", got, tt.want)
 			}

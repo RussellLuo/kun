@@ -376,7 +376,7 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Da
 			"returnErr": func(params []*ifacetool.Param) string {
 				var returns []string
 				for i := 0; i < len(params)-1; i++ {
-					returns = append(returns, createReturnError(params[i]))
+					returns = append(returns, emptyValue(params[i]))
 				}
 
 				returns = append(returns, "err")
@@ -389,9 +389,9 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Da
 	})
 }
 
-//Creates the error that should be returned depending on it's type.
+//Returns the empty value that should be returned depending on it's type.
 //Defaults to returning 'nil' if type can't be found
-func createReturnError(param *ifacetool.Param) string {
+func emptyValue(param *ifacetool.Param) string {
 	t := param.Type.Underlying()
 
 	switch v := t.(type) {
