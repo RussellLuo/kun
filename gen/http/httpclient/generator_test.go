@@ -7,7 +7,7 @@ import (
 	"github.com/RussellLuo/kun/pkg/ifacetool"
 )
 
-func TestReturnError(t *testing.T) {
+func TestEmptyValue(t *testing.T) {
 	for _, tt := range []struct {
 		name  string
 		input *ifacetool.Param
@@ -59,7 +59,7 @@ func TestReturnError(t *testing.T) {
 			want: "nil",
 		},
 	} {
-		t.Run(tt.name, func(t *testing.T) {
+		t.Run("test empty value: " + tt.name, func(t *testing.T) {
 			got := emptyValue(tt.input)
 			if got != tt.want {
 				t.Fatalf("got (%v), want (%#v)", got, tt.want)
