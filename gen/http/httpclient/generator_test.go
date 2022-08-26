@@ -59,7 +59,7 @@ func TestReturnError(t *testing.T) {
 			want: "nil",
 		},
 	} {
-		t.Run("test return error", func(t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			got := emptyValue(tt.input)
 			if got != tt.want {
 				t.Fatalf("got (%v), want (%#v)", got, tt.want)
