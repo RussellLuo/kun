@@ -8,6 +8,7 @@ import (
 
 	"github.com/RussellLuo/kun/gen/http/parser"
 	"github.com/RussellLuo/kun/pkg/caseconv"
+	"github.com/RussellLuo/kun/pkg/httpcodec"
 )
 
 type JSONType struct {
@@ -106,7 +107,12 @@ func (p *Parser) AddDefinition(name string, value reflect.Value, embedded bool) 
 
 func (p *Parser) addStructDefinition(name string, value reflect.Value, embedded bool) (properties []Property) {
 	if isTime(value) {
-		// Ignore this struct if it is a time value (of type `time.Time`).
+		// Ignore this struct if it is a time value.
+		return
+	}
+
+	if isFormFile(value) {
+		// Ignore this struct if it is a FormFile.
 		return
 	}
 
@@ -134,10 +140,10 @@ func (p *Parser) addStructDefinition(name string, value reflect.Value, embedded 
 		var fieldValueType reflect.Type
 
 		structField := &parser.StructField{
-			Name:      field.Name,
+			Name: field.Name,
 			//CamelCase: false,
-			Type:      field.Type.Name(),
-			Tag:       field.Tag,
+			Type: field.Type.Name(),
+			Tag:  field.Tag,
 		}
 		if err := structField.Parse(); err != nil {
 			panic(err)
@@ -291,9 +297,20 @@ func (p *Parser) getJSONType(typ reflect.Type, name, description string) JSONTyp
 	case reflect.String:
 		return JSONType{Kind: "basic", Type: "string", Description: description}
 	case reflect.Struct:
-		if isTime(reflect.New(typ).Elem()) {
-			// A time value is also a struct in Go, but it is represented as a string in OAS.
+		elem := reflect.New(typ).Elem()
+		if isTime(elem) {
+			// A time value is also a struct in Go, but it is represented as a string in OAS 2.
 			return JSONType{Kind: "basic", Type: "string", Format: "date-time", Description: description}
+		}
+		if isFormFile(elem) {
+			// A FormFile is also a struct in Go, but it is represented as a string in OAS 3.
+			//
+			// Note that here we use the format of OAS 3, since the format of OAS 2 is hard to construct.
+			// Additionally, editor.swagger.io reports no error for this even if the version is specified as "2.0".
+			//
+			// In OAS 2, the payload must be defined using `in: formData` (not body parameters) for file uploads,
+			// and the file parameter must have `type: file`. See https://swagger.io/docs/specification/2-0/file-upload/.
+			return JSONType{Kind: "basic", Type: "string", Format: "binary", Description: description}
 		}
 		return JSONType{Kind: "object", Type: p.getTypeName(typ, name), Description: description}
 	case reflect.Map:
@@ -339,6 +356,15 @@ func isBasicKind(kind reflect.Kind) bool {
 func isTime(v reflect.Value) bool {
 	switch v.Interface().(type) {
 	case *time.Time, time.Time:
+		return true
+	default:
+		return false
+	}
+}
+
+func isFormFile(v reflect.Value) bool {
+	switch v.Interface().(type) {
+	case *httpcodec.FormFile, httpcodec.FormFile:
 		return true
 	default:
 		return false

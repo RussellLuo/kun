@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/RussellLuo/kun/pkg/httpcodec"
 )
 
 func TestParser_AddDefinition(t *testing.T) {
@@ -42,15 +44,16 @@ func TestParser_AddDefinition(t *testing.T) {
 		{
 			name: "struct",
 			inBody: struct {
-				Name    string          `json:"name"`
-				Male    bool            `json:"male"`
-				Age     int             `json:"age" kun:"descr=the-age"`
-				Hobbies []string        `json:"hobbies"`
-				Datum   *Datum          `json:"datum" kun:"descr=the-datum"`
-				Data    []Datum         `json:"data"`
-				Time    time.Time       `json:"time"`
-				TimeStr string          `json:"time_str" kun:"type=time"`
-				Other   map[string]bool `json:"other" kun:"descr=other-is-a-map"`
+				Name    string              `json:"name"`
+				Male    bool                `json:"male"`
+				Age     int                 `json:"age" kun:"descr=the-age"`
+				Hobbies []string            `json:"hobbies"`
+				Datum   *Datum              `json:"datum" kun:"descr=the-datum"`
+				Data    []Datum             `json:"data"`
+				Time    time.Time           `json:"time"`
+				TimeStr string              `json:"time_str" kun:"type=time"`
+				File    *httpcodec.FormFile `json:"file"`
+				Other   map[string]bool     `json:"other" kun:"descr=other-is-a-map"`
 			}{
 				Name:    "xxx",
 				Male:    true,
@@ -123,6 +126,14 @@ func TestParser_AddDefinition(t *testing.T) {
 								Kind:   "basic",
 								Type:   "string",
 								Format: "date-time",
+							},
+						},
+						{
+							Name: "file",
+							Type: JSONType{
+								Kind:   "basic",
+								Type:   "string",
+								Format: "binary",
 							},
 						},
 						{
