@@ -7,10 +7,10 @@ import (
 	"github.com/go-chi/chi"
 )
 
-func MountOn(parent, pattern string) appx.Middleware {
-	return func(next appx.Instance) appx.Instance {
+func MountOn(parent, pattern string) func(appx.Standard) appx.Standard {
+	return func(next appx.Standard) appx.Standard {
 		return middleware{
-			Standard: appx.Standardize(next),
+			Standard: next,
 			parent:   parent,
 			pattern:  pattern,
 		}

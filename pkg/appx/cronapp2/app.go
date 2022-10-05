@@ -1,4 +1,4 @@
-package httpapp
+package cronapp2
 
 import (
 	"github.com/RussellLuo/appx"
@@ -12,9 +12,9 @@ func New(name string, instance appx.Instance) *App {
 	return &App{App: appx.New(name, instance)}
 }
 
-func (a *App) MountOn(parent, pattern string) *App {
-	a.App.Use(MountOn(parent, pattern))
-	a.App.Require(parent)
+func (a *App) ScheduledBy(scheduler string) *App {
+	a.App.Use(ScheduledBy(scheduler))
+	a.App.Require(scheduler)
 	return a
 }
 

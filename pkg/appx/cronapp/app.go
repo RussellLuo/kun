@@ -13,10 +13,13 @@ func New(name string, instance appx.Instance) *App {
 }
 
 func (a *App) ScheduledBy(scheduler, expression string) *App {
-	m := ScheduledBy(a.App.Name, scheduler, expression)
-	a.App.Instance = appx.Standardize(m(a.App.Instance))
-
+	a.App.Use(ScheduledBy(a.App.Name, scheduler, expression))
 	a.App.Require(scheduler)
+	return a
+}
+
+func (a *App) Use(middlewares ...func(appx.Standard) appx.Standard) *App {
+	a.App.Use(middlewares...)
 	return a
 }
 

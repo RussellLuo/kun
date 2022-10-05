@@ -1,10 +1,11 @@
-package cronapp
+package cronapp2
 
 import (
 	"errors"
 	"reflect"
 	"testing"
 
+	"github.com/RussellLuo/kun/pkg/appx/cronapp"
 	"github.com/RussellLuo/micron/cron"
 )
 
@@ -18,28 +19,20 @@ func (s *scheduler) AddJob(job ...cron.Job) error {
 	return nil
 }
 
-type job struct {
-	task func()
-}
-
-func (j *job) Task() {
-	j.task()
-}
-
 type cronScheduler struct {
-	scheduler Scheduler
+	scheduler cronapp.Scheduler
 }
 
-func (cs *cronScheduler) Scheduler() Scheduler {
+func (cs *cronScheduler) Scheduler() cronapp.Scheduler {
 	return cs.scheduler
 }
 
-type cronJob struct {
-	job Job
+type cronJobs struct {
+	jobs []cron.Job
 }
 
-func (cj *cronJob) Job() Job {
-	return cj.job
+func (cj *cronJobs) Jobs() []cron.Job {
+	return cj.jobs
 }
 
 func TestGetCronScheduler(t *testing.T) {
@@ -53,12 +46,12 @@ func TestGetCronScheduler(t *testing.T) {
 		{
 			in:            nil,
 			wantScheduler: nil,
-			wantErr:       errors.New("instance <nil> does not implement httpapp.CronScheduler"),
+			wantErr:       errors.New("instance <nil> does not implement cronapp.CronScheduler"),
 		},
 		{
 			in:            &cronScheduler{scheduler: nil},
 			wantScheduler: nil,
-			wantErr:       errors.New("method Scheduler() of instance &cronapp.cronScheduler{scheduler:cronapp.Scheduler(nil)} returns nil"),
+			wantErr:       errors.New("method Scheduler() of instance &cronapp2.cronScheduler{scheduler:cronapp.Scheduler(nil)} returns nil"),
 		},
 		{
 			in:            &cronScheduler{scheduler: nopScheduler},
@@ -77,34 +70,38 @@ func TestGetCronScheduler(t *testing.T) {
 	}
 }
 
-func TestGetCronJob(t *testing.T) {
-	nopJob := &job{task: func() {}}
+func TestGetCronJobs(t *testing.T) {
+	nopJobs := []cron.Job{
+		{
+			Task: func() {},
+		},
+	}
 
 	cases := []struct {
-		in      interface{}
-		wantJob interface{}
-		wantErr error
+		in       interface{}
+		wantJobs []cron.Job
+		wantErr  error
 	}{
 		{
-			in:      nil,
-			wantJob: nil,
-			wantErr: errors.New("instance <nil> does not implement httpapp.CronJob"),
+			in:       nil,
+			wantJobs: nil,
+			wantErr:  errors.New("instance <nil> does not implement cronapp2.CronJobs"),
 		},
 		{
-			in:      &cronJob{job: nil},
-			wantJob: nil,
-			wantErr: errors.New("method Job() of value &cronapp.cronJob{job:cronapp.Job(nil)} returns nil"),
+			in:       &cronJobs{},
+			wantJobs: nil,
+			wantErr:  errors.New("method Jobs() of value &cronapp2.cronJobs{jobs:[]cron.Job(nil)} returns nil"),
 		},
 		{
-			in:      &cronJob{job: nopJob},
-			wantJob: nopJob,
-			wantErr: nil,
+			in:       &cronJobs{jobs: nopJobs},
+			wantJobs: nopJobs,
+			wantErr:  nil,
 		},
 	}
 	for _, c := range cases {
-		router, err := getCronJob(c.in)
-		if router != c.wantJob {
-			t.Fatalf("Job: got (%#v), want (%#v)", router, c.wantJob)
+		jobs, err := getCronJobs(c.in)
+		if !reflect.DeepEqual(jobs, c.wantJobs) {
+			t.Fatalf("Jobs: got (%#v), want (%#v)", jobs, c.wantJobs)
 		}
 		if !reflect.DeepEqual(err, c.wantErr) {
 			t.Fatalf("Error: got (%#v), want (%#v)", err, c.wantErr)

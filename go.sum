@@ -2,10 +2,10 @@ cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMT
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go.mod h1:r7JcOSlj0wfOMncg0iLm8Leh48TZaKVeNIfJntJ2wa0=
-github.com/RussellLuo/appx v0.0.0-20220409155050-308f2cb0b320 h1:27i5zZnCrBHlxIeHZmsVIqP2SExlNnoc5PcFTaS4EVg=
-github.com/RussellLuo/appx v0.0.0-20220409155050-308f2cb0b320/go.mod h1:BYiSO63uqNy81Mlv9EfnJ+wNr+vkgAohKMgeDyhWu1s=
-github.com/RussellLuo/micron/cron v0.0.0-20220211083222-9c7043d2a83a h1:vyLrurbny6mKe6enmLFmvzzbWux7UD3lYOCbxvNM+vA=
-github.com/RussellLuo/micron/cron v0.0.0-20220211083222-9c7043d2a83a/go.mod h1:Mq+QY1YdEN9eupmxn4KJoq4ZNjxSKcBiyNshmJ3ZGcA=
+github.com/RussellLuo/appx v0.0.0-20221005024335-823438be54e9 h1:Wkfr9G/y27mPdNPV4U19CjMj7TKNB0HzfMOPYEgTWGs=
+github.com/RussellLuo/appx v0.0.0-20221005024335-823438be54e9/go.mod h1:BYiSO63uqNy81Mlv9EfnJ+wNr+vkgAohKMgeDyhWu1s=
+github.com/RussellLuo/micron/cron v0.0.0-20221001133951-f60128a28874 h1:zSTu7LgCTmr2oehgspIziklJm7zueh9SqN2Yrs23Hrs=
+github.com/RussellLuo/micron/cron v0.0.0-20221001133951-f60128a28874/go.mod h1:Mq+QY1YdEN9eupmxn4KJoq4ZNjxSKcBiyNshmJ3ZGcA=
 github.com/RussellLuo/validating/v2 v2.1.1 h1:lIqtzIgoeW1Rs4Oouo6Twk0HRxFjKgEZARMuOlT4hh0=
 github.com/RussellLuo/validating/v2 v2.1.1/go.mod h1:FCrcxiiCo8FXMbKoALpXAHkGXZoVh5pWVboC+GVruiI=
 github.com/Shopify/sarama v1.19.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWXgklEdEo=
