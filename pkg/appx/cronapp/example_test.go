@@ -7,7 +7,7 @@ import (
 
 	"github.com/RussellLuo/appx"
 	"github.com/RussellLuo/kun/pkg/appx/cronapp"
-	"github.com/RussellLuo/micron/cron"
+	"github.com/RussellLuo/micron"
 )
 
 type task func()
@@ -57,7 +57,7 @@ func (b *Bye) Init(ctx appx.Context) error {
 }
 
 type Greeter struct {
-	c *cron.Cron
+	c *micron.Cron
 }
 
 func (g *Greeter) Scheduler() cronapp.Scheduler {
@@ -65,7 +65,7 @@ func (g *Greeter) Scheduler() cronapp.Scheduler {
 }
 
 func (g *Greeter) Init(ctx appx.Context) error {
-	g.c = cron.New(cron.NewNilLocker(), nil)
+	g.c = micron.New(micron.NewNilLocker(), nil)
 	return nil
 }
 

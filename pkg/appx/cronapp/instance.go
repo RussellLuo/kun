@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/RussellLuo/appx"
-	"github.com/RussellLuo/micron/cron"
+	"github.com/RussellLuo/micron"
 )
 
 func ScheduledBy(name, scheduler, expression string) func(appx.Standard) appx.Standard {
@@ -47,7 +47,7 @@ func (m middleware) Init(ctx appx.Context) error {
 // Scheduler represents a cron scheduler.
 type Scheduler interface {
 	Add(name, expr string, task func()) error
-	AddJob(job ...cron.Job) error
+	AddJob(job ...micron.Job) error
 }
 
 // Job represents a cron job.

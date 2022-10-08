@@ -5,7 +5,7 @@ import (
 
 	"github.com/RussellLuo/appx"
 	"github.com/RussellLuo/kun/pkg/appx/cronapp"
-	"github.com/RussellLuo/micron/cron"
+	"github.com/RussellLuo/micron"
 )
 
 func ScheduledBy(scheduler string) func(appx.Standard) appx.Standard {
@@ -47,7 +47,7 @@ type CronScheduler interface {
 
 // CronJobs is the interface that a job application must implement.
 type CronJobs interface {
-	Jobs() []cron.Job
+	Jobs() []micron.Job
 }
 
 func getCronScheduler(instance interface{}) (cronapp.Scheduler, error) {
@@ -64,7 +64,7 @@ func getCronScheduler(instance interface{}) (cronapp.Scheduler, error) {
 	return result, nil
 }
 
-func getCronJobs(instance interface{}) ([]cron.Job, error) {
+func getCronJobs(instance interface{}) ([]micron.Job, error) {
 	r, ok := instance.(CronJobs)
 	if !ok {
 		return nil, fmt.Errorf("instance %#v does not implement cronapp2.CronJobs", instance)

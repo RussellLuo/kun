@@ -8,24 +8,24 @@ import (
 	"github.com/RussellLuo/appx"
 	"github.com/RussellLuo/kun/pkg/appx/cronapp"
 	"github.com/RussellLuo/kun/pkg/appx/cronapp2"
-	"github.com/RussellLuo/micron/cron"
+	"github.com/RussellLuo/micron"
 )
 
 type Hi struct {
 	words chan<- string
-	jobs  []cron.Job
+	jobs  []micron.Job
 }
 
 func newHi(words chan<- string) *Hi {
 	return &Hi{words: words}
 }
 
-func (h *Hi) Jobs() []cron.Job {
+func (h *Hi) Jobs() []micron.Job {
 	return h.jobs
 }
 
 func (h *Hi) Init(ctx appx.Context) error {
-	h.jobs = []cron.Job{
+	h.jobs = []micron.Job{
 		{
 			Name: "hi",
 			Expr: "*/1 * * * * * *",
@@ -39,19 +39,19 @@ func (h *Hi) Init(ctx appx.Context) error {
 
 type Bye struct {
 	words chan<- string
-	jobs  []cron.Job
+	jobs  []micron.Job
 }
 
 func newBye(words chan<- string) *Bye {
 	return &Bye{words: words}
 }
 
-func (b *Bye) Jobs() []cron.Job {
+func (b *Bye) Jobs() []micron.Job {
 	return b.jobs
 }
 
 func (b *Bye) Init(ctx appx.Context) error {
-	b.jobs = []cron.Job{
+	b.jobs = []micron.Job{
 		{
 			Name: "bye",
 			Expr: "*/2 * * * * * *",
@@ -64,7 +64,7 @@ func (b *Bye) Init(ctx appx.Context) error {
 }
 
 type Greeter struct {
-	c *cron.Cron
+	c *micron.Cron
 }
 
 func (g *Greeter) Scheduler() cronapp.Scheduler {
@@ -72,7 +72,7 @@ func (g *Greeter) Scheduler() cronapp.Scheduler {
 }
 
 func (g *Greeter) Init(ctx appx.Context) error {
-	g.c = cron.New(cron.NewNilLocker(), nil)
+	g.c = micron.New(micron.NewNilLocker(), nil)
 	return nil
 }
 

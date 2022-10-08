@@ -2,7 +2,6 @@ package mixedapp
 
 import (
 	"github.com/RussellLuo/appx"
-	"github.com/RussellLuo/kun/pkg/appx/cronapp"
 	"github.com/RussellLuo/kun/pkg/appx/cronapp2"
 	"github.com/RussellLuo/kun/pkg/appx/httpapp"
 )
@@ -21,13 +20,7 @@ func (a *App) MountOn(parent, pattern string) *App {
 	return a
 }
 
-func (a *App) ScheduledBy(scheduler, expression string) *App {
-	a.App.Use(cronapp.ScheduledBy(a.App.Name, scheduler, expression))
-	a.App.Require(scheduler)
-	return a
-}
-
-func (a *App) ScheduledBy2(scheduler string) *App {
+func (a *App) ScheduledBy(scheduler string) *App {
 	a.App.Use(cronapp2.ScheduledBy(scheduler))
 	a.App.Require(scheduler)
 	return a

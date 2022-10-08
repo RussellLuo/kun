@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/RussellLuo/kun/pkg/appx/cronapp"
-	"github.com/RussellLuo/micron/cron"
+	"github.com/RussellLuo/micron"
 )
 
 type scheduler struct{}
@@ -15,7 +15,7 @@ func (s *scheduler) Add(name, expr string, task func()) error {
 	return nil
 }
 
-func (s *scheduler) AddJob(job ...cron.Job) error {
+func (s *scheduler) AddJob(job ...micron.Job) error {
 	return nil
 }
 
@@ -28,10 +28,10 @@ func (cs *cronScheduler) Scheduler() cronapp.Scheduler {
 }
 
 type cronJobs struct {
-	jobs []cron.Job
+	jobs []micron.Job
 }
 
-func (cj *cronJobs) Jobs() []cron.Job {
+func (cj *cronJobs) Jobs() []micron.Job {
 	return cj.jobs
 }
 
@@ -71,7 +71,7 @@ func TestGetCronScheduler(t *testing.T) {
 }
 
 func TestGetCronJobs(t *testing.T) {
-	nopJobs := []cron.Job{
+	nopJobs := []micron.Job{
 		{
 			Task: func() {},
 		},
@@ -79,7 +79,7 @@ func TestGetCronJobs(t *testing.T) {
 
 	cases := []struct {
 		in       interface{}
-		wantJobs []cron.Job
+		wantJobs []micron.Job
 		wantErr  error
 	}{
 		{
@@ -90,7 +90,7 @@ func TestGetCronJobs(t *testing.T) {
 		{
 			in:       &cronJobs{},
 			wantJobs: nil,
-			wantErr:  errors.New("method Jobs() of value &cronapp2.cronJobs{jobs:[]cron.Job(nil)} returns nil"),
+			wantErr:  errors.New("method Jobs() of value &cronapp2.cronJobs{jobs:[]micron.Job(nil)} returns nil"),
 		},
 		{
 			in:       &cronJobs{jobs: nopJobs},

@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/RussellLuo/micron/cron"
+	"github.com/RussellLuo/micron"
 )
 
 type scheduler struct{}
@@ -14,7 +14,7 @@ func (s *scheduler) Add(name, expr string, task func()) error {
 	return nil
 }
 
-func (s *scheduler) AddJob(job ...cron.Job) error {
+func (s *scheduler) AddJob(job ...micron.Job) error {
 	return nil
 }
 
