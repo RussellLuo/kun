@@ -43,6 +43,8 @@ Ultimately, kun may support the following communication types:
     - [x] Event
         + [x] Event Subscriber
         + [x] Event Publisher
+   - [x] Cron
+       + [x] Cron Job Handler
 
 2. Useful Packages
 
@@ -822,6 +824,53 @@ See the [OAS Schema](https://github.com/RussellLuo/kun/blob/master/pkg/oas2/sche
     }
 
     // event: {"type": "created", "data": `{"id": 1}`}
+    ```
+
+</details>
+
+
+## Cron
+
+### Annotations
+
+<details open>
+  <summary> Directive //kun:cron </summary>
+
+##### Syntax
+
+```
+//kun:cron name=<name> expr=<expr>
+```
+
+##### Arguments
+
+- **name**: The job name.
+    + Optional: Defaults to the name of the corresponding method (snake-case, or lower-camel-case if `-snake=false`) if not specified.
+- **expr**: The cron expression.
+    + Required: [Three formats are supported](https://pkg.go.dev/github.com/RussellLuo/micron#Job).
+
+##### Examples
+
+- Name omitted:
+
+    ```go
+    type Service interface {
+        //kun:cron expr='@every 5s'
+        SendEmail()
+    }
+
+    // job: {"name": "send_email", "expr": "@every 5s"}
+    ```
+
+- Name specified:
+
+    ```go
+    type Service interface {
+        //kun:cron name=send expr='@every 5s'
+        SendEmail()
+    }
+
+    // job: {"name": "send", "expr": "@every 5s"}
     ```
 
 </details>

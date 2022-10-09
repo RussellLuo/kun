@@ -6,6 +6,8 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	crongenerator "github.com/RussellLuo/kun/gen/cron/generator"
+	cronparser "github.com/RussellLuo/kun/gen/cron/parser"
 	"github.com/RussellLuo/kun/gen/endpoint"
 	eventgenerator "github.com/RussellLuo/kun/gen/event/generator"
 	eventparser "github.com/RussellLuo/kun/gen/event/parser"
@@ -41,6 +43,7 @@ type Generator struct {
 	proto      *proto.Generator
 	grpc       *grpc.Generator
 	event      *eventgenerator.Generator
+	cron       *crongenerator.Generator
 
 	opts *Options
 }
@@ -80,6 +83,11 @@ func New(opts *Options) *Generator {
 			Formatted: opts.Formatted,
 		}),
 		event: eventgenerator.New(&eventgenerator.Options{
+			SchemaPtr: opts.SchemaPtr,
+			SchemaTag: opts.SchemaTag,
+			Formatted: opts.Formatted,
+		}),
+		cron: crongenerator.New(&crongenerator.Options{
 			SchemaPtr: opts.SchemaPtr,
 			SchemaTag: opts.SchemaTag,
 			Formatted: opts.Formatted,
@@ -128,6 +136,13 @@ func (g *Generator) Generate(srcFilename, interfaceName string) (files []*genera
 		}
 		files = append(files, eventFiles...)
 
+	case docutil.TransportCron:
+		cronFiles, err := g.generateCron(data, spec)
+		if err != nil {
+			return files, err
+		}
+		files = append(files, cronFiles...)
+
 	case docutil.TransportAll:
 		httpFiles, err := g.generateHTTP(data, spec)
 		if err != nil {
@@ -146,6 +161,12 @@ func (g *Generator) Generate(srcFilename, interfaceName string) (files []*genera
 			return files, err
 		}
 		files = append(files, eventFiles...)
+
+		cronFiles, err := g.generateCron(data, spec)
+		if err != nil {
+			return files, err
+		}
+		files = append(files, cronFiles...)
 	}
 
 	return files, nil
@@ -284,6 +305,34 @@ func (g *Generator) generateEvent(data *ifacetool.Data, spec *openapi.Specificat
 	}
 
 	f, err := g.event.Generate(pkgInfo, data, eventInfo, spec)
+	if err != nil {
+		return files, err
+	}
+	files = append(files, f)
+
+	return files, nil
+}
+
+// generateCron generates the cron code.
+func (g *Generator) generateCron(data *ifacetool.Data, spec *openapi.Specification) (files []*generator.File, err error) {
+	outDir := g.getOutDir("cron")
+	if err := ensureDir(outDir); err != nil {
+		return files, err
+	}
+	defer func() {
+		for _, f := range files {
+			f.MoveTo(outDir)
+		}
+	}()
+
+	pkgInfo := g.getPkgInfo(outDir)
+
+	cronSpec, err := cronparser.Parse(data, g.opts.SnakeCase)
+	if err != nil {
+		return files, err
+	}
+
+	f, err := g.cron.Generate(pkgInfo, data, cronSpec, spec)
 	if err != nil {
 		return files, err
 	}

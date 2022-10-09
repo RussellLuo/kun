@@ -25,6 +25,8 @@ var (
 	DirectiveGRPC = FromSubDirective("grpc")
 
 	DirectiveEvent = FromSubDirective("event")
+
+	DirectiveCron = FromSubDirective("cron")
 )
 
 type Directive string
@@ -47,6 +49,8 @@ func (d Directive) Dialect() Dialect {
 		return DialectGRPC
 	case DirectiveEvent.SubDirective():
 		return DialectEvent
+	case DirectiveCron.SubDirective():
+		return DialectCron
 	default:
 		return DialectHTTP
 	}
@@ -76,4 +80,5 @@ const (
 	DialectHTTP    Dialect = "http"
 	DialectGRPC    Dialect = "grpc"
 	DialectEvent   Dialect = "event"
+	DialectCron    Dialect = "cron"
 )

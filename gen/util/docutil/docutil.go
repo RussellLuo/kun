@@ -12,7 +12,8 @@ const (
 	TransportHTTP  Transport = 0b0001
 	TransportGRPC  Transport = 0b0010
 	TransportEvent Transport = 0b0100
-	TransportAll   Transport = 0b0111
+	TransportCron  Transport = 0b1000
+	TransportAll   Transport = 0b1111
 )
 
 type Doc []string
@@ -26,6 +27,8 @@ func (d Doc) Transport() (t Transport) {
 			t = t | TransportGRPC
 		case annotation.DialectEvent:
 			t = t | TransportEvent
+		case annotation.DialectCron:
+			t = t | TransportCron
 		}
 	}
 	return t
