@@ -59,7 +59,7 @@ func Parse(data *ifacetool.Data, snakeCase bool) (*EventInfo, error) {
 					}
 					e.DataField = v
 				default:
-					return nil, fmt.Errorf(`unrecognized %s key "%s" in comment: %s`, annotation.Name, k, comment)
+					return nil, fmt.Errorf(`unrecognized %s key "%s" in comment: %s`, annotation.DirectiveEvent, k, comment)
 				}
 			}
 		}

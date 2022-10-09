@@ -7,15 +7,11 @@ import (
 
 	"github.com/RussellLuo/kun/gen/http/spec"
 	"github.com/RussellLuo/kun/gen/util/annotation"
+	"github.com/RussellLuo/kun/gen/util/parser"
 )
 
 var (
 	reKunParam = regexp.MustCompile(`^(\w+)(.*)$`)
-
-	// Supported formats:
-	//   - k1=v1
-	//   - k2='v2'
-	reKunParamOption = regexp.MustCompile(`(\w+)=('[^']+'|\S+)`)
 )
 
 type Param struct {
@@ -25,14 +21,13 @@ type Param struct {
 
 // ParseParams parses s per the format as below:
 //
-//     <argName> [<parameter> [, <parameter2> [, ...]]]
+//	<argName> [<parameter> [, <parameter2> [, ...]]]
 //
 // The format of `<parameter>`:
 //
-//     in=<in> name=<name> required=<required> type=<type> descr=<descr>
+//	in=<in> name=<name> required=<required> type=<type> descr=<descr>
 //
 // Multiple bindings can be specified in a single semicolon-separated comment.
-//
 func ParseParams(s string) ([]*Param, error) {
 	s = strings.TrimSpace(s)
 	if s == "" {
@@ -93,29 +88,29 @@ func parseOption(argName, s string) (*spec.Parameter, error) {
 	s = strings.TrimSpace(s)
 	p := new(spec.Parameter)
 
-	pairs, err := parseOptionPairs(s)
+	pairs, err := parser.ParseOptionPairs(s)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, pair := range pairs {
-		switch pair.k {
+		switch pair.Key {
 		case "in":
-			p.In = spec.Location(pair.v)
+			p.In = spec.Location(pair.Value)
 
 			if err := validateLocation(p.In); err != nil {
 				return nil, err
 			}
 		case "name":
-			p.Name = pair.v
+			p.Name = pair.Value
 		case "required":
-			p.Required = pair.v == "true"
+			p.Required = pair.Value == "true"
 		case "type":
-			p.Type = pair.v
+			p.Type = pair.Value
 		case "descr":
-			p.Description = pair.v
+			p.Description = pair.Value
 		default:
-			return nil, fmt.Errorf("invalid parameter option: %s=%s", pair.k, pair.v)
+			return nil, fmt.Errorf("invalid parameter option: %s=%s", pair.Key, pair.Value)
 		}
 	}
 
@@ -134,28 +129,6 @@ func parseOption(argName, s string) (*spec.Parameter, error) {
 	}
 
 	return p, nil
-}
-
-type optionPair struct{ k, v string }
-
-func parseOptionPairs(s string) ([]optionPair, error) {
-	// NOTE: Instead of using ReplaceAllString and then FindAllStringSubmatch,
-	// a more performant alternative solution may be to use ReplaceAllStringFunc once.
-
-	unmatched := strings.TrimSpace(reKunParamOption.ReplaceAllString(s, ""))
-	if unmatched != "" {
-		return nil, fmt.Errorf("invalid parameter option: %s", unmatched)
-	}
-
-	var pairs []optionPair
-	result := reKunParamOption.FindAllStringSubmatch(s, -1)
-	for _, r := range result {
-		pairs = append(pairs, optionPair{
-			k: r[1],
-			v: strings.Trim(strings.TrimSpace(r[2]), "'"),
-		})
-	}
-	return pairs, nil
 }
 
 func validateLocation(in spec.Location) error {
