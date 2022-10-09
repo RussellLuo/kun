@@ -4,8 +4,8 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go.mod h1:r7JcOSlj0wfOMncg0iLm8Leh48TZaKVeNIfJntJ2wa0=
 github.com/RussellLuo/appx v0.0.0-20221005075435-c578768595db h1:apVxO5ghwD7dOEzeCuBOuEIF9zqiffW0/8RoghDn4vw=
 github.com/RussellLuo/appx v0.0.0-20221005075435-c578768595db/go.mod h1:BYiSO63uqNy81Mlv9EfnJ+wNr+vkgAohKMgeDyhWu1s=
-github.com/RussellLuo/micron v0.0.0-20221008065742-31d1b4e95230 h1:B2qSHwpUWyIa7BGJHNLNPu/eOmT8ocLEeOQ5V+TvBJE=
-github.com/RussellLuo/micron v0.0.0-20221008065742-31d1b4e95230/go.mod h1:dSJ4Da5HdXgw8m9O8V0T5p+HQNEblPx01mXpV8tX2NY=
+github.com/RussellLuo/micron v0.0.0-20221009070337-abf7aee8c3d5 h1:9C+0p+Ixdh7lZEbzX4VnIV39Jx6pCj1aQRUULcZbIGY=
+github.com/RussellLuo/micron v0.0.0-20221009070337-abf7aee8c3d5/go.mod h1:dSJ4Da5HdXgw8m9O8V0T5p+HQNEblPx01mXpV8tX2NY=
 github.com/RussellLuo/validating/v2 v2.1.1 h1:lIqtzIgoeW1Rs4Oouo6Twk0HRxFjKgEZARMuOlT4hh0=
 github.com/RussellLuo/validating/v2 v2.1.1/go.mod h1:FCrcxiiCo8FXMbKoALpXAHkGXZoVh5pWVboC+GVruiI=
 github.com/Shopify/sarama v1.19.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWXgklEdEo=

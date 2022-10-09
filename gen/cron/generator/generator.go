@@ -32,7 +32,7 @@ func NewCronJobs(svc {{$.Data.SrcPkgQualifier}}{{$.Data.InterfaceName}}) []micro
 		{
 			Name: "{{getJobName .GoMethodName}}",
 			Expr: "{{getJobExpr .GoMethodName}}",
-			Task: svc.{{.Name}},
+			Handler: svc.{{.Name}},
 		},
 		{{end -}} {{/* range .Spec.Operations */ -}}
 	}

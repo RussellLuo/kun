@@ -10,9 +10,9 @@ import (
 func NewCronJobs(svc Service) []micron.Job {
 	return []micron.Job{
 		{
-			Name: "send_email",
-			Expr: "@every 5s",
-			Task: svc.SendEmail,
+			Name:    "send_email",
+			Expr:    "@every 5s",
+			Handler: svc.SendEmail,
 		},
 	}
 }

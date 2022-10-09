@@ -7,6 +7,7 @@ Ultimately, kun may support the following communication types:
 - In-process function call
 - RPC (e.g., HTTP and gRPC)
 - Asynchronous messaging
+- Cron Jobs
 
 中文博客：[Go 服务通信工具 Kun](http://russellluo.com/2021/12/kun.html)。
 
@@ -44,7 +45,7 @@ Ultimately, kun may support the following communication types:
         + [x] Event Subscriber
         + [x] Event Publisher
    - [x] Cron
-       + [x] Cron Job Handler
+       + [x] Cron Jobs
 
 2. Useful Packages
 
@@ -856,7 +857,7 @@ See the [OAS Schema](https://github.com/RussellLuo/kun/blob/master/pkg/oas2/sche
     ```go
     type Service interface {
         //kun:cron expr='@every 5s'
-        SendEmail()
+        SendEmail(ctx context.Context) error
     }
 
     // job: {"name": "send_email", "expr": "@every 5s"}
@@ -867,7 +868,7 @@ See the [OAS Schema](https://github.com/RussellLuo/kun/blob/master/pkg/oas2/sche
     ```go
     type Service interface {
         //kun:cron name=send expr='@every 5s'
-        SendEmail()
+        SendEmail(ctx context.Context) error
     }
 
     // job: {"name": "send", "expr": "@every 5s"}

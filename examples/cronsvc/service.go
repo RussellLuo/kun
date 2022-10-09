@@ -1,6 +1,7 @@
 package cronsvc
 
 import (
+	"context"
 	"log"
 )
 
@@ -9,11 +10,12 @@ import (
 // Service is used for handling cron jobs.
 type Service interface {
 	//kun:cron expr='@every 5s'
-	SendEmail()
+	SendEmail(ctx context.Context) error
 }
 
 type Handler struct{}
 
-func (h *Handler) SendEmail() {
+func (h *Handler) SendEmail(ctx context.Context) error {
 	log.Println("Sending an email")
+	return nil
 }
