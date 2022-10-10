@@ -3,8 +3,8 @@ module github.com/RussellLuo/kun
 go 1.16
 
 require (
-	github.com/RussellLuo/appx v0.0.0-20221005075435-c578768595db
-	github.com/RussellLuo/micron v0.0.0-20221009070337-abf7aee8c3d5
+	github.com/RussellLuo/appx v0.0.0-20221010012641-012c63db58d5
+	github.com/RussellLuo/micron v0.0.0-20221009105224-18343cd0cfd9
 	github.com/RussellLuo/validating/v2 v2.1.1
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-kit/kit v0.10.0
