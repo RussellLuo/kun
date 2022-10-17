@@ -16,7 +16,7 @@ var (
 package {{.PkgInfo.CurrentPkgName}}
 
 import (
-	"github.com/RussellLuo/validating/v2"
+	"github.com/RussellLuo/validating/v3"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/RussellLuo/kun/pkg/httpoption"
 
