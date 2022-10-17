@@ -10,6 +10,7 @@ import (
 	utilannotation "github.com/RussellLuo/kun/gen/util/annotation"
 	"github.com/RussellLuo/kun/gen/util/generator"
 	"github.com/RussellLuo/kun/gen/util/openapi"
+	"github.com/RussellLuo/kun/pkg/caseconv"
 	"github.com/RussellLuo/kun/pkg/ifacetool"
 )
 
@@ -242,7 +243,7 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Da
 				var results []string
 
 				for _, p := range params {
-					r := strings.NewReplacer(">Name", strings.Title(p.Name))
+					r := strings.NewReplacer(">Name", caseconv.UpperFirst(p.Name))
 					results = append(results, r.Replace(format))
 				}
 				return strings.Join(results, sep)
@@ -258,7 +259,7 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Da
 			"getOperation": func(name string) *openapi.Operation {
 				return operationMap[name]
 			},
-			"title": strings.Title,
+			"title": caseconv.UpperFirst,
 			"addTag": func(name, typ string) string {
 				if g.opts.SchemaTag == "" {
 					return ""
@@ -389,8 +390,8 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Da
 	})
 }
 
-//Returns the empty value that should be returned depending on it's type.
-//Defaults to returning 'nil' if type can't be found
+// Returns the empty value that should be returned depending on it's type.
+// Defaults to returning 'nil' if type can't be found
 func emptyValue(param *ifacetool.Param) string {
 	t := param.Type.Underlying()
 

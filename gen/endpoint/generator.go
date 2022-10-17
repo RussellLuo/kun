@@ -161,7 +161,7 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Da
 
 	return generator.Generate(template, data, generator.Options{
 		Funcs: map[string]interface{}{
-			"title": strings.Title,
+			"title": caseconv.UpperFirst,
 			"nonCtxParams": func(params []*ifacetool.Param, reqParams []*openapi.Param) (out []ParamWithAlias) {
 				nameToAlias := make(map[string]string)
 				for _, p := range reqParams {

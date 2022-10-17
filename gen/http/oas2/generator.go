@@ -8,6 +8,7 @@ import (
 	utilannotation "github.com/RussellLuo/kun/gen/util/annotation"
 	"github.com/RussellLuo/kun/gen/util/generator"
 	"github.com/RussellLuo/kun/gen/util/openapi"
+	"github.com/RussellLuo/kun/pkg/caseconv"
 )
 
 var (
@@ -183,7 +184,7 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, spec *openapi.Specifica
 
 	return generator.Generate(template, data, generator.Options{
 		Funcs: map[string]interface{}{
-			"title": strings.Title,
+			"title": caseconv.UpperFirst,
 			"lower": strings.ToLower,
 			"operationsGroupByPattern": func(ops []*openapi.Operation) (outOps []*OperationsPerPattern) {
 				var opp *OperationsPerPattern

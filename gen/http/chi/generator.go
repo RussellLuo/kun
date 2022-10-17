@@ -3,7 +3,6 @@ package chi
 import (
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/RussellLuo/kun/gen/http/parser/annotation"
 	utilannotation "github.com/RussellLuo/kun/gen/util/annotation"
@@ -213,7 +212,7 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Da
 
 	return generator.Generate(template, data, generator.Options{
 		Funcs: map[string]interface{}{
-			"title":      strings.Title,
+			"title":      caseconv.UpperFirst,
 			"lowerFirst": caseconv.LowerFirst,
 			"addAmpersand": func(name string) string {
 				if g.opts.SchemaPtr {
@@ -326,7 +325,7 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Da
 				if param.IsBlank {
 					return "nil"
 				}
-				return fmt.Sprintf("&%s.%s", reqVar, strings.Title(param.Name))
+				return fmt.Sprintf("&%s.%s", reqVar, caseconv.UpperFirst(param.Name))
 			},
 		},
 		Formatted:      g.opts.Formatted,

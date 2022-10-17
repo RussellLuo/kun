@@ -2,7 +2,6 @@ package generator
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/RussellLuo/kun/gen/event/parser"
 	utilannotation "github.com/RussellLuo/kun/gen/util/annotation"
@@ -172,7 +171,7 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, ifaceData *ifacetool.Da
 
 	return generator.Generate(template, data, generator.Options{
 		Funcs: map[string]interface{}{
-			"title":      strings.Title,
+			"title":      caseconv.UpperFirst,
 			"lowerFirst": caseconv.LowerFirst,
 			"addAmpersand": func(name string) string {
 				if g.opts.SchemaPtr {

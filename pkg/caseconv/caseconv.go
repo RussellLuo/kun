@@ -20,7 +20,7 @@ func ToSnakeCase(s string) string {
 
 func ToCamelCase(s string) string {
 	return matchUnderscore.ReplaceAllStringFunc(s, func(x string) string {
-		return strings.Title(strings.TrimLeft(x, "_"))
+		return UpperFirst(strings.TrimLeft(x, "_"))
 	})
 }
 
