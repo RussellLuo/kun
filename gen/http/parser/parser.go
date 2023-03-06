@@ -24,10 +24,10 @@ var (
 	rePathVarName = regexp.MustCompile(`{(\w+)}`)
 )
 
-func Parse(data *ifacetool.Data, snakeCase bool) (*spec.Specification, []docutil.Transport, error) {
+func Parse(data *ifacetool.Data, snakeCase bool) (*spec.Specification, docutil.Transport, error) {
 	anno, err := annotation.ParseInterfaceAnnotation(data.InterfaceDoc)
 	if err != nil {
-		return nil, nil, err
+		return nil, 0, err
 	}
 
 	s := &spec.Specification{
@@ -35,8 +35,8 @@ func Parse(data *ifacetool.Data, snakeCase bool) (*spec.Specification, []docutil
 	}
 
 	var (
-		transports []docutil.Transport
-		opBuilder  = &OpBuilder{
+		transport docutil.Transport
+		opBuilder = &OpBuilder{
 			snakeCase: snakeCase,
 			aliases:   anno.Aliases,
 		}
@@ -46,14 +46,14 @@ func Parse(data *ifacetool.Data, snakeCase bool) (*spec.Specification, []docutil
 		doc := docutil.Doc(m.Doc).JoinComments()
 		m.Doc = doc // Replace the original doc with joined doc.
 
-		transport := doc.Transport()
-		if transport == 0 {
+		t := doc.Transport()
+		if t == 0 {
 			// Empty transport indicates that there are no annotations.
 			continue
 		}
-		transports = append(transports, transport)
+		transport |= t
 
-		if transport&docutil.TransportHTTP != docutil.TransportHTTP {
+		if !t.Has(docutil.TransportHTTP) {
 			// Add operations for generating endpoint code for gRPC.
 			op := spec.NewOperation(m.Name, m.Name, annotation.GetDescriptionFromDoc(m.Doc))
 			for _, arg := range m.Params {
@@ -65,13 +65,13 @@ func Parse(data *ifacetool.Data, snakeCase bool) (*spec.Specification, []docutil
 
 		ops, err := opBuilder.Build(m)
 		if err != nil {
-			return nil, nil, err
+			return nil, 0, err
 		}
 
 		s.Operations = append(s.Operations, ops...)
 	}
 
-	return s, transports, nil
+	return s, transport, nil
 }
 
 type OpBuilder struct {

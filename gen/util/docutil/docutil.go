@@ -8,12 +8,15 @@ import (
 
 type Transport int
 
+func (t Transport) Has(o Transport) bool {
+	return t&o == o
+}
+
 const (
 	TransportHTTP  Transport = 0b0001
 	TransportGRPC  Transport = 0b0010
 	TransportEvent Transport = 0b0100
 	TransportCron  Transport = 0b1000
-	TransportAll   Transport = 0b1111
 )
 
 type Doc []string

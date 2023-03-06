@@ -102,7 +102,7 @@ func (g *Generator) Generate(srcFilename, interfaceName string) (files []*genera
 		return nil, err
 	}
 
-	newSpec, transports, err := httpparser.Parse(data, g.opts.SnakeCase)
+	newSpec, transport, err := httpparser.Parse(data, g.opts.SnakeCase)
 	if err != nil {
 		return nil, err
 	}
@@ -114,54 +114,31 @@ func (g *Generator) Generate(srcFilename, interfaceName string) (files []*genera
 	}
 	files = append(files, epFile)
 
-	switch mergeTransports(transports) {
-	case docutil.TransportHTTP:
+	if transport.Has(docutil.TransportHTTP) {
 		httpFiles, err := g.generateHTTP(data, spec)
 		if err != nil {
 			return files, err
 		}
 		files = append(files, httpFiles...)
+	}
 
-	case docutil.TransportGRPC:
+	if transport.Has(docutil.TransportGRPC) {
 		grpcFiles, err := g.generateGRPC(data)
 		if err != nil {
 			return files, err
 		}
 		files = append(files, grpcFiles...)
+	}
 
-	case docutil.TransportEvent:
+	if transport.Has(docutil.TransportEvent) {
 		eventFiles, err := g.generateEvent(data, spec)
 		if err != nil {
 			return files, err
 		}
 		files = append(files, eventFiles...)
+	}
 
-	case docutil.TransportCron:
-		cronFiles, err := g.generateCron(data, spec)
-		if err != nil {
-			return files, err
-		}
-		files = append(files, cronFiles...)
-
-	case docutil.TransportAll:
-		httpFiles, err := g.generateHTTP(data, spec)
-		if err != nil {
-			return files, err
-		}
-		files = append(files, httpFiles...)
-
-		grpcFiles, err := g.generateGRPC(data)
-		if err != nil {
-			return files, err
-		}
-		files = append(files, grpcFiles...)
-
-		eventFiles, err := g.generateEvent(data, spec)
-		if err != nil {
-			return files, err
-		}
-		files = append(files, eventFiles...)
-
+	if transport.Has(docutil.TransportCron) {
 		cronFiles, err := g.generateCron(data, spec)
 		if err != nil {
 			return files, err
@@ -373,13 +350,6 @@ func (g *Generator) getPkgInfo(dir string) *generator.PkgInfo {
 		pkgInfo.EndpointPkgPath = pkgtool.PkgPathFromDir(g.getOutDir("endpoint"))
 	}
 	return pkgInfo
-}
-
-func mergeTransports(transports []docutil.Transport) (result docutil.Transport) {
-	for _, t := range transports {
-		result = result | t
-	}
-	return result
 }
 
 func ensureDir(path string) error {
