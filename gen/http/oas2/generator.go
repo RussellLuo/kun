@@ -63,6 +63,7 @@ paths:
   {{- $nonCtxParams := nonCtxParams .Request.Params}}
     {{lower .Method}}:
       description: "{{.Description}}"
+      summary: "{{.Description}}"
       operationId: "{{.Name}}"
       {{- $tags := getTags .Tags $defaultTags}}
       {{- if $tags}}
