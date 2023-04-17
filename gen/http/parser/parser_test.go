@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"encoding/json"
 	"go/types"
 	"reflect"
 	"testing"
@@ -24,6 +25,118 @@ func newStruct(fields []*structField) *types.Struct {
 		tags = append(tags, f.tag)
 	}
 	return types.NewStruct(fs, tags)
+}
+
+func TestOpBuilder_Build(t *testing.T) {
+	tests := []struct {
+		name          string
+		inOpBuilder   *OpBuilder
+		inMethod      *ifacetool.Method
+		wantOperation []*spec.Operation
+		wantErrStr    string
+	}{
+		{
+			name:        `multiple routes for one method`,
+			inOpBuilder: &OpBuilder{snakeCase: true},
+			inMethod: &ifacetool.Method{
+				Name: "MultipleRoutesForOneMethod",
+				Params: []*ifacetool.Param{
+					{
+						Name:       "token",
+						TypeString: "string",
+						Type:       types.Typ[types.String],
+						Variadic:   false,
+					},
+				},
+				Doc: []string{
+					"//kun:op GET /route_one",
+					"//kun:op POST /route_two",
+					"//kun:param token in=header name=Authorization required=true",
+				},
+			},
+			wantOperation: []*spec.Operation{
+				{
+					Name:         `MultipleRoutesForOneMethod`,
+					GoMethodName: `MultipleRoutesForOneMethod`,
+					Method:       `GET`,
+					Pattern:      `/route_one`,
+					Request: &spec.Request{
+						Bindings: []*spec.Binding{
+							{
+								Arg: &ifacetool.Param{
+									Name:       "token",
+									TypeString: "string",
+									Variadic:   false,
+								},
+								Params: []*spec.Parameter{
+									{
+										In:       "header",
+										Name:     "Authorization",
+										Required: true,
+										Type:     "string",
+									},
+								},
+							},
+						},
+					},
+					SuccessResponse: &spec.Response{
+						StatusCode: 200,
+						MediaType:  `application/json; charset=utf-8`,
+					},
+				},
+				{
+					Name:         `MultipleRoutesForOneMethod1`,
+					GoMethodName: `MultipleRoutesForOneMethod`,
+					Method:       `POST`,
+					Pattern:      `/route_two`,
+					Request: &spec.Request{
+						Bindings: []*spec.Binding{
+							{
+								Arg: &ifacetool.Param{
+									Name:       "token",
+									TypeString: "string",
+									Variadic:   false,
+								},
+								Params: []*spec.Parameter{
+									{
+										In:       "header",
+										Name:     "Authorization",
+										Required: true,
+										Type:     "string",
+									},
+								},
+							},
+						},
+					},
+					SuccessResponse: &spec.Response{
+						StatusCode: 200,
+						MediaType:  `application/json; charset=utf-8`,
+					},
+				},
+			},
+			wantErrStr: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			res, err := tt.inOpBuilder.Build(tt.inMethod)
+			if (err == nil && tt.wantErrStr != "") || (err != nil && err.Error() != tt.wantErrStr) {
+				t.Fatalf("Err: got (%#v), want (%#v)", err, tt.wantErrStr)
+			}
+			if len(res) != len(tt.wantOperation) {
+				t.Fatalf("Len unmatch: got (%#v), want (%#v)", len(res), len(tt.wantOperation))
+			}
+			for i, operation := range res {
+				d1, _ := json.Marshal(operation)
+				d2, _ := json.Marshal(tt.wantOperation[i])
+
+				if !reflect.DeepEqual(d1, d2) {
+					t.Fatalf("Operation(%d): got (%#v), want (%#v)", i, res[i], tt.wantOperation[i])
+				}
+			}
+		})
+	}
 }
 
 func TestOpBuilder_setParams(t *testing.T) {

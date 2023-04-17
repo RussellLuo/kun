@@ -208,15 +208,14 @@ func (b *OpBuilder) manipulateBody(req *spec.Request, body *annotation.Body) err
 }
 
 func (b *OpBuilder) setParams(req *spec.Request, method *ifacetool.Method, params map[string]*annotation.Param, pathVarNames []string) error {
+	matchedParams := map[string]struct{}{}
 	for _, arg := range method.Params {
 		param, ok := params[arg.Name]
 		if !ok {
 			req.Bind(arg, b.buildParams(arg, nil))
 			continue
 		}
-
-		// Remove this entry to check unmatched annotations later.
-		delete(params, arg.Name)
+		matchedParams[arg.Name] = struct{}{}
 
 		if len(param.Params) > 0 {
 			if !isBasic(arg) {
@@ -234,8 +233,11 @@ func (b *OpBuilder) setParams(req *spec.Request, method *ifacetool.Method, param
 	}
 
 	for name, p := range params {
-		// Remain some unmatched entries.
+		if _, ok := matchedParams[name]; ok {
+			continue
+		}
 
+		// Remain some unmatched entries.
 		if !strings.HasPrefix(name, "__") {
 			return fmt.Errorf("no argument %q declared in the method %s", name, method.Name)
 		}
