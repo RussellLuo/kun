@@ -127,7 +127,7 @@ func getDefinitions(schema oas2.Schema) map[string]oas2.Definition {
 	{{- else if $bodyParams}}
 	oas2.AddDefinition(defs, "{{.GoMethodName}}RequestBody", reflect.ValueOf(&struct{
 		{{- range $bodyParams}}
-		{{title .Name}} {{.Type}} {{addTag .Alias .Type}}
+		{{title .Name}} {{.Type}} {{addTag .Alias .Type .Description .Required }}
 		{{- end}} {{/* range $bodyParams */}}
 	}{}))
 	{{- end}} {{/* if $bodyField */}}
@@ -294,7 +294,7 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, spec *openapi.Specifica
 				}
 				return fullName
 			},
-			"addTag": func(name, typ string) string {
+			"addTag": func(name, typ, description string, required bool) string {
 				if g.opts.SchemaTag == "" {
 					return ""
 				}
@@ -303,7 +303,26 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, spec *openapi.Specifica
 					name = "-"
 				}
 
-				return fmt.Sprintf("`%s:\"%s\"`", g.opts.SchemaTag, name)
+				tag := fmt.Sprintf(`%s:"%s"`, g.opts.SchemaTag, name)
+
+				kunTag := func(descr string, required bool) string {
+					var content []string
+					if descr != `` {
+						content = append(content, fmt.Sprintf(`descr=%s`, descr))
+					}
+					if required {
+						content = append(content, fmt.Sprintf(`required=%v`, required))
+					}
+					if len(content) == 0 {
+						return ``
+					}
+					return fmt.Sprintf(`kun:"%s"`, strings.Join(content, ` `))
+				}(description, required)
+
+				if kunTag != `` {
+					tag = tag + ` ` + kunTag
+				}
+				return "`" + tag + "`"
 			},
 			"getBodyField": func(name string) string {
 				if name != "" && name != annotation.OptionNoBody {

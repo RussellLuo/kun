@@ -90,6 +90,10 @@ definitions:
         description: {{.Type.Description}}
         {{- end}}
 
+        {{- if .Type.Required}}
+        required: {{.Type.Required}}
+        {{- end}}
+
       {{- end -}} {{/* range $definition.ItemTypeOrProperties */}}
     {{- end -}} {{/* if $definition.ItemTypeOrProperties */}}
 

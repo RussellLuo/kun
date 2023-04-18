@@ -202,6 +202,7 @@ func (b *OpBuilder) manipulateBody(req *spec.Request, body *annotation.Body) err
 		// TODO: Modify the endpoint generator to add annotations (about OAS type and description) in request struct.
 		binding.SetType(m.Type)
 		binding.SetDescription(m.Description)
+		binding.SetRequired(m.Required)
 	}
 
 	return nil

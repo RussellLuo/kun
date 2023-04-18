@@ -23,13 +23,14 @@ func TestParseBody(t *testing.T) {
 		},
 		{
 			name: "manipulation",
-			in:   "user name=u type=string descr=user-name",
+			in:   "user name=u type=string descr=user-name required=true",
 			wantOut: &annotation.Body{
 				Manipulations: map[string]*annotation.Manipulation{
 					"user": {
 						Name:        "u",
 						Type:        "string",
 						Description: "user-name",
+						Required:    true,
 					},
 				},
 			},
@@ -38,11 +39,6 @@ func TestParseBody(t *testing.T) {
 			name:       "in unsupported",
 			in:         "user in=path",
 			wantErrStr: "parameter `in` is unsupported in body manipulation",
-		},
-		{
-			name:       "required unsupported",
-			in:         "user required=true",
-			wantErrStr: "parameter `required` is unsupported in body manipulation",
 		},
 		{
 			name:       "invalid directive",

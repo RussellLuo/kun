@@ -308,7 +308,7 @@ Note that there are only three possible differences among these HTTP request ope
 - **method**: The request method.
 - **pattern**: The request URI.
     + NOTE: All variables in **pattern** will automatically be bound to their corresponding method arguments (match by names in *lower camel case*), as **path** parameters, if these variables have not yet been specified explicitly by `//kun:param`.
-    
+
 ##### Examples
 
 - Single operation:
@@ -331,7 +331,7 @@ Note that there are only three possible differences among these HTTP request ope
         //kun:op GET /users/{userID}/messages/{messageID}
         GetMessage(ctx context.Context, userID string, messageID string) (text string, err error)
     }
-  
+
     // See a runnable example in examples/messaging.
 
     // HTTP request:
@@ -353,7 +353,7 @@ Note that there are only three possible differences among these HTTP request ope
 ```
 
 If multiple method arguments are involved, you may need to apply multiple bindings. This can be done by adding a new `//kun:param` directive, or by appending the binding to the end of the last `//kun:param` directive in a semicolon-separated list.
-  
+
 ##### Arguments
 
 - **argName**: The name of the method argument.
@@ -383,7 +383,7 @@ If multiple method arguments are involved, you may need to apply multiple bindin
             + Optional: Defaults to the type of the method argument, if not specified.
         - **descr**: The OAS description of the request parameter.
             + Optional: Defaults to `""`, if not specified.
-    
+
 ##### Examples
 
 - Bind request parameters to simple arguments:
@@ -398,7 +398,7 @@ If multiple method arguments are involved, you may need to apply multiple bindin
     // HTTP request:
     // $ http PUT /users/101 X-User-Name:tracey
     ```
-  
+
 - Bind multiple request parameters to a struct according to tags:
 
     ```go
@@ -417,7 +417,7 @@ If multiple method arguments are involved, you may need to apply multiple bindin
     // HTTP request:
     // $ http PUT /users/101?name=tracey X-User-Age:1
     ```
-  
+
 - Bind multiple query parameters to a struct with no tags:
 
     ```go
@@ -470,10 +470,10 @@ If multiple method arguments are involved, you may need to apply multiple bindin
         //kun:param name; age; ip in=header name=X-Forwarded-For, in=request name=RemoteAddr
         CreateUser(ctx context.Context, name string, age int, ip net.IP) (err error)
     }
-  
+
     // The equivalent annotations =>
     // (using backslash-continued annotations)
-  
+
     type Service interface {
         //kun:op POST /users
         //kun:param name; \
@@ -511,7 +511,7 @@ or
     + Optional: When omitted, a struct containing all the arguments (except context.Context), which are not located in **path**/**query**/**header**, will automatically be mapped to the HTTP request body.
     + The special name `-` can be used, to define that there is no HTTP request body. As a result, every argument, which is not located in **path**/**query**/**header**, will automatically be mapped to one or more query parameters.
 - **manipulation**:
-    + Syntax: `<argName> name=<name> type=<type> descr=<descr>`
+    + Syntax: `<argName> name=<name> type=<type> descr=<descr> required=<required>`
     + Options:
         - **argName**: The name of the method argument to be manipulated.
         - **name**: The name of the request parameter.
@@ -520,7 +520,9 @@ or
             + Optional: Defaults to the type of the method argument, if not specified.
         - **descr**: The OAS description of the request parameter.
             + Optional: Defaults to `""`, if not specified.
-    
+        - **required**: Determines whether this parameter is mandatory.
+            + Optional: Defaults to `false`, if not specified.
+
 ##### Examples
 
 - Omitted:
@@ -607,7 +609,7 @@ or
 - **manipulation**:
     + Syntax: `<argName> name=<name> type=<type> descr=<descr>`
     + Not supported yet.
-    
+
 ##### Examples
 
 ```go
@@ -683,7 +685,7 @@ type Service interface {
 
 - **name**: The name of the alias.
 - **value**: The string value that the alias represents.
-  
+
 ##### Examples
 
 ```go
@@ -744,7 +746,7 @@ See the [OAS Schema](https://github.com/RussellLuo/kun/blob/master/pkg/oas2/sche
     + Optional: When omitted, a struct containing all the arguments (except context.Context) will automatically be mapped to the gRPC request.
 - **response**: The name of the method result, whose value will be mapped to the gRPC response.
     + Optional: When omitted, a struct containing all the results (except error) will automatically be mapped to the gRPC response.
-    
+
 ##### Examples
 
 - Omitted:
@@ -818,7 +820,7 @@ See the [OAS Schema](https://github.com/RussellLuo/kun/blob/master/pkg/oas2/sche
     type Data struct {
         ID int `json:"id"`
     }
-  
+
     type Service interface {
         //kun:event type=created data=data
         EventCreated(ctx context.Context, data Data) (err error)

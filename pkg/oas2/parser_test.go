@@ -46,7 +46,7 @@ func TestParser_AddDefinition(t *testing.T) {
 			inBody: struct {
 				Name    string              `json:"name"`
 				Male    bool                `json:"male"`
-				Age     int                 `json:"age" kun:"descr=the-age"`
+				Age     int                 `json:"age" kun:"descr=the-age required=true"`
 				Hobbies []string            `json:"hobbies"`
 				Datum   *Datum              `json:"datum" kun:"descr=the-datum"`
 				Data    []Datum             `json:"data"`
@@ -88,6 +88,7 @@ func TestParser_AddDefinition(t *testing.T) {
 								Type:        "integer",
 								Format:      "int64",
 								Description: "the-age",
+								Required:    true,
 							},
 						},
 						{

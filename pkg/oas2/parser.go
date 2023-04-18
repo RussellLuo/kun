@@ -16,6 +16,7 @@ type JSONType struct {
 	Type        string
 	Format      string
 	Description string
+	Required    bool
 }
 
 type ItemType JSONType
@@ -83,7 +84,7 @@ func (p *Parser) AddDefinition(name string, value reflect.Value, embedded bool) 
 
 			properties = append(properties, Property{
 				Name: keyString,
-				Type: p.getJSONType(keyValue.Type(), caseconv.ToUpperCamelCase(keyString), ""),
+				Type: p.getJSONType(keyValue.Type(), caseconv.ToUpperCamelCase(keyString), "", false),
 			})
 		}
 
@@ -187,7 +188,7 @@ func (p *Parser) addStructDefinition(name string, value reflect.Value, embedded 
 			// Otherwise, append this field as a property.
 			properties = append(properties, Property{
 				Name: fieldName,
-				Type: p.getJSONType(fieldValueType, caseconv.ToUpperCamelCase(fieldName), structFieldParam.Description),
+				Type: p.getJSONType(fieldValueType, caseconv.ToUpperCamelCase(fieldName), structFieldParam.Description, structFieldParam.Required),
 			})
 		}
 	}
@@ -244,7 +245,7 @@ func (p *Parser) addArrayDefinition(name string, value reflect.Value, inner bool
 		if !inner {
 			p.defs[name] = Definition{
 				Type:                 "array",
-				ItemTypeOrProperties: p.getJSONType(elemType, elemType.Name(), ""),
+				ItemTypeOrProperties: p.getJSONType(elemType, elemType.Name(), "", false),
 			}
 		}
 		return
@@ -280,27 +281,27 @@ func (p *Parser) getArrayElemTypeName(elemType reflect.Type, arrayTypeName strin
 	return p.getTypeName(elemType, arrayTypeName+"ArrayItem")
 }
 
-func (p *Parser) getJSONType(typ reflect.Type, name, description string) JSONType {
+func (p *Parser) getJSONType(typ reflect.Type, name, description string, required bool) JSONType {
 	switch typ.Kind() {
 	case reflect.Bool:
-		return JSONType{Kind: "basic", Type: "boolean", Description: description}
+		return JSONType{Kind: "basic", Type: "boolean", Description: description, Required: required}
 	case reflect.Int8, reflect.Int16, reflect.Int32,
 		reflect.Uint8, reflect.Uint16, reflect.Uint32:
-		return JSONType{Kind: "basic", Type: "integer", Format: "int32", Description: description}
+		return JSONType{Kind: "basic", Type: "integer", Format: "int32", Description: description, Required: required}
 	case reflect.Int, reflect.Int64,
 		reflect.Uint, reflect.Uint64, reflect.Uintptr:
-		return JSONType{Kind: "basic", Type: "integer", Format: "int64", Description: description}
+		return JSONType{Kind: "basic", Type: "integer", Format: "int64", Description: description, Required: required}
 	case reflect.Float32:
-		return JSONType{Kind: "basic", Type: "number", Format: "float", Description: description}
+		return JSONType{Kind: "basic", Type: "number", Format: "float", Description: description, Required: required}
 	case reflect.Float64:
-		return JSONType{Kind: "basic", Type: "number", Format: "double", Description: description}
+		return JSONType{Kind: "basic", Type: "number", Format: "double", Description: description, Required: required}
 	case reflect.String:
-		return JSONType{Kind: "basic", Type: "string", Description: description}
+		return JSONType{Kind: "basic", Type: "string", Description: description, Required: required}
 	case reflect.Struct:
 		elem := reflect.New(typ).Elem()
 		if isTime(elem) {
 			// A time value is also a struct in Go, but it is represented as a string in OAS 2.
-			return JSONType{Kind: "basic", Type: "string", Format: "date-time", Description: description}
+			return JSONType{Kind: "basic", Type: "string", Format: "date-time", Description: description, Required: required}
 		}
 		if isFormFile(elem) {
 			// A FormFile is also a struct in Go, but it is represented as a string in OAS 3.
@@ -310,20 +311,20 @@ func (p *Parser) getJSONType(typ reflect.Type, name, description string) JSONTyp
 			//
 			// In OAS 2, the payload must be defined using `in: formData` (not body parameters) for file uploads,
 			// and the file parameter must have `type: file`. See https://swagger.io/docs/specification/2-0/file-upload/.
-			return JSONType{Kind: "basic", Type: "string", Format: "binary", Description: description}
+			return JSONType{Kind: "basic", Type: "string", Format: "binary", Description: description, Required: required}
 		}
-		return JSONType{Kind: "object", Type: p.getTypeName(typ, name), Description: description}
+		return JSONType{Kind: "object", Type: p.getTypeName(typ, name), Description: description, Required: required}
 	case reflect.Map:
-		return JSONType{Kind: "object", Type: name, Description: description}
+		return JSONType{Kind: "object", Type: name, Description: description, Required: required}
 	case reflect.Ptr:
 		// Dereference the pointer and get its element type.
-		return p.getJSONType(typ.Elem(), name, description)
+		return p.getJSONType(typ.Elem(), name, description, required)
 	case reflect.Slice, reflect.Array:
 		elemType := typ.Elem()
 		for elemType.Kind() == reflect.Ptr {
 			elemType = elemType.Elem()
 		}
-		return JSONType{Kind: "array", Type: p.getArrayElemTypeName(elemType, name), Description: description}
+		return JSONType{Kind: "array", Type: p.getArrayElemTypeName(elemType, name), Description: description, Required: required}
 	default:
 		panic(fmt.Errorf("unsupported type %s", typ.Kind()))
 	}
