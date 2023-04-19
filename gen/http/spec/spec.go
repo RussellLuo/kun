@@ -184,6 +184,11 @@ func (b *Binding) SetDescription(description string) {
 	b.Params[0].Description = description
 }
 
+func (b *Binding) SetRequired(required bool) {
+	b.panicIfError()
+	b.Params[0].Required = required
+}
+
 func (b *Binding) panicIfError() {
 	if len(b.Params) == 0 {
 		panic(errors.New("invalid binding"))

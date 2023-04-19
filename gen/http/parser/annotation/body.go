@@ -21,6 +21,7 @@ type Manipulation struct {
 	Name        string
 	Type        string
 	Description string
+	Required    bool
 }
 
 type Body struct {
@@ -30,12 +31,11 @@ type Body struct {
 
 // ParseBody parses s per the format as below:
 //
-//     <field> or <manipulation> [; <manipulation2> [; ...]]
+//	<field> or <manipulation> [; <manipulation2> [; ...]]
 //
 // The format of `<manipulation>`:
 //
-//     <argName> name=<name> type=<type> descr=<descr>
-//
+//	<argName> name=<name> type=<type> descr=<descr> required=<required>
 func ParseBody(s string) (*Body, error) {
 	// Simple format: <field>
 	if s == OptionNoBody || reSingleVarName.MatchString(s) {
@@ -64,14 +64,12 @@ func ParseBody(s string) (*Body, error) {
 			// XXX: Handle the case of manual definition `in=query`.
 			return nil, fmt.Errorf("parameter `in` is unsupported in body manipulation")
 		}
-		if p.Required {
-			return nil, fmt.Errorf("parameter `required` is unsupported in body manipulation")
-		}
 
 		m[param.ArgName] = &Manipulation{
 			Name:        p.Name,
 			Type:        p.Type,
 			Description: p.Description,
+			Required:    p.Required,
 		}
 	}
 
