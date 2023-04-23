@@ -62,6 +62,7 @@ func (s *Specification) OldSpec() *openapi.Specification {
 	}
 
 	for _, o := range s.Operations {
+		description := strings.TrimSpace(strings.Replace(o.Description, o.Name, "", 1))
 		old.Operations = append(old.Operations, &openapi.Operation{
 			Name:         o.Name,
 			GoMethodName: o.GoMethodName,
@@ -79,7 +80,7 @@ func (s *Specification) OldSpec() *openapi.Specification {
 				BodyField:  o.SuccessResponse.BodyField,
 			},
 			//FailureResponses: nil,
-			Description: o.Description,
+			Description: description,
 			Tags:        o.Tags,
 		})
 	}
