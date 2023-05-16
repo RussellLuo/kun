@@ -200,6 +200,7 @@ func (g *Generator) Generate(pkgInfo *generator.PkgInfo, spec *openapi.Specifica
 						outOps = append(outOps, opp)
 						patternToOps[op.Pattern] = opp
 					}
+					op.Description = strings.TrimSpace(strings.TrimPrefix(op.Description, op.Name))
 					opp.Operations = append(opp.Operations, op)
 				}
 
